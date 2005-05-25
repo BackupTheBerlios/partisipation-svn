@@ -1,0 +1,51 @@
+RTP/RTSP/RTC
+
+RTP = Real-Time Transport Protocol
+- Audio/Video-Übertragung über Pakete (üblicherweise UDP)
+- RFC 1889
+
+RTSP = Real-Time Streaming Protocol
+- Steuerung der Übertragung von audiovisuellen Datenströmen
+- HTTP-basiert
+- RFC 2326
+
+RTC = Real-Time Control Protocol
+- Sicherstellung von QoS bei der Übertragung
+- z.B. Synchronisation, Steuerung der Bandbreite
+
+SRTP = Secure RTP
+
+************
+
+RTP Libraries
+
+- librtp (Gnome-o-phone) 
+  http://sourceforge.net/projects/librtp/
+
+- rtp-lib 
+  http://sourceforge.net/projects/rtp-lib/
+  
+- rtplib (Bell Labs)
+  http://www.cs.columbia.edu/IRT/software/rtplib/
+  
+- JRTPLIB (C++, Windows, Linux, Solaris)
+  http://research.edm.luc.ac.be/jori/jrtplib/jrtplib.html
+  
+  + Java, Python Ports
+  
+- LIVE.COM streaming media 
+  http://www.live.com/
+  http://sourceforge.net/projects/live/
+
+- RTP text/t140 Library
+  http://sourceforge.net/projects/rtp-text-t140/
+  
+- VoIPallo (RTP + SIP)
+  http://sourceforge.net/projects/voipallo/
+  
+- UCL Common Multimedia Library
+  http://www-mice.cs.ucl.ac.uk/multimedia/software/common/
+  
+- libsrtp (Secure RTP)
+  http://sourceforge.net/projects/srtp/
+  
