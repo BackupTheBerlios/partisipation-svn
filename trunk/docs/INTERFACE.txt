@@ -1,0 +1,76 @@
+##### SERVER
+
+- register_gui(address, port):message		// max. 3 sec. auf die Antwort warten
+- register(accountid)
+- unregister(accountid)
+- make_call(accountid, callee):callid		// callee kann mit oder ohne "@" sein
+- end_call(callid)
+- accept_call(callid)
+- set_speaker_volume(level)			// level: zwischen 0 und 1, Prozentwert
+- get_speaker_volume(): level
+- set_micro_volume(level)
+- get_micro_volume(): level
+- send_dtmf(char, callid)
+
+------------------
+Account
+
+- id	
+- name		set/get			// Name des Accounts				opt.
+- username	set/get			// z.Bsp. "uli" bei uli@iptel.org
+- domain				// z.Bsp. "iptel.org" bei uli@iptel.org
+- authusername										opt.
+- password	set/get
+- displayname										opt.	
+- outboundproxy										opt.
+- registrar										opt.
+- autoregister				// will man sich registrieren			opt.
+
+
+- account_set_*(id,value)		// * - Name des Parameters , value: Wert
+- account_get_*(id): value
+- account_get_all: <array> 		// liefert Liste von bekannten ID's
+- account_create: id
+- account_delete(id)
+------------------
+
+
+
+
+
+
+
+
+
+##### CLIENT 
+
+
+- change_reg_status(id, boolean)					// teilt mit, ob eine Registrierung erfolgreich ist
+- change_call_status(callid, status)							
+- show_user_event(accountid, category, title, message, detailmessage)	// 
+- register_core								// 
+- incoming_call(accountid, callid, caller_sipuri, caller_displayname)
+- set_speaker_volume(level)
+- set_micro_volume(level)
+
+
+---------------------------------------
+
+- Einstellungen - wo speichern ? (im Core)
+- Change_call_status kann viel schneller zurück kommen, als ein graphisches Objekt erzeugt wird
+- Anruf halten, weiterleiten, Konferenz
+
+
+
+
+----------------
+
+UseCases:
+
+- starten mit Anmeldung (Kommunikation zwischen GUI und Core)
+- Accounteinstellungen bearbeiten
+- Anruf durchführen
+	- der Angerufene nimmt an
+	- der Angerufene lehnt ab
+- angerufen werden
+	- annehmen / ablehnen
