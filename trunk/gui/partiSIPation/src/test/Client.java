@@ -271,9 +271,15 @@ public class Client extends JFrame {
 
 
       params.clear();
-
-                client.executeAsync("sip.unregister", params, null);
-
+       try {
+         jText.append((String) client.execute("sip.unregister", params) + "\n");
+     } catch (XmlRpcException e1) {
+         // TODO Auto-generated catch block
+         e1.printStackTrace();
+     } catch (IOException e1) {
+         // TODO Auto-generated catch block
+         e1.printStackTrace();
+     }
 
       System.exit(0);
     }
@@ -693,7 +699,15 @@ public class Client extends JFrame {
   void this_windowClosing(WindowEvent e) {
 
     params.clear();
-          client.executeAsync("sip.unregister", params, null);
+    try {
+      jText.append((String) client.execute("sip.unregister", params) + "\n");
+  } catch (XmlRpcException e1) {
+      // TODO Auto-generated catch block
+      e1.printStackTrace();
+  } catch (IOException e1) {
+      // TODO Auto-generated catch block
+      e1.printStackTrace();
+  }
 
 
   }

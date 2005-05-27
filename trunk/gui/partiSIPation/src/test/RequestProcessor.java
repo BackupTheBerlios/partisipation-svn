@@ -42,11 +42,11 @@ public class RequestProcessor {
         return "TERMINATING CALL ...";
     }
 
-    public static void unregister() {
+    public static String unregister() {
            System.out.println("####### [" + Utils.getTimestamp()
                    + "] PROC-CALL: UNREGISTER #######");
 // todo: procedure call in core
-
+  return "Unregister";
        }
 
 }
