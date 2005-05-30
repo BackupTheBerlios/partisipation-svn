@@ -3,6 +3,7 @@ package test;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import org.apache.xmlrpc.WebServer;
 import org.apache.xmlrpc.XmlRpcClientLite;
 import org.apache.xmlrpc.XmlRpcException;
 import java.io.IOException;
@@ -11,54 +12,64 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.Vector;
-import org.apache.xmlrpc.AsyncCallback;
 
 /**
  * Simple client program with a graphical user interface. Makes remote procedure
  * calls and prints the server response into the text area.
- *
+ * 
  * @author Anton Huttenlocher
  * @author Oleksiy Reznikov
  */
 
 public class Client extends JFrame {
 
+    // client part - sends calls to core
     XmlRpcClientLite client;
+    
+    // server part - processes calls from core
+    WebServer server;
 
+    // stores the parameters for a call
     Vector params = new Vector();
 
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    
+    //  ----------- FRAMES -----------
+    
+    JFrame frame_REG = new JFrame("Register");
+    
+    //  ----------- PANELS -----------
 
     JPanel contentPane;
+    
+    JPanel jLeft = new JPanel();
 
     JPanel panel_REG = new JPanel();
+       
+    JPanel panel_TOP = new JPanel();
 
+    //  ----------- MENUS + MENU BAR -----------    
+    
     JMenuBar jMenuBar1 = new JMenuBar();
 
     JMenu jMenuFile = new JMenu();
 
     JMenu menu_HELP = new JMenu();
 
+    //  ----------- MENU ITEMS -----------
+    
     JMenuItem jMenuFileExit = new JMenuItem();
-
-    BorderLayout borderLayout1 = new BorderLayout();
 
     JMenuItem item_INFO = new JMenuItem();
 
     JMenuItem item_CONTENTS = new JMenuItem();
 
     JMenuItem menu_REGISTER = new JMenuItem();
-
-    JPanel jLeft = new JPanel();
-
-    GridBagLayout gridbag = new GridBagLayout();
-
-    GridBagConstraints gbc = new GridBagConstraints();
-
+    
     JScrollPane jScrollPane1 = new JScrollPane();
 
-    JPanel panel_TOP = new JPanel();
-
+    // ----------- BUTTONS -----------
+    
     JButton key_DIAL = new JButton("   DIAL  ");
 
     JButton key_CONF = new JButton(" Conference ");
@@ -88,9 +99,17 @@ public class Client extends JFrame {
     JButton key_SHARP = new JButton("*");
 
     JButton key_ASTERISK = new JButton("#");
+    
+    JButton key_REG_CLEAR = new JButton("CLEAR");
+
+    JButton key_REG_OK = new JButton("REGISTER");
+    
+    //  ----------- TEXT AREAS -----------    
 
     JTextArea jText = new JTextArea(10, 0);
 
+    //  ----------- LABELS -----------
+    
     JLabel label_FULLNAME = new JLabel("Display Name:");
 
     JLabel label_USER = new JLabel("User Name:");
@@ -99,6 +118,8 @@ public class Client extends JFrame {
 
     JLabel label_SIPDOMAIN = new JLabel("SIP Domain:");
 
+    //  ----------- TEXT FIELDS -----------
+    
     JTextField input_NUMBER = new JTextField(15);
 
     JTextField input_FULLNAME = new JTextField(15);
@@ -108,14 +129,18 @@ public class Client extends JFrame {
     JTextField input_USER = new JTextField(15);
 
     JPasswordField input_PASSWORD = new JPasswordField(15);
-
-    JButton key_REG_CLEAR = new JButton("CLEAR");
-
-    JButton key_REG_OK = new JButton("REGISTER");
+  
+    //  ----------- OTHER -----------
 
     JOptionPane jDialog = new JOptionPane();
+    
+    //  ----------- LAYOUTS -----------
 
-    JFrame frame_REG = new JFrame("Register");
+    BorderLayout borderLayout1 = new BorderLayout();
+
+    GridBagLayout gridbag = new GridBagLayout();
+
+    GridBagConstraints gbc = new GridBagConstraints();
 
     //Construct the frame
     public Client() {
@@ -128,6 +153,12 @@ public class Client extends JFrame {
         try {
             client = new XmlRpcClientLite(InetAddress.getLocalHost()
                     .getHostName(), 7777);
+            
+            server = new WebServer(8888, InetAddress.getLocalHost());
+            
+            server.start();
+            server.addHandler("gui", this);
+            
         } catch (MalformedURLException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
@@ -142,9 +173,9 @@ public class Client extends JFrame {
         contentPane = (JPanel) this.getContentPane();
         contentPane.setLayout(borderLayout1);
         this.setResizable(false);
-    this.setSize(new Dimension(400, 300));
+        this.setSize(new Dimension(400, 300));
         this.setTitle("partiSIPation");
-    this.addWindowListener(new Client_this_windowAdapter(this));
+        this.addWindowListener(new Client_this_windowAdapter(this));
         jMenuFile.setText("Options");
         menu_HELP.setText("Help");
         jMenuFileExit.setText("Exit");
@@ -177,7 +208,7 @@ public class Client extends JFrame {
         item_INFO.addActionListener(new Client_item_INFO_ActionAdapter(this));
 
         frame_REG.setResizable(false);
-    jMenuFile.add(menu_REGISTER);
+        jMenuFile.add(menu_REGISTER);
         jMenuFile.addSeparator();
         jMenuFile.add(jMenuFileExit);
         menu_HELP.add(item_CONTENTS);
@@ -203,31 +234,28 @@ public class Client extends JFrame {
         jLeft.add(key_SHARP);
 
         gbc.weightx = 0.5;
-            gbc.gridx = 0;
-            gbc.gridy = 0;
-            gridbag.setConstraints(key_CANCEL, gbc);
-            panel_TOP.add(key_CANCEL);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gridbag.setConstraints(key_CANCEL, gbc);
+        panel_TOP.add(key_CANCEL);
 
+        gbc.weightx = 5;
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gridbag.setConstraints(input_NUMBER, gbc);
+        panel_TOP.add(input_NUMBER);
 
-            gbc.weightx = 5;
-            gbc.gridx = 1;
-            gbc.gridy = 0;
-            gridbag.setConstraints(input_NUMBER, gbc);
-            panel_TOP.add(input_NUMBER);
+        gbc.weightx = 0.5;
+        gbc.gridx = 2;
+        gbc.gridy = 0;
+        gridbag.setConstraints(key_DIAL, gbc);
+        panel_TOP.add(key_DIAL);
 
-            gbc.weightx = 0.5;
-            gbc.gridx = 2;
-            gbc.gridy = 0;
-            gridbag.setConstraints(key_DIAL, gbc);
-            panel_TOP.add(key_DIAL);
-
-
-            gbc.weightx = 0.5;
-              gbc.gridx = 3;
-              gbc.gridy = 0;
-              gridbag.setConstraints(key_CONF, gbc);
-              panel_TOP.add(key_CONF);
-
+        gbc.weightx = 0.5;
+        gbc.gridx = 3;
+        gbc.gridy = 0;
+        gridbag.setConstraints(key_CONF, gbc);
+        panel_TOP.add(key_CONF);
 
         this.setJMenuBar(jMenuBar1);
 
@@ -269,19 +297,19 @@ public class Client extends JFrame {
     //File | Exit action performed
     public void jMenuFileExit_actionPerformed(ActionEvent e) {
 
+        params.clear();
+        try {
+            jText.append((String) client.execute("sip.unregister", params)
+                    + "\n");
+        } catch (XmlRpcException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        } catch (IOException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
 
-      params.clear();
-       try {
-         jText.append((String) client.execute("sip.unregister", params) + "\n");
-     } catch (XmlRpcException e1) {
-         // TODO Auto-generated catch block
-         e1.printStackTrace();
-     } catch (IOException e1) {
-         // TODO Auto-generated catch block
-         e1.printStackTrace();
-     }
-
-      System.exit(0);
+        System.exit(0);
     }
 
     class Client_key_1_ActionAdapter implements java.awt.event.ActionListener {
@@ -462,13 +490,13 @@ public class Client extends JFrame {
     public void item_INFO_actionPerformed(ActionEvent e) {
         ClassLoader cl = this.getClass().getClassLoader();
         try {
-        URL logoURL = cl.getResource("test/ressources/logo.jpg");
-        ImageIcon icon = new ImageIcon(logoURL);
+            URL logoURL = cl.getResource("test/ressources/logo.jpg");
+            ImageIcon icon = new ImageIcon(logoURL);
 
-        jDialog.showMessageDialog(this, "", "Info",
-                                  JOptionPane.INFORMATION_MESSAGE, icon);
-      } catch (Exception ex)  {
-            }
+            jDialog.showMessageDialog(this, "", "Info",
+                    JOptionPane.INFORMATION_MESSAGE, icon);
+        } catch (Exception ex) {
+        }
 
     }
 
@@ -587,21 +615,21 @@ public class Client extends JFrame {
         }
     }
 
-
-      void key_CONF_actionPerformed(ActionEvent e) {
-           params.clear();
-          params.addElement(input_NUMBER.getText());
-           try {
-               jText.append((String) client.execute("sip.makeConf", params) + "\n");
-           } catch (XmlRpcException e1) {
-               // TODO Auto-generated catch block
-               e1.printStackTrace();
-           } catch (IOException e1) {
-               // TODO Auto-generated catch block
-               e1.printStackTrace();
-           }
-       }
-
+    void key_CONF_actionPerformed(ActionEvent e) {
+        params.clear();
+        params.addElement(input_NUMBER.getText());
+        try {
+            jText
+                    .append((String) client.execute("sip.makeConf", params)
+                            + "\n");
+        } catch (XmlRpcException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        } catch (IOException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
+    }
 
     void key_DIAL_actionPerformed(ActionEvent e) {
         params.clear();
@@ -695,31 +723,84 @@ public class Client extends JFrame {
 
     }
 
+    void this_windowClosing(WindowEvent e) {
 
-  void this_windowClosing(WindowEvent e) {
+        params.clear();
+        try {
+            jText.append((String) client.execute("sip.unregister", params)
+                    + "\n");
+        } catch (XmlRpcException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        } catch (IOException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
 
-    params.clear();
-    try {
-      jText.append((String) client.execute("sip.unregister", params) + "\n");
-  } catch (XmlRpcException e1) {
-      // TODO Auto-generated catch block
-      e1.printStackTrace();
-  } catch (IOException e1) {
-      // TODO Auto-generated catch block
-      e1.printStackTrace();
-  }
-
-
-  }
+    }
+    
+    //  ----------- CLIENT INTERFACE IMPLEMENTATION -----------  
+    
+    public String changeRegStatus(int accountId, boolean registered) {
+        System.out.println("##### changeRegStatus #####");
+        System.out.println("accountID: " + accountId);
+        System.out.println("registered: " + registered);
+        return "";
+    }
+    
+    public String changeCallStatus(int callId, String status) {
+        System.out.println("##### changeCallStatus #####");
+        System.out.println("callId: " + callId);
+        System.out.println("status: " + status);
+        return "";
+    }
+    
+    public String showUserEvent(int accountId, String category, String title, String message, String detailMessage) {
+        System.out.println("##### showUserEvent #####");
+        System.out.println("accountId: " + accountId);
+        System.out.println("category: " + category);
+        System.out.println("title: " + title);
+        System.out.println("message: " + message);
+        System.out.println("detailMessage: " + detailMessage);
+        return "";
+    }
+    
+    public String registerCore() {
+        System.out.println("##### registerCore #####");
+        return "";
+    }
+    
+    public String incomingCall(int accountId, int callId, String callerSipUri, String callerDisplayName) {
+        System.out.println("##### incomingCall #####");
+        System.out.println("accountId: " + accountId);
+        System.out.println("callId: " + callId);
+        System.out.println("callerSipUri: " + callerSipUri);
+        System.out.println("callerDisplayName: " + callerDisplayName);
+        return "";
+    }
+    
+    public String setSpeakerVolume(double level) {
+        System.out.println("##### setSpeakerVolume #####");
+        System.out.println("level: " + level);
+        return "";
+    }
+    
+    
+    public String setMicroVolume(double level) {
+        System.out.println("##### setMicroVolume #####");
+        System.out.println("level: " + level);
+        return "";
+    }
 }
 
 class Client_this_windowAdapter extends java.awt.event.WindowAdapter {
-  Client adaptee;
+    Client adaptee;
 
-  Client_this_windowAdapter(Client adaptee) {
-    this.adaptee = adaptee;
-  }
-  public void windowClosing(WindowEvent e) {
-    adaptee.this_windowClosing(e);
-  }
+    Client_this_windowAdapter(Client adaptee) {
+        this.adaptee = adaptee;
+    }
+
+    public void windowClosing(WindowEvent e) {
+        adaptee.this_windowClosing(e);
+    }
 }
