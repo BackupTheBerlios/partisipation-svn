@@ -16,16 +16,24 @@ import java.util.Vector;
 /**
  * Simple client program with a graphical user interface. Makes remote procedure
  * calls and prints the server response into the text area.
- * 
+ *
  * @author Anton Huttenlocher
  * @author Oleksiy Reznikov
  */
 
 public class Client extends JFrame {
 
+
+  Vector accountId = new Vector();
+  Vector callId = new Vector();
+
+
+
+//just for testing
+
     // client part - sends calls to core
     XmlRpcClientLite client;
-    
+
     // server part - processes calls from core
     WebServer server;
 
@@ -33,23 +41,23 @@ public class Client extends JFrame {
     Vector params = new Vector();
 
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    
+
     //  ----------- FRAMES -----------
-    
+
     JFrame frame_REG = new JFrame("Register");
-    
+
     //  ----------- PANELS -----------
 
     JPanel contentPane;
-    
+
     JPanel jLeft = new JPanel();
 
     JPanel panel_REG = new JPanel();
-       
+
     JPanel panel_TOP = new JPanel();
 
-    //  ----------- MENUS + MENU BAR -----------    
-    
+    //  ----------- MENUS + MENU BAR -----------
+
     JMenuBar jMenuBar1 = new JMenuBar();
 
     JMenu jMenuFile = new JMenu();
@@ -57,7 +65,7 @@ public class Client extends JFrame {
     JMenu menu_HELP = new JMenu();
 
     //  ----------- MENU ITEMS -----------
-    
+
     JMenuItem jMenuFileExit = new JMenuItem();
 
     JMenuItem item_INFO = new JMenuItem();
@@ -65,11 +73,11 @@ public class Client extends JFrame {
     JMenuItem item_CONTENTS = new JMenuItem();
 
     JMenuItem menu_REGISTER = new JMenuItem();
-    
+
     JScrollPane jScrollPane1 = new JScrollPane();
 
     // ----------- BUTTONS -----------
-    
+
     JButton key_DIAL = new JButton("   DIAL  ");
 
     JButton key_CONF = new JButton(" Conference ");
@@ -99,17 +107,17 @@ public class Client extends JFrame {
     JButton key_SHARP = new JButton("*");
 
     JButton key_ASTERISK = new JButton("#");
-    
+
     JButton key_REG_CLEAR = new JButton("CLEAR");
 
     JButton key_REG_OK = new JButton("REGISTER");
-    
-    //  ----------- TEXT AREAS -----------    
+
+    //  ----------- TEXT AREAS -----------
 
     JTextArea jText = new JTextArea(10, 0);
 
     //  ----------- LABELS -----------
-    
+
     JLabel label_FULLNAME = new JLabel("Display Name:");
 
     JLabel label_USER = new JLabel("User Name:");
@@ -119,7 +127,7 @@ public class Client extends JFrame {
     JLabel label_SIPDOMAIN = new JLabel("SIP Domain:");
 
     //  ----------- TEXT FIELDS -----------
-    
+
     JTextField input_NUMBER = new JTextField(15);
 
     JTextField input_FULLNAME = new JTextField(15);
@@ -129,11 +137,11 @@ public class Client extends JFrame {
     JTextField input_USER = new JTextField(15);
 
     JPasswordField input_PASSWORD = new JPasswordField(15);
-  
+
     //  ----------- OTHER -----------
 
     JOptionPane jDialog = new JOptionPane();
-    
+
     //  ----------- LAYOUTS -----------
 
     BorderLayout borderLayout1 = new BorderLayout();
@@ -153,12 +161,12 @@ public class Client extends JFrame {
         try {
             client = new XmlRpcClientLite(InetAddress.getLocalHost()
                     .getHostName(), 7777);
-            
+
             server = new WebServer(8888, InetAddress.getLocalHost());
-            
+
             server.start();
             server.addHandler("gui", this);
-            
+
         } catch (MalformedURLException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
@@ -296,8 +304,10 @@ public class Client extends JFrame {
 
     //File | Exit action performed
     public void jMenuFileExit_actionPerformed(ActionEvent e) {
-
+accountId.clear();
+      accountId.addElement(new Integer(5));
         params.clear();
+        params.addElement(accountId.firstElement());
         try {
             jText.append((String) client.execute("sip.unregister", params)
                     + "\n");
@@ -509,7 +519,7 @@ public class Client extends JFrame {
         params.addElement(new String(input_PASSWORD.getPassword()));
         try {
             jText
-                    .append((String) client.execute("sip.register", params)
+                    .append((String) client.execute("sip.register2", params)
                             + "\n");
         } catch (XmlRpcException e1) {
             // TODO Auto-generated catch block
@@ -632,7 +642,9 @@ public class Client extends JFrame {
     }
 
     void key_DIAL_actionPerformed(ActionEvent e) {
+        accountId.addElement(new Integer (5)); // just for testing
         params.clear();
+        params.addElement(accountId.firstElement());
         params.addElement(input_NUMBER.getText());
         try {
             jText
@@ -661,7 +673,10 @@ public class Client extends JFrame {
     }
 
     void key_CANCEL_actionPerformed(ActionEvent e) {
+      callId.clear();
+      callId.addElement(new Integer(3)); // just for testing
         params.clear();
+        params.addElement(callId.firstElement());
         try {
             jText.append((String) client.execute("sip.endCall", params) + "\n");
         } catch (XmlRpcException e1) {
@@ -674,6 +689,59 @@ public class Client extends JFrame {
         /*
          */
     }
+
+    public void register() {
+             accountId.clear();
+             accountId.addElement(new Integer(5)); // just for testing
+             params.clear();
+             params.addElement(accountId.firstElement());
+             try {
+                 jText.append((String) client.execute("sip.register", params) + "\n");
+             } catch (XmlRpcException e1) {
+                 // TODO Auto-generated catch block
+                 e1.printStackTrace();
+             } catch (IOException e1) {
+                 // TODO Auto-generated catch block
+                 e1.printStackTrace();
+             }
+      }
+
+      public void registerGui() {
+           params.clear();
+          try {
+            params.addElement(new String(InetAddress.getLocalHost().getHostName()));
+          }
+          catch (UnknownHostException ex) {
+          }
+          params.addElement(new Integer(7777));
+           try {
+               jText.append((String) client.execute("sip.registerGui", params) + "\n");
+           } catch (XmlRpcException e1) {
+               // TODO Auto-generated catch block
+               e1.printStackTrace();
+           } catch (IOException e1) {
+               // TODO Auto-generated catch block
+               e1.printStackTrace();
+           }
+    }
+
+    public void acceptCall() {
+             callId.clear();
+             callId.addElement(new Integer(5)); // just for testing
+             params.clear();
+             params.addElement(accountId.firstElement());
+             try {
+                 jText.append((String) client.execute("sip.acceptCall", params) + "\n");
+             } catch (XmlRpcException e1) {
+                 // TODO Auto-generated catch block
+                 e1.printStackTrace();
+             } catch (IOException e1) {
+                 // TODO Auto-generated catch block
+                 e1.printStackTrace();
+             }
+      }
+
+
 
     void menu_REGISTER_actionPerformed(ActionEvent e) {
         Dimension screen_size = Toolkit.getDefaultToolkit().getScreenSize();
@@ -724,8 +792,10 @@ public class Client extends JFrame {
     }
 
     void this_windowClosing(WindowEvent e) {
-
+accountId.clear();
+      accountId.addElement(new Integer(5));
         params.clear();
+        params.addElement(accountId.firstElement());
         try {
             jText.append((String) client.execute("sip.unregister", params)
                     + "\n");
@@ -738,23 +808,27 @@ public class Client extends JFrame {
         }
 
     }
-    
-    //  ----------- CLIENT INTERFACE IMPLEMENTATION -----------  
-    
+
+
+
+
+
+    //  ----------- CLIENT INTERFACE IMPLEMENTATION -----------
+
     public String changeRegStatus(int accountId, boolean registered) {
         System.out.println("##### changeRegStatus #####");
         System.out.println("accountID: " + accountId);
         System.out.println("registered: " + registered);
         return "";
     }
-    
+
     public String changeCallStatus(int callId, String status) {
         System.out.println("##### changeCallStatus #####");
         System.out.println("callId: " + callId);
         System.out.println("status: " + status);
         return "";
     }
-    
+
     public String showUserEvent(int accountId, String category, String title, String message, String detailMessage) {
         System.out.println("##### showUserEvent #####");
         System.out.println("accountId: " + accountId);
@@ -764,12 +838,12 @@ public class Client extends JFrame {
         System.out.println("detailMessage: " + detailMessage);
         return "";
     }
-    
+
     public String registerCore() {
         System.out.println("##### registerCore #####");
         return "";
     }
-    
+
     public String incomingCall(int accountId, int callId, String callerSipUri, String callerDisplayName) {
         System.out.println("##### incomingCall #####");
         System.out.println("accountId: " + accountId);
@@ -778,14 +852,14 @@ public class Client extends JFrame {
         System.out.println("callerDisplayName: " + callerDisplayName);
         return "";
     }
-    
+
     public String setSpeakerVolume(double level) {
         System.out.println("##### setSpeakerVolume #####");
         System.out.println("level: " + level);
         return "";
     }
-    
-    
+
+
     public String setMicroVolume(double level) {
         System.out.println("##### setMicroVolume #####");
         System.out.println("level: " + level);
