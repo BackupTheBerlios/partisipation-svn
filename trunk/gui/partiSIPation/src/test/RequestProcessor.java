@@ -23,33 +23,33 @@ public class RequestProcessor {
         // call was successful
         return "REGISTER OK";
     }
-    public static String register(int accId) {
+    public static boolean register(int accId) {
          System.out.println("####### [" + Utils.getTimestamp()
                  + "] PROC-CALL: REGISTER #######");
          System.out.println("AccountId: " + accId);
 
-         return "";
+         return true;
      }
 
-     public static String registerGui(String adress, int port) {
+     public static boolean registerGui(String adress, int port) {
         System.out.println("####### [" + Utils.getTimestamp()
                 + "] PROC-CALL: REGISTER GUI #######");
 
-        return "REGISTER GUI OK";
+        return true;
     }
 
 
-    public static String makeCall(int accId, String number) {
+    public static boolean makeCall(int accId, String number) {
           System.out.println("####### [" + Utils.getTimestamp()
                 + "] PROC-CALL: MAKE CALL #######");
-        return "callId"; //todo
+        return true;
     }
-    public static String acceptCall(int callId) {
+    public static boolean acceptCall(int callId) {
           System.out.println("####### [" + Utils.getTimestamp()
                   + "] PROC-CALL: REGISTER #######");
           System.out.println("Accepted " + callId);
 
-          return "";
+          return true;
       }
 
     public static String makeConf(String id) {
@@ -60,17 +60,17 @@ public class RequestProcessor {
         }
 
 
-    public static String endCall(int callId) {
+    public static boolean endCall(int callId) {
       System.out.println("####### [" + Utils.getTimestamp()
                     + "] Terminating Call #######");
-        return "";
+        return true;
     }
 
-    public static String unregister(int accId) {
+    public static boolean unregister(int accId) {
            System.out.println("####### [" + Utils.getTimestamp()
                    + "] PROC-CALL: UNREGISTER ####### " + accId);
 // todo: procedure call in core
-  return "";
+  return true;
        }
 
 }

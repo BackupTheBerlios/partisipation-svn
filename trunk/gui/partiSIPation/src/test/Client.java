@@ -309,8 +309,7 @@ accountId.clear();
         params.clear();
         params.addElement(accountId.firstElement());
         try {
-            jText.append((String) client.execute("sip.unregister", params)
-                    + "\n");
+            client.execute("sip.unregister", params);
         } catch (XmlRpcException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
@@ -518,9 +517,7 @@ accountId.clear();
         params.addElement(input_SIPDOMAIN.getText());
         params.addElement(new String(input_PASSWORD.getPassword()));
         try {
-            jText
-                    .append((String) client.execute("sip.register2", params)
-                            + "\n");
+            client.execute("sip.register2", params);
         } catch (XmlRpcException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
@@ -629,9 +626,7 @@ accountId.clear();
         params.clear();
         params.addElement(input_NUMBER.getText());
         try {
-            jText
-                    .append((String) client.execute("sip.makeConf", params)
-                            + "\n");
+            jText.append((String) client.execute("sip.makeConf", params) + "\n");
         } catch (XmlRpcException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
@@ -647,9 +642,7 @@ accountId.clear();
         params.addElement(accountId.firstElement());
         params.addElement(input_NUMBER.getText());
         try {
-            jText
-                    .append((String) client.execute("sip.makeCall", params)
-                            + "\n");
+             client.execute("sip.makeCall", params);
         } catch (XmlRpcException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
@@ -678,7 +671,7 @@ accountId.clear();
         params.clear();
         params.addElement(callId.firstElement());
         try {
-            jText.append((String) client.execute("sip.endCall", params) + "\n");
+          client.execute("sip.endCall", params);
         } catch (XmlRpcException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
@@ -696,7 +689,7 @@ accountId.clear();
              params.clear();
              params.addElement(accountId.firstElement());
              try {
-                 jText.append((String) client.execute("sip.register", params) + "\n");
+                  client.execute("sip.register", params);
              } catch (XmlRpcException e1) {
                  // TODO Auto-generated catch block
                  e1.printStackTrace();
@@ -715,7 +708,7 @@ accountId.clear();
           }
           params.addElement(new Integer(7777));
            try {
-               jText.append((String) client.execute("sip.registerGui", params) + "\n");
+               client.execute("sip.registerGui", params);
            } catch (XmlRpcException e1) {
                // TODO Auto-generated catch block
                e1.printStackTrace();
@@ -731,7 +724,7 @@ accountId.clear();
              params.clear();
              params.addElement(accountId.firstElement());
              try {
-                 jText.append((String) client.execute("sip.acceptCall", params) + "\n");
+                client.execute("sip.acceptCall", params);
              } catch (XmlRpcException e1) {
                  // TODO Auto-generated catch block
                  e1.printStackTrace();
@@ -797,8 +790,7 @@ accountId.clear();
         params.clear();
         params.addElement(accountId.firstElement());
         try {
-            jText.append((String) client.execute("sip.unregister", params)
-                    + "\n");
+             client.execute("sip.unregister", params);
         } catch (XmlRpcException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
@@ -815,55 +807,55 @@ accountId.clear();
 
     //  ----------- CLIENT INTERFACE IMPLEMENTATION -----------
 
-    public String changeRegStatus(int accountId, boolean registered) {
+    public boolean changeRegStatus(int accountId, boolean registered) {
         System.out.println("##### changeRegStatus #####");
         System.out.println("accountID: " + accountId);
         System.out.println("registered: " + registered);
-        return "";
+        return true;
     }
 
-    public String changeCallStatus(int callId, String status) {
+    public boolean changeCallStatus(int callId, String status) {
         System.out.println("##### changeCallStatus #####");
         System.out.println("callId: " + callId);
         System.out.println("status: " + status);
-        return "";
+        return true;
     }
 
-    public String showUserEvent(int accountId, String category, String title, String message, String detailMessage) {
+    public boolean showUserEvent(int accountId, String category, String title, String message, String detailMessage) {
         System.out.println("##### showUserEvent #####");
         System.out.println("accountId: " + accountId);
         System.out.println("category: " + category);
         System.out.println("title: " + title);
         System.out.println("message: " + message);
         System.out.println("detailMessage: " + detailMessage);
-        return "";
+        return true;
     }
 
-    public String registerCore() {
+    public boolean registerCore() {
         System.out.println("##### registerCore #####");
-        return "";
+        return true;
     }
 
-    public String incomingCall(int accountId, int callId, String callerSipUri, String callerDisplayName) {
+    public boolean incomingCall(int accountId, int callId, String callerSipUri, String callerDisplayName) {
         System.out.println("##### incomingCall #####");
         System.out.println("accountId: " + accountId);
         System.out.println("callId: " + callId);
         System.out.println("callerSipUri: " + callerSipUri);
         System.out.println("callerDisplayName: " + callerDisplayName);
-        return "";
+        return true;
     }
 
-    public String setSpeakerVolume(double level) {
+    public boolean setSpeakerVolume(double level) {
         System.out.println("##### setSpeakerVolume #####");
         System.out.println("level: " + level);
-        return "";
+        return true;
     }
 
 
-    public String setMicroVolume(double level) {
+    public boolean setMicroVolume(double level) {
         System.out.println("##### setMicroVolume #####");
         System.out.println("level: " + level);
-        return "";
+        return true;
     }
 }
 
