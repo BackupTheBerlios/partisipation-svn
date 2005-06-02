@@ -1,5 +1,3 @@
-/* A simple standalone XML-RPC server written in C. */
-
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -11,6 +9,8 @@
 #include <account_management.h>
 #include <volume_management.h>
 #include <extras_management.h>
+#include <gui_callback.h>
+#include <callback_util.h>
 
 const int SERVER_PORT = 7777;
 
@@ -21,6 +21,12 @@ main(int           const argc,
     xmlrpc_server_abyss_parms serverparm;
     xmlrpc_registry * registryP;
     xmlrpc_env env;
+    
+    /* callback client initializiation */
+    
+    callbackEnv = callback_init();
+    
+    /* server initializiation */
 
     xmlrpc_env_init(&env);
 
