@@ -159,10 +159,31 @@ public class Client extends JFrame {
             // could not create GUI
         }
         try {
-            client = new XmlRpcClientLite(InetAddress.getLocalHost()
-                    .getHostName(), 7777);
+            //client = new XmlRpcClientLite(InetAddress.getLocalHost()
+            //        .getHostName(), 7777);
 
-            server = new WebServer(8888, InetAddress.getLocalHost());
+            
+            // NOTE: this client/server starts on network interface 192.168.0.2
+            // if you don't have this IP address assigned to one of your
+            // network interfaces, this code will not run, you must change 
+            // it to a proper value 
+            
+            byte[] b = new byte[4];
+            b[0] = (byte) (192 & 0xff);
+            b[1] = (byte) (168 & 0xff);
+            b[2] = 0;
+            b[3] = 2;
+                      
+            client = new XmlRpcClientLite(InetAddress.getByAddress(b).getHostName(), 7777);
+            
+            //server = new WebServer(8888, InetAddress.getLocalHost());
+            
+            byte[] a = new byte[4];
+            a[0] = (byte) (192 & 0xff);
+            a[1] = (byte) (168 & 0xff);
+            a[2] = 0;
+            a[3] = 2;
+            server = new WebServer(8888, InetAddress.getByAddress(a));
 
             server.start();
             server.addHandler("gui", this);
@@ -683,7 +704,7 @@ accountId.clear();
          */
     }
 
-    public void register() {
+/*    public void register() {
              accountId.clear();
              accountId.addElement(new Integer(5)); // just for testing
              params.clear();
@@ -699,7 +720,7 @@ accountId.clear();
              }
       }
 
-      public void registerGui() {
+	public void registerGui() {
            params.clear();
           try {
             params.addElement(new String(InetAddress.getLocalHost().getHostName()));
@@ -718,7 +739,7 @@ accountId.clear();
            }
     }
 
-    public void acceptCall() {
+	public void acceptCall() {
              callId.clear();
              callId.addElement(new Integer(5)); // just for testing
              params.clear();
@@ -733,7 +754,7 @@ accountId.clear();
                  e1.printStackTrace();
              }
       }
-
+*/
 
 
     void menu_REGISTER_actionPerformed(ActionEvent e) {
