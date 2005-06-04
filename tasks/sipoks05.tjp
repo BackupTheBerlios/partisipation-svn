@@ -1,0 +1,347 @@
+macro navbar [
+rawhead
+  '<p><center>
+  <table border="2" cellpadding="10">
+  <tr>
+    <td class="default" style="font-size:120%" rowspan="2">
+    <a href="tasks-overview.html">Tasks Overview</td>
+    <td class="default" style="font-size:120%" rowspan="2">
+    <a href="tasks-overview-actual.html">Tasks Overview Actual</td>
+    <td class="default" style="font-size:120%" rowspan="2">
+    <a href="tasks-details.html">Tasks Details</td>
+    <td class="default" style="font-size:120%" rowspan="2">
+    <a href="staff-overview.html">Staff Overview</td>
+    <td class="default" style="font-size:120%" rowspan="2">
+    <a href="staff-details.html">Staff Details</td>
+    <td class="default" style="font-size:120%" rowspan="2">
+    <a href="kontip_poster.eps">GANTT Chart (Postscript)</td>
+  </tr>
+  </table>
+  </center></p><br>'
+]
+
+macro report_start_end [
+    start 2005-04-11
+    end 2005-09-30
+]
+
+project sipoks05 "PartiSIPation - A Sip User Agent" "1.0" 2005-04-11 2005-09-30 {
+    now 2005-06-04
+    timeformat "%Y-%m-%d"
+
+    currency "EUR"
+
+    scenario plan "Plan" {
+        scenario actual "actual execution"
+    }
+}
+
+rate 310.0
+
+flags team
+
+resource anton "Anton Huttenlocher" {
+    limits { weeklymax 6h }
+}
+resource enrico "Enrico Hartung" {
+    limits { weeklymax 6h }
+}
+resource matthias "Matthias Liebig" {
+    limits { weeklymax 6h }
+}
+resource oleksiy "Oleksiy Reznikov" {
+    limits { weeklymax 6h }
+}
+
+
+task GUI "GUI" {
+    start 2005-04-11
+    allocate anton
+    allocate oleksiy
+
+    task milestones "Milestones" {
+        task ms_base "Base to build implementation on ready" {
+            milestone
+            depends !!base
+        }
+        task ms_register "GUI registration ready" {
+            milestone
+            depends !!register, !ms_base
+        }
+        task ms_account "Account management ready" {
+            milestone
+            depends !!account, !ms_register
+        }
+        task ms_call "Call management ready" {
+            milestone
+            depends !!callmanagement, !ms_account
+        }
+        task ms_volumne "Volumne management ready" {
+            milestone
+            depends !!volumne, !ms_call
+        }
+        task ms_dtmf "DTMF ready" {
+            milestone
+            depends !!dtmf, !ms_volumne
+        }
+    }
+
+    task testing "Test cases for junit" {
+        start 2005-06-04
+
+        task corefuncs "Test case: gui invokes core functions" {
+            effort 1h
+        }
+        task netif "Test support of localhost and multiple network interfaces" {
+            effort 1 h
+        }
+        task rpcerrors "Test xml-rpc error handling" {
+            effort 1 h
+        }
+        task call "Test making a call" {
+            effort 1 h
+        }
+        task called "Test being called" {
+            effort 1 h
+        }
+        task account "Test account management" {
+            effort 1 h
+        }
+        task register "Test registering gui" {
+            effort 1 h
+        }
+        task volumne "Test volumne management" {
+            effort 1 h
+        }
+        task dtmf "Test DTMF" {
+            effort 1 h
+        }
+    }
+
+    task design "GUI design" {
+        effort 24h
+        task clients "Client investigation" {
+            effort 2h
+            start 2005-06-04
+        }
+    }
+
+    task base "Build up a base to implement gui functions on" {
+
+        task core "Invoke core functions" {
+            depends !!testing.corefuncs
+                task instcore "install core" {
+                effort 2h
+                start 2005-06-04
+            }
+        }
+
+        task netif "Support of localhost and multiple network interfaces" {
+            effort 8h
+            start 2005-06-04
+            depends !!testing.netif
+        }
+
+
+        task rpcerrors "error handling for xml-rpc interface" {
+            effort 6h
+            start 2005-06-04
+            depends !!testing.rpcerrors
+        }
+
+        task mvcif "Interfaces to meet model-view-controller" {
+            effort 8h
+            start 2005-06-04
+        }
+    }
+
+    task callmanagement "implemetation of call management" {
+        task call "Make a call" {
+            depends !!testing.call
+            effort 3h
+        }
+
+        task called "Be called" {
+            depends !!testing.called
+            effort 4h
+        }
+    }
+    task register "GUI registration" {
+        depends !testing.register
+        effort 2h
+    }
+
+    task account "Account management" {
+        depends !testing.account
+        effort 3h
+    }
+
+    task volumne "Volumne management" {
+        depends !testing.volumne
+        effort 3h
+    }
+
+    task dtmf "DTMF" {
+        depends !testing.dtmf
+        effort 2h
+    }
+
+}
+
+
+task Core "Core" {
+    start 2005-04-11
+    allocate enrico
+    allocate matthias
+
+    task milestones "Milestones" {
+        task ms_interfaces "Interfaces ready" {
+            milestone
+            depends !!rtp.ifapt
+        }
+    }
+
+    task testing "Testing" {
+        start 2005-06-04
+
+        task env "Test Environment for C" {
+            effort 6h
+        }
+        task rtp_ifapt "Test Interface and adapter for RTP library" {
+            effort 1h
+        }
+        task audio_ifapt "Test Interface and adapter for audio" {
+            effort 1h
+        }
+        task xmlrpc_ifapt "Test Interface and adapter for XML-RPC" {
+            effort 1h
+            allocate matthias
+        }
+
+    }
+
+    task style "Doxygen + tsylechecking" {
+        effort 2h
+        start 2005-06-04
+    }
+
+    task config "Configuration with xml or ini" {
+        effort 2h
+        start 2005-06-04
+    }
+
+    task rtp "Including of RTP library" {
+        start 2005-06-04
+        task invest "RTP library investigation" {
+            effort 4h
+        }
+        task ifapt "Implementation of interface and adapter" {
+            effort 8h
+            depends !!testing.rtp_ifapt
+        }
+    }
+
+    task audio "Audio control" {
+        start 2005-06-04
+        task volumne "Volumne" {
+            effort 6h
+        }
+        task input "Input" {
+            effort 6h
+        }
+        task output "Output" {
+            effort 6h
+        }
+        task codecs "Codecs" {
+            effort 6h
+        }
+        task ifapt "Implementation of interface and adapter" {
+            effort 8h
+        }
+    }
+
+    task xmlrpc "XML-RPC" {
+        start 2005-06-04
+        task ifapt "Implementation of interface and adapter" {
+            effort 4h
+            allocate matthias
+        }
+    }
+
+    task uml "UML update" {
+        start 2005-06-04
+        effort 1h
+        allocate matthias
+    }
+}
+
+###############################################################################
+# reports                                                                     #
+###############################################################################
+htmltaskreport "tasks-overview.html" {
+    ${navbar}
+    ${report_start_end}
+    columns hierarchindex, name, duration, effort { title "Work"},
+        start, end, weekly
+    timeformat "%a %Y-%m-%d"
+    barlabels empty
+    headline "Accounting Software Project"
+    caption "This table presents a management-level overview of the
+        project. The values are days or man-days."
+}
+
+htmltaskreport "tasks-overview-actual.html" {
+    ${navbar}
+    ${report_start_end}
+    columns hierarchindex, name, duration, effort { title "Work"},
+        start, end, scenario, weekly
+    timeformat "%a %Y-%m-%d"
+    scenarios plan, actual
+    barlabels empty
+    headline "Accounting Software Project"
+    caption "This table presents a management-level overview of the
+        project. The values are days or man-days."
+}
+###############################################################################
+
+htmltaskreport "tasks-details.html" {
+    ${navbar}
+    ${report_start_end}
+    columns no, name, start, end, scenario, daily
+    scenarios plan, actual
+    headline "Accounting Software Project"
+    caption "This table shows the load of each day for all the tasks.
+        Additionally the resources used for each task are listed. Since the
+        project start was delayed, the delayed schedule differs significantly
+        from the original plan."
+    hideresource 0
+}
+
+###############################################################################
+
+htmlresourcereport "staff-overview.html" {
+    ${navbar}
+    columns no, name, scenario, weekly, effort
+    scenarios plan, actual
+    loadunit hours
+    headline "Weekly working hours for the Accounting Software Project"
+}
+
+###############################################################################
+
+htmlresourcereport "staff-details.html" {
+    ${navbar}
+    ${report_start_end}
+    columns name, daily, effort
+    hidetask 0
+    hideresource team
+    sortresources nameup
+    loadunit hours
+    headline "Daily working hours for the Accounting Software Project"
+}
+
+###############################################################################
+
+xmlreport "report.tjx" {
+    version 2
+}
