@@ -155,7 +155,7 @@ task GUI "GUI" {
         }
     }
 
-    task callmanagement "implemetation of call management" {
+    task callmanagement "implementation of call management" {
         task call "Make a call" {
             depends !!testing.call
             effort 3h
@@ -195,9 +195,29 @@ task Core "Core" {
     allocate matthias
 
     task milestones "Milestones" {
+        task ms_uml "UML concept ready" {
+            milestone
+            depends !!uml
+        }
         task ms_interfaces "Interfaces ready" {
             milestone
-            depends !!rtp.ifapt
+            depends !!rtp.ifapt, !!audio.ifapt, !!xmlrpc.ifapt, !!osip.ifapt, !ms_uml
+        }
+        task ms_core "Core concept ready" {
+            milestone
+            depends !ms_interfaces, !!concept
+        }
+        task ms_account "Account management ready" {
+            milestone
+            depends !!account, !ms_core
+        }
+        task ms_portable "Core portable" {
+            milestone
+            depends !!portable, !ms_account
+        }
+        task ms_implementation "Core implemented" {
+            milestone
+            depends !!implementation, !ms_portable
         }
     }
 
@@ -217,10 +237,32 @@ task Core "Core" {
             effort 1h
             allocate matthias
         }
+        task osip_ifapt "Test Interface and adapter for oSIP" {
+            effort 1h
+            allocate enrico
+        }
+        task call "Test making a call" {
+            effort 1 h
+        }
+        task called "Test being called" {
+            effort 1 h
+        }
+        task account "Test account management" {
+            effort 1 h
+        }
+        task register "Test registering gui" {
+            effort 1 h
+        }
+        task volumne "Test volumne management" {
+            effort 1 h
+        }
+        task dtmf "Test DTMF" {
+            effort 1 h
+        }
 
     }
 
-    task style "Doxygen + tsylechecking" {
+    task style "Doxygen + stylechecking" {
         effort 2h
         start 2005-06-04
     }
@@ -229,7 +271,6 @@ task Core "Core" {
         effort 2h
         start 2005-06-04
     }
-
     task rtp "Including of RTP library" {
         start 2005-06-04
         task invest "RTP library investigation" {
@@ -268,11 +309,97 @@ task Core "Core" {
         }
     }
 
-    task uml "UML update" {
-        start 2005-06-04
-        effort 1h
-        allocate matthias
+    task uml "UML" {
+        task update "UML update" {
+            start 2005-06-04
+            effort 1h
+            allocate matthias
+        }
+        task statemachine "UML Statemachine" {
+            start 2005-06-04
+            depends !update
+            task concept "Concept" {
+                effort 6h
+            }
+            task investigation "Investigation" {
+                effort 1h
+            }
+            task implementation "Implementation (interface)" {
+                effort 6h
+            }
+        }
     }
+
+    task concept "Core concept" {
+        start 2005-06-04
+        task threads "Threads under c (pthread)" {
+            effort 2h
+        }
+    }
+
+    task account "Account management" {
+        start 2005-06-04
+        task storage "Data storage (e.g. with XML)" {
+            effort 2h
+        }
+        task logic "Data management (e.g. creating, editing, deleting of account data)" {
+            effort 2h
+        }
+        task error "Error handling" {
+            effort 3h
+        }
+    }
+
+    task portable "Portability of core" {
+        start 2005-06-04
+        effort 6h
+    }
+
+    task osip "oSIP" {
+        start 2005-06-04
+        allocate enrico
+        task ifapt "Implementation of interface and adapter" {
+            effort 8h
+        }
+    }
+
+    task implementation "Core implementation" {
+        start 2005-06-04
+        task callmanagement "implementation of call management" {
+            task call "Make a call" {
+                depends !!!testing.call
+                effort 3h
+            }
+
+            task called "Be called" {
+                depends !!!testing.called
+                effort 4h
+            }
+        }
+        task register "GUI registration" {
+            depends !!testing.register
+            effort 2h
+        }
+
+        task account "Account management" {
+            depends !!testing.account
+            effort 3h
+        }
+
+        task volumne "Volumne management" {
+            depends !!testing.volumne
+            effort 3h
+        }
+
+        task dtmf "DTMF" {
+            depends !!testing.dtmf
+            effort 2h
+        }
+        task makefile "Makefile" {
+            effort 1h
+        }
+    }
+
 }
 
 ###############################################################################
