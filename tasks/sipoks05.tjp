@@ -1,28 +1,54 @@
 macro navbar [
 rawhead
-  '<p><center>
-  <table border="2" cellpadding="10">
-  <tr>
-    <td class="default" style="font-size:120%" rowspan="2">
-    <a href="tasks-overview.html">Tasks Overview</td>
-    <td class="default" style="font-size:120%" rowspan="2">
-    <a href="tasks-overview-actual.html">Tasks Overview Actual</td>
-    <td class="default" style="font-size:120%" rowspan="2">
-    <a href="tasks-details.html">Tasks Details</td>
-    <td class="default" style="font-size:120%" rowspan="2">
-    <a href="staff-overview.html">Staff Overview</td>
-    <td class="default" style="font-size:120%" rowspan="2">
-    <a href="staff-details.html">Staff Details</td>
-    <td class="default" style="font-size:120%" rowspan="2">
-    <a href="kontip_poster.eps">GANTT Chart (Postscript)</td>
-  </tr>
-  </table>
-  </center></p><br>'
+'<center><p>
+	<table border="2" cellpadding="5">
+		<tr>
+			<td><h3>report</h3></td>
+			<td><h3>plan</h3></td>
+			<td><h3>actual</h3></td>
+			<td><h3>plan/actual</h3></td>
+		</tr>
+		<tr>
+			<td><h4>Tasks Overview</h4></td>
+			<td><a href="tasks-overview.html"><center><img src="icons/kcalendar.gif" border="0"></center></td>
+			<td><a href="tasks-overview-actual.html"><center><img src="icons/karm.gif" border="0"></center></td>
+			<td><a href="tasks-overview-plan-actual.html"><center><img src="icons/kcalendar.gif" border="0"><img src="icons/karm.gif" border="0"></center></td>
+		<tr>
+		<tr>
+			<td><h4>Tasks Details</h4></td>
+			<td><a href="tasks-details.html"><center><img src="icons/kcalendar.gif" border="0"></center></td>
+			<td><a href="tasks-details-actual.html"><center><img src="icons/karm.gif" border="0"></center></td>
+			<td><a href="tasks-details-plan-actual.html"><center><img src="icons/kcalendar.gif" border="0"><img src="icons/karm.gif" border="0"></center></td>
+		<tr>
+		<tr>
+			<td><h4>Staff Overview</h4></td>
+			<td><a href="staff-overview.html"><center><img src="icons/kcalendar.gif" border="0"></center></td>
+			<td><a href="staff-overview-actual.html"><center><img src="icons/karm.gif" border="0"></center></td>
+			<td><a href="staff-overview-plan-actual.html"><center><img src="icons/kcalendar.gif" border="0"><img src="icons/karm.gif" border="0"></center></td>
+		<tr>
+		<tr>
+			<td><h4>Staff Details</h4></td>
+			<td><a href="staff-details.html"><center><img src="icons/kcalendar.gif" border="0"></center></td>
+			<td><a href="staff-details-actual.html"><center><img src="icons/karm.gif" border="0"></center></td>
+			<td><a href="staff-details-plan-actual.html"><center><img src="icons/kcalendar.gif" border="0"><img src="icons/karm.gif" border="0"></center></td>
+		<tr>
+	</table>
+</p>
+<p>
+	<a href="kontip_poster.eps">GANTT Chart (Postscript)</td>
+</p>
+</center>
+<br>'
 ]
 
 macro report_start_end [
     start 2005-04-11
     end 2005-09-30
+]
+
+macro timeformat [
+	#${timeformat}
+	timeformat "%Y-%m-%d"
 ]
 
 project sipoks05 "PartiSIPation - A Sip User Agent" "1.0" 2005-04-11 2005-09-30 {
@@ -456,73 +482,160 @@ task Core "Core" {
 
 }
 
+
 ###############################################################################
 # reports                                                                     #
 ###############################################################################
 htmltaskreport "tasks-overview.html" {
-    ${navbar}
-    ${report_start_end}
-    columns hierarchindex, name, duration, effort { title "Work"},
-        start, end, weekly
-    timeformat "%a %Y-%m-%d"
-    barlabels empty
-    headline "Accounting Software Project"
-    caption "This table presents a management-level overview of the
-        project. The values are days or man-days."
+	${navbar}
+	${report_start_end}
+	${timeformat}
+	columns hierarchindex, name, duration, effort { title "Work"},
+		start, end, weekly
+	barlabels empty
+	headline "iptelorg projects - overview"
+	caption "This table presents a management-level overview of our
+	  projects. The values are days or man-days. The scenario shown here is: plan"
 }
 
 htmltaskreport "tasks-overview-actual.html" {
-    ${navbar}
-    ${report_start_end}
-    columns hierarchindex, name, duration, effort { title "Work"},
-        start, end, scenario, weekly
-    timeformat "%a %Y-%m-%d"
-    scenarios plan, actual
-    barlabels empty
-    headline "Accounting Software Project"
-    caption "This table presents a management-level overview of the
-        project. The values are days or man-days."
+	${navbar}
+	${report_start_end}
+	${timeformat}
+	columns hierarchindex, name, duration, effort { title "Work"},
+		start, end, scenario, weekly
+	scenarios actual
+	barlabels empty
+	headline "iptelorg projects - overview"
+	caption "This table presents a management-level overview of our
+	  projects. The values are days or man-days. The scenario shown here is: actual"
+}
+
+htmltaskreport "tasks-overview-plan-actual.html" {
+	${navbar}
+	${report_start_end}
+	${timeformat}
+	columns hierarchindex, name, duration, effort { title "Work"},
+		start, end, scenario, weekly
+	scenarios plan, actual
+	barlabels empty
+	headline "iptelorg projects - overview"
+	caption "This table presents a management-level overview of our
+	  projects. The values are days or man-days. Both scenarios are shown here: plan/actual"
 }
 ###############################################################################
 
 htmltaskreport "tasks-details.html" {
-    ${navbar}
-    ${report_start_end}
-    columns no, name, start, end, scenario, daily
-    scenarios plan, actual
-    headline "Accounting Software Project"
-    caption "This table shows the load of each day for all the tasks.
-        Additionally the resources used for each task are listed. Since the
-        project start was delayed, the delayed schedule differs significantly
-        from the original plan."
-    hideresource 0
+	${navbar}
+	${report_start_end}
+	${timeformat}
+	columns no, name, start, end, scenario, daily
+	scenarios plan
+	headline "iptelorg projects - task details"
+	caption "This table shows the load of each day for all the tasks.
+	  Additionally the resources used for each task are listed. The scenario shown here is: plan"
+	hideresource 0
+}
+htmltaskreport "tasks-details-actual.html" {
+	${navbar}
+	${report_start_end}
+	${timeformat}
+	columns no, name, start, end, scenario, daily
+	scenarios actual
+	headline "iptelorg projects - task details"
+	caption "This table shows the load of each day for all the tasks.
+	  Additionally the resources used for each task are listed. The scenario shown here is: actual"
+	hideresource 0
+}
+htmltaskreport "tasks-details-plan-actual.html" {
+	${navbar}
+	${report_start_end}
+	${timeformat}
+	columns no, name, start, end, scenario, daily
+	scenarios plan, actual
+	headline "iptelorg projects - task details"
+	caption "This table shows the load of each day for all the tasks.
+	  Additionally the resources used for each task are listed. Both scenarios are shown here: plan/actual"
+	hideresource 0
 }
 
 ###############################################################################
 
 htmlresourcereport "staff-overview.html" {
-    ${navbar}
-    columns no, name, scenario, weekly, effort
-    scenarios plan, actual
-    loadunit hours
-    headline "Weekly working hours for the Accounting Software Project"
+	${navbar}
+	${report_start_end}
+	${timeformat}
+	columns no, name, scenario, weekly, effort
+	scenarios plan
+	loadunit hours
+	headline "Weekly working hours"
+	caption "The scenario shown here is: plan"
+}
+htmlresourcereport "staff-overview-actual.html" {
+	${navbar}
+	${report_start_end}
+	${timeformat}
+	columns no, name, scenario, weekly, effort
+	scenarios actual
+	loadunit hours
+	headline "Weekly working hours"
+	caption "The scenario shown here is: actual"
+}
+htmlresourcereport "staff-overview-plan-actual.html" {
+	${navbar}
+	${report_start_end}
+	${timeformat}
+	columns no, name, scenario, weekly, effort
+	scenarios plan, actual
+	loadunit hours
+	headline "Weekly working hours"
+	caption "Both scenarios are shown here: plan/actual"
 }
 
 ###############################################################################
 
 htmlresourcereport "staff-details.html" {
-    ${navbar}
-    ${report_start_end}
-    columns name, daily, effort
-    hidetask 0
-    hideresource team
-    sortresources nameup
-    loadunit hours
-    headline "Daily working hours for the Accounting Software Project"
+	${navbar}
+	${report_start_end}
+	${timeformat}
+	scenarios plan
+	columns name, daily, effort
+	hidetask 0
+	hideresource team
+	sortresources nameup
+	loadunit hours
+	headline "Daily working hours"
+	caption "The scenario shown here is: plan"
 }
+htmlresourcereport "staff-details-actual.html" {
+	${navbar}
+	${report_start_end}
+	${timeformat}
+	scenarios actual
+	columns name, daily, effort
+	hidetask 0
+	hideresource team
+	sortresources nameup
+	loadunit hours
+	headline "Daily working hours"
+	caption "The scenario shown here is: actual"
+}
+
+htmlresourcereport "staff-details-plan-actual.html" {
+	${navbar}
+	${report_start_end}
+	${timeformat}
+	scenarios plan, actual
+	columns name, daily, effort
+	hidetask 0
+	hideresource team
+	sortresources nameup
+	loadunit hours
+	headline "Daily working hours"
+	caption "Both scenarios are shown here: plan/actual"
+}
+
 
 ###############################################################################
 
-xmlreport "report.tjx" {
-    version 2
-}
+
