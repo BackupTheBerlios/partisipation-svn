@@ -58,7 +58,7 @@ project sipoks05 "PartiSIPation - A Sip User Agent" "1.0" 2005-04-11 2005-09-30 
     currency "EUR"
 
     scenario plan "Plan" {
-        scenario actual "actual execution"
+        scenario actual "actual"
     }
 }
 
@@ -84,6 +84,14 @@ task management "Project management" {
     start 2005-04-11
     end 2005-09-30
     allocate enrico {limits {weeklymax 1h}}
+}
+
+task milestones "Milestones" {
+    task ms_end "The End" {
+        milestone
+        end 2005-09-29
+        depends !!GUI.milestones, !!Core.milestones
+    }
 }
 
 task GUI "GUI" {
@@ -376,6 +384,7 @@ task Core "Core" {
         task update "UML update" {
             start 2005-06-04
             effort 1h
+            actual:complete 100
             allocate matthias
         }
         task statemachine "UML Statemachine" {
