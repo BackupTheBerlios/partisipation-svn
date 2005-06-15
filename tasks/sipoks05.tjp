@@ -487,7 +487,8 @@ task Core "Core" {
         }
         task ifapt "Implementation of interface and adapter" {
             effort 4h
-            actual:complete 0
+            actual:complete 100
+            actual:effort 6h
         }
     }
 
