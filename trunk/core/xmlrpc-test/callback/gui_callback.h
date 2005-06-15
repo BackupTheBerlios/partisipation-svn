@@ -1,7 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-xmlrpc_env callbackEnv;
+#include <xmlrpc.h>
+
+extern xmlrpc_env callbackEnv;
 
 int
 change_reg_status(int accountId, 

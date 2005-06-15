@@ -1,18 +1,27 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <xmlrpc.h>
 #include <xmlrpc_server.h>
 #include <xmlrpc_server_abyss.h>
-#include <registration_management.h>
-#include <call_management.h>
-#include <account_management.h>
-#include <volume_management.h>
-#include <extras_management.h>
-#include <gui_callback.h>
-#include <callback_util.h>
+#include <registration/xmlrpc/dispatcher.h>
+#include <calls/xmlrpc/dispatcher.h>
+#include <accounts/xmlrpc/dispatcher.h>
+#include <volume/xmlrpc/dispatcher.h>
+#include <extras/xmlrpc/dispatcher.h>
+#include <callback/gui_callback.h>
+#include <callback/callback_util.h>
 
-const int SERVER_PORT = 7777;
+const int    SERVER_PORT     = 7777;
+const char * REGISTER_PREFIX = "sip";
+
+void 
+generate_method_name(const char * suffix, char * target) {
+    strcpy(target, REGISTER_PREFIX);
+    strcat(target, ".");
+    strcat(target, suffix);
+}
 
 int 
 main(int           const argc, 
@@ -21,6 +30,7 @@ main(int           const argc,
     xmlrpc_server_abyss_parms serverparm;
     xmlrpc_registry * registryP;
     xmlrpc_env env;
+    char name[80];
     
     /* callback client initializiation */
     
@@ -34,62 +44,76 @@ main(int           const argc,
     
     // registration management:
     
+    generate_method_name("registerGui", name);
     xmlrpc_registry_add_method(
-        &env, registryP, NULL, "sip.registerGui", &register_gui, NULL);
+        &env, registryP, NULL, name, &register_gui_RP, NULL);
         
     // call management:
-    
+    generate_method_name("makeCall", name);
     xmlrpc_registry_add_method(
-        &env, registryP, NULL, "sip.makeCall", &make_call, NULL);
-
+        &env, registryP, NULL, name, &make_call_RP, NULL);
+        
+    generate_method_name("endCall", name);
     xmlrpc_registry_add_method(
-        &env, registryP, NULL, "sip.endCall", &end_call, NULL);
-
+        &env, registryP, NULL, name, &end_call_RP, NULL);
+        
+    generate_method_name("acceptCall", name);
     xmlrpc_registry_add_method(
-        &env, registryP, NULL, "sip.acceptCall", &accept_call, NULL);
+        &env, registryP, NULL, name, &accept_call_RP, NULL);
         
     // account management:
-
+    
+    generate_method_name("accountGetAll", name);
     xmlrpc_registry_add_method(
-        &env, registryP, NULL, "sip.accountGetAll", &account_get_all, NULL);
-
+        &env, registryP, NULL, name, &account_get_all_RP, NULL);
+        
+    generate_method_name("accountSet", name);
     xmlrpc_registry_add_method(
-        &env, registryP, NULL, "sip.accountSet", &account_set, NULL);
-
+        &env, registryP, NULL, name, &account_set_RP, NULL);
+        
+    generate_method_name("accountGet", name);
     xmlrpc_registry_add_method(
-        &env, registryP, NULL, "sip.accountGet", &account_get, NULL);
-
+        &env, registryP, NULL, name, &account_get_RP, NULL);
+    
+    generate_method_name("accountCreate", name);
     xmlrpc_registry_add_method(
-        &env, registryP, NULL, "sip.accountCreate", &account_create, NULL);
+        &env, registryP, NULL, name, &account_create_RP, NULL);
 
+    generate_method_name("accountDelete", name);
     xmlrpc_registry_add_method(
-        &env, registryP, NULL, "sip.accountDelete", &account_delete, NULL);
+        &env, registryP, NULL, name, &account_delete_RP, NULL);
 
+    generate_method_name("register", name);
     xmlrpc_registry_add_method(
-        &env, registryP, NULL, "sip.register", &account_register, NULL);
+        &env, registryP, NULL, name, &account_register_RP, NULL);
 
+    generate_method_name("unregister", name);
     xmlrpc_registry_add_method(
-        &env, registryP, NULL, "sip.unregister", &account_unregister, NULL);
+        &env, registryP, NULL, name, &account_unregister_RP, NULL);
         
     // volume management:
     
+    generate_method_name("setSpeakerVolume", name);
     xmlrpc_registry_add_method(
-        &env, registryP, NULL, "sip.setSpeakerVolume", &set_speaker_volume, NULL);
+        &env, registryP, NULL, name, &set_speaker_volume_RP, NULL);
 
+    generate_method_name("getSpeakerVolume", name);
     xmlrpc_registry_add_method(
-        &env, registryP, NULL, "sip.getSpeakerVolume", &get_speaker_volume, NULL);
+        &env, registryP, NULL, name, &get_speaker_volume_RP, NULL);
     
+    generate_method_name("setMicroVolume", name);
     xmlrpc_registry_add_method(
-        &env, registryP, NULL, "sip.setMicroVolume", &set_micro_volume, NULL);
-
+        &env, registryP, NULL, name, &set_micro_volume_RP, NULL);
+    
+    generate_method_name("getMicroVolume", name);
     xmlrpc_registry_add_method(
-        &env, registryP, NULL, "sip.getMicroVolume", &get_micro_volume, NULL);
+        &env, registryP, NULL, name, &get_micro_volume_RP, NULL);
         
     // extras management:
     
+    generate_method_name("sendDtmf", name);
     xmlrpc_registry_add_method(
-        &env, registryP, NULL, "sip.sendDtmf", &send_dtmf, NULL);
-
+        &env, registryP, NULL, name, &send_dtmf_RP, NULL);
         
     /* In the modern form of the Abyss API, we supply parameters in memory
        like a normal API.  We select the modern form by setting

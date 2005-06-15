@@ -4,11 +4,12 @@
 #include <xmlrpc.h>
 #include <xmlrpc_client.h>
 
-#include <callback_util.h>
-#include <gui_callback.h>
+#include <callback/callback_util.h>
+#include <callback/gui_callback.h>
 
 const char* guiURL = "http://gungnir:8888/RPC2";
 
+xmlrpc_env callbackEnv;
 
 int
 change_reg_status(int accountId, 

@@ -4,7 +4,7 @@
 #include <xmlrpc.h>
 #include <xmlrpc_client.h>
 
-#include <callback_util.h>
+#include <callback/callback_util.h>
 
 #define NAME "Core CallbackClient"
 #define VERSION "1.0"

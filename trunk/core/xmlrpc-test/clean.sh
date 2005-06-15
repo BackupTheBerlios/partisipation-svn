@@ -1,1 +1,1 @@
-rm *.o xmlrpc_server
+rm -f *.o xmlrpc_server */*.o */*/*.o
