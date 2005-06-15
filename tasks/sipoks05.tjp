@@ -1,41 +1,117 @@
 macro navbar [
 rawhead
 '<center><p>
-	<table border="2" cellpadding="5">
-		<tr>
-			<td><h3>report</h3></td>
-			<td><h3>plan</h3></td>
-			<td><h3>actual</h3></td>
-			<td><h3>plan/actual</h3></td>
-		</tr>
-		<tr>
-			<td><h4>Tasks Overview</h4></td>
-			<td><a href="tasks-overview.html"><center><img src="icons/kcalendar.gif" border="0"></center></td>
-			<td><a href="tasks-overview-actual.html"><center><img src="icons/karm.gif" border="0"></center></td>
-			<td><a href="tasks-overview-plan-actual.html"><center><img src="icons/kcalendar.gif" border="0"><img src="icons/karm.gif" border="0"></center></td>
-		<tr>
-		<tr>
-			<td><h4>Tasks Details</h4></td>
-			<td><a href="tasks-details.html"><center><img src="icons/kcalendar.gif" border="0"></center></td>
-			<td><a href="tasks-details-actual.html"><center><img src="icons/karm.gif" border="0"></center></td>
-			<td><a href="tasks-details-plan-actual.html"><center><img src="icons/kcalendar.gif" border="0"><img src="icons/karm.gif" border="0"></center></td>
-		<tr>
-		<tr>
-			<td><h4>Staff Overview</h4></td>
-			<td><a href="staff-overview.html"><center><img src="icons/kcalendar.gif" border="0"></center></td>
-			<td><a href="staff-overview-actual.html"><center><img src="icons/karm.gif" border="0"></center></td>
-			<td><a href="staff-overview-plan-actual.html"><center><img src="icons/kcalendar.gif" border="0"><img src="icons/karm.gif" border="0"></center></td>
-		<tr>
-		<tr>
-			<td><h4>Staff Details</h4></td>
-			<td><a href="staff-details.html"><center><img src="icons/kcalendar.gif" border="0"></center></td>
-			<td><a href="staff-details-actual.html"><center><img src="icons/karm.gif" border="0"></center></td>
-			<td><a href="staff-details-plan-actual.html"><center><img src="icons/kcalendar.gif" border="0"><img src="icons/karm.gif" border="0"></center></td>
-		<tr>
-	</table>
+    <table border="2" cellpadding="5">
+        <tr>
+            <td><h3>report</h3></td>
+            <td><h3>plan</h3></td>
+            <td><h3>actual</h3></td>
+            <td><h3>plan/actual</h3></td>
+        </tr>
+        <tr>
+            <td><h4>Tasks Overview</h4></td>
+            <td>
+                <a href="tasks-overview.html">
+                    <center>
+                        <img src="icons/kcalendar.gif" border="0" />
+                    </center>
+                </a>
+            </td>
+            <td>
+                <a href="tasks-overview-actual.html">
+                    <center>
+                        <img src="icons/karm.gif" border="0" />
+                    </center>
+                </a>
+            </td>
+            <td>
+                <a href="tasks-overview-plan-actual.html">
+                    <center>
+                        <img src="icons/kcalendar.gif" border="0" />
+                        <img src="icons/karm.gif" border="0" />
+                    </center>
+                </a>
+            </td>
+        <tr>
+        <tr>
+            <td><h4>Tasks Details</h4></td>
+            <td>
+                <a href="tasks-details.html">
+                    <center>
+                        <img src="icons/kcalendar.gif" border="0" />
+                    </center>
+                </a>
+            </td>
+            <td>
+                <a href="tasks-details-actual.html">
+                    <center>
+                        <img src="icons/karm.gif" border="0" />
+                    </center>
+                </a>
+            </td>
+            <td>
+                <a href="tasks-details-plan-actual.html">
+                    <center>
+                        <img src="icons/kcalendar.gif" border="0" />
+                        <img src="icons/karm.gif" border="0" />
+                    </center>
+                </a>
+            </td>
+        <tr>
+        <tr>
+            <td><h4>Staff Overview</h4></td>
+            <td>
+                <a href="staff-overview.html">
+                    <center>
+                        <img src="icons/kcalendar.gif" border="0" />
+                    </center>
+                </a>
+            </td>
+            <td>
+                <a href="staff-overview-actual.html">
+                    <center>
+                        <img src="icons/karm.gif" border="0" />
+                    </center>
+                </a>
+            </td>
+            <td>
+                <a href="staff-overview-plan-actual.html">
+                    <center>
+                        <img src="icons/kcalendar.gif" border="0" />
+                        <img src="icons/karm.gif" border="0" />
+                    </center>
+                </a>
+            </td>
+        <tr>
+        <tr>
+            <td><h4>Staff Details</h4></td>
+            <td>
+                <a href="staff-details.html">
+                    <center>
+                        <img src="icons/kcalendar.gif" border="0" />
+                    </center>
+                </a>
+            </td>
+            <td>
+                <a href="staff-details-actual.html">
+                    <center>
+                        <img src="icons/karm.gif" border="0" />
+                    </center>
+                </a>
+            </td>
+            <td>
+                <a href="staff-details-plan-actual.html">
+                    <center>
+                        <img src="icons/kcalendar.gif" border="0" />
+                        <img src="icons/karm.gif" border="0" />
+                    </center>
+                </a>
+            </td>
+        <tr>
+    </table>
 </p>
 <p>
-	<a href="kontip_poster.eps">GANTT Chart (Postscript)</td>
+    <a href="kontip_poster.eps">GANTT Chart (Postscript)</td>
 </p>
 </center>
 <br>'
@@ -47,12 +123,12 @@ macro report_start_end [
 ]
 
 macro timeformat [
-	#${timeformat}
-	timeformat "%Y-%m-%d"
+    #${timeformat}
+    timeformat "%Y-%m-%d"
 ]
 
 project sipoks05 "PartiSIPation - A Sip User Agent" "1.0" 2005-04-11 2005-09-30 {
-    now 2005-06-04
+    now 2005-06-15
     timeformat "%Y-%m-%d"
 
     currency "EUR"
@@ -91,6 +167,7 @@ task milestones "Milestones" {
         milestone
         end 2005-09-29
         depends !!GUI.milestones, !!Core.milestones
+        actual:complete 0
     }
 }
 
@@ -131,30 +208,39 @@ task GUI "GUI" {
 
         task corefuncs "Test case: gui invokes core functions" {
             effort 1h
+            actual:complete 0
         }
         task netif "Test support of localhost and multiple network interfaces" {
             effort 1 h
+            actual:complete 0
         }
         task rpcerrors "Test xml-rpc error handling" {
             effort 1 h
+            actual:complete 0
         }
         task call "Test making a call" {
             effort 1 h
+            actual:complete 0
         }
         task called "Test being called" {
             effort 1 h
+            actual:complete 0
         }
         task account "Test account management" {
             effort 1 h
+            actual:complete 0
         }
         task register "Test registering gui" {
             effort 1 h
+            actual:complete 0
         }
         task volumne "Test volumne management" {
             effort 1 h
+            actual:complete 0
         }
         task dtmf "Test DTMF" {
             effort 1 h
+            actual:complete 0
         }
     }
 
@@ -162,10 +248,12 @@ task GUI "GUI" {
         task clients "Client investigation" {
             effort 2h
             start 2005-06-04
+            actual:complete 0
         }
         task design "Develop actual GUI design" {
             effort 22h
             depends !clients
+            actual:complete 0
         }
     }
 
@@ -176,6 +264,7 @@ task GUI "GUI" {
                 task instcore "install core" {
                 effort 2h
                 start 2005-06-04
+                actual:complete 0
             }
         }
 
@@ -183,50 +272,59 @@ task GUI "GUI" {
             effort 8h
             start 2005-06-04
             depends !!testing.netif
+            actual:complete 0
         }
 
 
-        task rpcerrors "error handling for xml-rpc interface" {
+        task rpcerrors "Error handling for xml-rpc interface" {
             effort 6h
             start 2005-06-04
             depends !!testing.rpcerrors
+            actual:complete 0
         }
 
         task mvcif "Interfaces to meet model-view-controller" {
             effort 8h
             start 2005-06-04
+            actual:complete 0
         }
     }
 
-    task callmanagement "implementation of call management" {
+    task callmanagement "Implementation of call management" {
         task call "Make a call" {
             depends !!testing.call
             effort 3h
+            actual:complete 0
         }
 
         task called "Be called" {
             depends !!testing.called
             effort 4h
+            actual:complete 0
         }
     }
     task register "GUI registration" {
         depends !testing.register
         effort 2h
+        actual:complete 0
     }
 
     task account "Account management" {
         depends !testing.account
         effort 3h
+        actual:complete 0
     }
 
     task volumne "Volumne management" {
         depends !testing.volumne
         effort 3h
+        actual:complete 0
     }
 
     task dtmf "DTMF" {
         depends !testing.dtmf
         effort 2h
+        actual:complete 0
     }
 
 }
@@ -248,13 +346,9 @@ task Core "Core" {
             milestone
             depends !ms_interfaces, !!concept
         }
-        task ms_account "Account management ready" {
-            milestone
-            depends !!account, !ms_core
-        }
         task ms_portable "Core portable" {
             milestone
-            depends !!portable, !ms_account
+            depends !!portable, !ms_core
         }
         task ms_implementation "Core implemented" {
             milestone
@@ -268,62 +362,66 @@ task Core "Core" {
         task env "Test Environment for C" {
             effort 6h
             allocate enrico
+            actual:complete 0
         }
         task rtp_ifapt "Test Interface and adapter for RTP library" {
             effort 1h
             allocate matthias
+            actual:complete 0
         }
         task audio_ifapt "Test Interface and adapter for audio" {
             effort 1h
             allocate enrico
             allocate matthias
+            actual:complete 0
         }
         task xmlrpc_ifapt "Test Interface and adapter for XML-RPC" {
             effort 1h
             allocate matthias
+            actual:complete 0
         }
         task sipstack_ifapt "Test Interface and adapter for SIP stack (oSIP)" {
             effort 1h
             allocate enrico
+            actual:complete 0
         }
         task call "Test making a call" {
             effort 1 h
             allocate enrico
             allocate matthias
+            actual:complete 0
         }
         task called "Test being called" {
             effort 1 h
             allocate enrico
             allocate matthias
+            actual:complete 0
         }
         task account "Test account management" {
             effort 1 h
             allocate enrico
             allocate matthias
+            actual:complete 0
         }
         task register "Test registering gui" {
             effort 1 h
             allocate enrico
             allocate matthias
+            actual:complete 0
         }
         task volumne "Test volumne management" {
             effort 1 h
             allocate enrico
             allocate matthias
+            actual:complete 0
         }
         task dtmf "Test DTMF" {
             effort 1 h
             allocate enrico
             allocate matthias
+            actual:complete 0
         }
 
-    }
-
-    task dummy "Dummy Core" {
-        effort 6h
-        start 2005-05-26
-        actual:complete 100
-        allocate matthias
     }
 
     task style "Doxygen + stylechecking" {
@@ -331,6 +429,7 @@ task Core "Core" {
         start 2005-06-04
         allocate enrico
         allocate matthias
+        actual:complete 0
     }
 
     task config "Configuration with xml or ini" {
@@ -344,10 +443,12 @@ task Core "Core" {
         allocate matthias
         task invest "RTP library investigation" {
             effort 4h
+            actual:complete 0
         }
         task ifapt "Implementation of interface and adapter" {
             effort 8h
             depends !!testing.rtp_ifapt
+            actual:complete 0
         }
     }
 
@@ -357,26 +458,36 @@ task Core "Core" {
         allocate matthias
         task volumne "Volumne" {
             effort 6h
+            actual:complete 0
         }
         task input "Input" {
             effort 6h
+            actual:complete 0
         }
         task output "Output" {
             effort 6h
+            actual:complete 0
         }
         task codecs "Codecs" {
             effort 6h
+            actual:complete 0
         }
         task ifapt "Implementation of interface and adapter" {
             effort 8h
+            actual:complete 0
         }
     }
 
     task xmlrpc "XML-RPC" {
-        start 2005-06-04
         allocate matthias
+        task dummy "Dummy Core" {
+            effort 6h
+            start 2005-05-26
+            actual:complete 100
+        }
         task ifapt "Implementation of interface and adapter" {
             effort 4h
+            actual:complete 0
         }
     }
 
@@ -394,12 +505,15 @@ task Core "Core" {
             allocate matthias
             task concept "Concept" {
                 effort 6h
+                actual:complete 0
             }
             task investigation "Investigation" {
                 effort 1h
+                actual:complete 0
             }
             task implementation "Implementation (interface)" {
                 effort 6h
+                actual:complete 0
             }
         }
     }
@@ -410,20 +524,7 @@ task Core "Core" {
         allocate matthias
         task threads "Threads under c (pthread)" {
             effort 2h
-        }
-    }
-
-    task account "Account management" {
-        start 2005-06-04
-        allocate enrico
-        task storage "Data storage (e.g. with XML)" {
-            effort 2h
-        }
-        task logic "Data management (e.g. creating, editing, deleting of account data)" {
-            effort 2h
-        }
-        task error "Error handling" {
-            effort 3h
+            actual:complete 0
         }
     }
 
@@ -432,6 +533,7 @@ task Core "Core" {
         effort 6h
         allocate enrico
         allocate matthias
+        actual:complete 0
     }
 
     task sipstack "SIP stack" {
@@ -447,18 +549,19 @@ task Core "Core" {
             start 2005-06-04
             depends !!testing.sipstack_ifapt
             allocate enrico
+            actual:complete 25
         }
     }
 
     task implementation "Core implementation" {
         start 2005-06-04
-        allocate enrico
-        allocate matthias
         task callmanagement "implementation of call management" {
+            allocate enrico, matthias
             task call "Make a call" {
                 depends !!!testing.call
                 effort 3h
-            }
+                actual:complete 0
+        }
 
             task called "Be called" {
                 depends !!!testing.called
@@ -466,26 +569,47 @@ task Core "Core" {
             }
         }
         task register "GUI registration" {
+            allocate enrico, matthias
             depends !!testing.register
             effort 2h
+            actual:complete 0
         }
 
         task account "Account management" {
+            start 2005-06-04
             depends !!testing.account
-            effort 3h
+            allocate enrico
+            task storage "Data storage (e.g. with XML)" {
+                effort 2h
+                actual:complete 0
+            }
+            task logic "Data management (e.g. creating, editing, deleting of account data)" {
+                effort 2h
+                actual:complete 0
+            }
+            task error "Error handling" {
+                effort 3h
+                actual:complete 0
+            }
         }
 
         task volumne "Volumne management" {
+            allocate enrico, matthias
             depends !!testing.volumne
             effort 3h
+            actual:complete 0
         }
 
         task dtmf "DTMF" {
+            allocate enrico, matthias
             depends !!testing.dtmf
             effort 2h
+            actual:complete 0
         }
         task makefile "Makefile" {
+            allocate enrico
             effort 1h
+            actual:complete 0
         }
     }
 
