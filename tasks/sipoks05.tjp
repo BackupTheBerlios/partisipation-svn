@@ -490,6 +490,15 @@ task Core "Core" {
             actual:complete 100
             actual:effort 6h
         }
+        task array "Correction of array result" {
+            effort 1h
+            actual:complete 100
+            actual:effort 3h
+        }
+        task strings "Implementation of correct string return" {
+            effort 3h
+            actual:complete 0
+        }
     }
 
     task uml "UML" {
