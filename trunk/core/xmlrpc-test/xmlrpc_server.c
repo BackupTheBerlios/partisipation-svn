@@ -5,6 +5,7 @@
 #include <xmlrpc.h>
 #include <xmlrpc_server.h>
 #include <xmlrpc_server_abyss.h>
+
 #include <registration/xmlrpc/dispatcher.h>
 #include <calls/xmlrpc/dispatcher.h>
 #include <accounts/xmlrpc/dispatcher.h>
@@ -14,7 +15,7 @@
 #include <callback/callback_util.h>
 
 const int    SERVER_PORT     = 7777;
-const char * REGISTER_PREFIX = "sip";
+const char * REGISTER_PREFIX = "core";
 
 void 
 generate_method_name(const char * suffix, char * target) {

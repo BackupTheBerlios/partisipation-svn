@@ -1,5 +1,6 @@
 void 
-account_get_all(int accountIds[]);
+account_get_all(int * accountIds,
+                int * length);
 
 int
 account_set(int    const accountId,

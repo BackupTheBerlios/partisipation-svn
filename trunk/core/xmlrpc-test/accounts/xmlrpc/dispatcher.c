@@ -4,7 +4,7 @@
 #include <xmlrpc.h>
 #include <accounts/xmlrpc/dispatcher.h>
 #include <accounts/account_management.h>
-
+#include <constants.h>
 
 xmlrpc_value *
 account_get_all_RP(xmlrpc_env *   const env, 
@@ -14,19 +14,22 @@ account_get_all_RP(xmlrpc_env *   const env,
     printf("entering accountGetAll...\n");
     
     int * ids;
-    account_get_all(ids);
-    
-    int len = sizeof(ids) / sizeof(int);
-    int result[len];
-    
+    int len;
     int i;
+    
+    ids = (int *) malloc(MAX_ACCOUNTID_AMOUNT * sizeof(int));
+    account_get_all(ids, &len);
+    
+    xmlrpc_value * result = xmlrpc_array_new(env);
+    
     for (i = 0; i < len; i++) {
-        result[i] = ids[i];
+        xmlrpc_value * item = xmlrpc_build_value(env, "i", ids[i]);
+        xmlrpc_array_append_item(env, result, item);
     }
     free(ids);
     
     printf("leaving accountGetAll\n");
-    return xmlrpc_build_value(env, "A", result);
+    return result;
 }
 
 xmlrpc_value *

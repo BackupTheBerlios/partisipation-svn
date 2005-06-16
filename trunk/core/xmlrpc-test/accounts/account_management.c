@@ -2,15 +2,25 @@
 #include <stdio.h>
 
 #include <accounts/account_management.h>
+#include <constants.h>
 
 void 
-account_get_all(int * accountIds) {
+account_get_all(int * accountIds, 
+                int * length) {
     
     // do something
-    accountIds = (int *) malloc(3 * sizeof(int));
-    accountIds[0] = 1;
-    accountIds[1] = 2;
-    accountIds[2] = 3;
+    *length = 7;
+    if (*length < MAX_ACCOUNTID_AMOUNT) {
+        accountIds[0] = 1;
+        accountIds[1] = 2;
+        accountIds[2] = 3;
+        accountIds[3] = 4334;
+        accountIds[4] = 4567;
+        accountIds[5] = 235;
+        accountIds[6] = 2525;
+    } else {
+        // ERROR
+    }
 }
 
 int
