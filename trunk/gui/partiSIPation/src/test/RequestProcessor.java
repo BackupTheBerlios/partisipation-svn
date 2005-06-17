@@ -24,18 +24,19 @@ public class RequestProcessor {
         return "REGISTER OK";
     }
     public static boolean register(int accId) {
-         System.out.println("####### [" + Utils.getTimestamp()
+      /*   System.out.println("####### [" + Utils.getTimestamp()
                  + "] PROC-CALL: REGISTER #######");
          System.out.println("AccountId: " + accId);
-
+*/
          return true;
      }
 
-     public static boolean registerGui(String adress, int port) {
-        System.out.println("####### [" + Utils.getTimestamp()
+     public static String registerGui(String adress, int port) {
+        /*System.out.println("####### [" + Utils.getTimestamp()
                 + "] PROC-CALL: REGISTER GUI #######");
 
-        return true;
+        return true; */
+         return "OK";
     }
 
 
@@ -73,4 +74,33 @@ public class RequestProcessor {
   return true;
        }
 
+    // complete dummy GUI interface
+    
+    public static boolean changeRegStatus(int accountId, boolean registered) {
+        return true;
+    }
+    
+    public static boolean changeCallStatus(int callId, String callStatus) {
+        return true;
+    }
+    
+    public static boolean showUserEvent(int accountId, String category, String title, String message, String details) {
+        return true;
+    }
+    
+    public static boolean registerCore() {
+        return true;
+    }
+    
+    public static boolean incomingCall(int accountId,int callId, String sipUri, String displayName) {
+        return true;
+    } 
+    
+    public static boolean setSpeakerVolume(double level) {
+        return true;
+    }
+    
+    public static boolean setMicroVolume(double level) {
+        return true;
+    }
 }
