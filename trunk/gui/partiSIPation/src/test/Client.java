@@ -14,6 +14,7 @@ import java.net.UnknownHostException;
 import java.util.Vector;
 
 import test.events.*;
+
 /**
  * Simple client program with a graphical user interface. Makes remote procedure
  * calls and prints the server response into the text area.
@@ -24,13 +25,19 @@ import test.events.*;
 
 public class Client extends JFrame {
 
+    private String GUI_HOST = "192.168.0.1";
 
-  Vector accountId = new Vector();
-  Vector callId = new Vector();
+    private String CORE_HOST = "192.168.0.1";
 
+    private int GUI_PORT = 8888;
 
+    private int CORE_PORT = 7777;
+    
+    Vector accountId = new Vector();
 
-//just for testing
+    Vector callId = new Vector();
+
+    //just for testing
 
     // client part - sends calls to core
     XmlRpcClientLite client;
@@ -81,7 +88,7 @@ public class Client extends JFrame {
 
     JButton key_DIAL = new JButton("   DIAL  ");
 
-    JButton key_CONF = new JButton(" Conference ");
+    // JButton key_CONF = new JButton(" Conference ");
 
     JButton key_CANCEL = new JButton(" HANG UP");
 
@@ -115,7 +122,7 @@ public class Client extends JFrame {
 
     //  ----------- TEXT AREAS -----------
 
-    JTextArea jText = new JTextArea(10, 0);
+    JTextArea textarea_LOG = new JTextArea(10, 0);
 
     //  ----------- LABELS -----------
 
@@ -160,34 +167,16 @@ public class Client extends JFrame {
             // could not create GUI
         }
         try {
-            //client = new XmlRpcClientLite(InetAddress.getLocalHost()
-            //        .getHostName(), 7777);
 
+            client = new XmlRpcClientLite(InetAddress.getByName(CORE_HOST)
+                    .getHostName(), CORE_PORT);
 
-            // NOTE: this client/server starts on network interface 192.168.0.2
-            // if you don't have this IP address assigned to one of your
-            // network interfaces, this code will not run, you must change
-            // it to a proper value
+            server = new WebServer(GUI_PORT, InetAddress.getByName(GUI_HOST));
 
-            byte[] b = new byte[4];
-            b[0] = (byte) (192 & 0xff);
-            b[1] = (byte) (168 & 0xff);
-            b[2] = 0;
-            b[3] = 2;
-
-            client = new XmlRpcClientLite(InetAddress.getByAddress(b).getHostName(), 7777);
-
-            //server = new WebServer(8888, InetAddress.getLocalHost());
-
-            byte[] a = new byte[4];
-            a[0] = (byte) (192 & 0xff);
-            a[1] = (byte) (168 & 0xff);
-            a[2] = 0;
-            a[3] = 2;
-            server = new WebServer(8888, InetAddress.getByAddress(a));
+            GuiStub guiStub = new GuiStub(this);
 
             server.start();
-            server.addHandler("gui", this);
+            server.addHandler("gui", guiStub);
 
         } catch (MalformedURLException e1) {
             // TODO Auto-generated catch block
@@ -216,7 +205,7 @@ public class Client extends JFrame {
         item_CONTENTS.setText("Help Contents");
         menu_REGISTER.addActionListener(new Client_menu_REGISTER_ActionAdapter(
                 this));
-        jText.setEditable(false);
+        textarea_LOG.setEditable(false);
 
         key_1.addActionListener(new Client_key_1_ActionAdapter(this));
         key_2.addActionListener(new Client_key_2_ActionAdapter(this));
@@ -230,7 +219,7 @@ public class Client extends JFrame {
         key_0.addActionListener(new Client_key_0_ActionAdapter(this));
 
         key_DIAL.addActionListener(new Client_key_DIAL_actionAdapter(this));
-        key_CONF.addActionListener(new Client_key_CONF_actionAdapter(this));
+        // key_CONF.addActionListener(new Client_key_CONF_actionAdapter(this));
         key_CANCEL.addActionListener(new Client_key_CANCEL_actionAdapter(this));
         key_REG_CLEAR.addActionListener(new Client_key_REG_CLEAR_ActionAdapter(
                 this));
@@ -284,13 +273,13 @@ public class Client extends JFrame {
         gbc.weightx = 0.5;
         gbc.gridx = 3;
         gbc.gridy = 0;
-        gridbag.setConstraints(key_CONF, gbc);
-        panel_TOP.add(key_CONF);
+        // gridbag.setConstraints(key_CONF, gbc);
+        // panel_TOP.add(key_CONF);
 
         this.setJMenuBar(jMenuBar1);
 
         jScrollPane1.setPreferredSize(new Dimension(0, 100));
-        jScrollPane1.getViewport().add(jText, null);
+        jScrollPane1.getViewport().add(textarea_LOG, null);
 
         this.getContentPane().add(panel_TOP, BorderLayout.NORTH);
         this.getContentPane().add(jLeft, BorderLayout.CENTER);
@@ -311,16 +300,14 @@ public class Client extends JFrame {
         frame_REG.pack();
     }
 
-
-
     //File | Exit action performed
     public void jMenuFileExit_actionPerformed(ActionEvent e) {
-accountId.clear();
-      accountId.addElement(new Integer(5));
+        accountId.clear();
+        accountId.addElement(new Integer(5));
         params.clear();
         params.addElement(accountId.firstElement());
         try {
-            client.execute("sip.unregister", params);
+            client.execute("core.unregister", params);
         } catch (XmlRpcException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
@@ -331,8 +318,6 @@ accountId.clear();
 
         System.exit(0);
     }
-
-
 
     // Menu item INFO clicked
     public void item_INFO_actionPerformed(ActionEvent e) {
@@ -356,7 +341,7 @@ accountId.clear();
         params.addElement(input_SIPDOMAIN.getText());
         params.addElement(new String(input_PASSWORD.getPassword()));
         try {
-            client.execute("sip.register2", params);
+            client.execute("core.register2", params);
         } catch (XmlRpcException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
@@ -436,12 +421,12 @@ accountId.clear();
 
     // ##############################
 
-
     public void key_CONF_actionPerformed(ActionEvent e) {
         params.clear();
         params.addElement(input_NUMBER.getText());
         try {
-            jText.append((String) client.execute("sip.makeConf", params) + "\n");
+            textarea_LOG.append((String) client.execute("core.makeConf", params)
+                    + "\n");
         } catch (XmlRpcException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
@@ -452,12 +437,12 @@ accountId.clear();
     }
 
     public void key_DIAL_actionPerformed(ActionEvent e) {
-        accountId.addElement(new Integer (5)); // just for testing
+        accountId.addElement(new Integer(5)); // just for testing
         params.clear();
         params.addElement(accountId.firstElement());
         params.addElement(input_NUMBER.getText());
         try {
-             client.execute("sip.makeCall", params);
+            client.execute("core.makeCall", params);
         } catch (XmlRpcException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
@@ -467,14 +452,13 @@ accountId.clear();
         }
     }
 
-
     public void key_CANCEL_actionPerformed(ActionEvent e) {
-      callId.clear();
-      callId.addElement(new Integer(3)); // just for testing
+        callId.clear();
+        callId.addElement(new Integer(3)); // just for testing
         params.clear();
         params.addElement(callId.firstElement());
         try {
-          client.execute("sip.endCall", params);
+            client.execute("core.endCall", params);
         } catch (XmlRpcException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
@@ -486,58 +470,57 @@ accountId.clear();
          */
     }
 
-/*    public void register() {
-             accountId.clear();
-             accountId.addElement(new Integer(5)); // just for testing
-             params.clear();
-             params.addElement(accountId.firstElement());
-             try {
-                  client.execute("sip.register", params);
-             } catch (XmlRpcException e1) {
-                 // TODO Auto-generated catch block
-                 e1.printStackTrace();
-             } catch (IOException e1) {
-                 // TODO Auto-generated catch block
-                 e1.printStackTrace();
-             }
-      }
+    /*    public void register() {
+     accountId.clear();
+     accountId.addElement(new Integer(5)); // just for testing
+     params.clear();
+     params.addElement(accountId.firstElement());
+     try {
+     client.execute("core.register", params);
+     } catch (XmlRpcException e1) {
+     // TODO Auto-generated catch block
+     e1.printStackTrace();
+     } catch (IOException e1) {
+     // TODO Auto-generated catch block
+     e1.printStackTrace();
+     }
+     }
 
-	public void registerGui() {
-           params.clear();
-          try {
-            params.addElement(new String(InetAddress.getLocalHost().getHostName()));
-          }
-          catch (UnknownHostException ex) {
-          }
-          params.addElement(new Integer(7777));
-           try {
-               client.execute("sip.registerGui", params);
-           } catch (XmlRpcException e1) {
-               // TODO Auto-generated catch block
-               e1.printStackTrace();
-           } catch (IOException e1) {
-               // TODO Auto-generated catch block
-               e1.printStackTrace();
-           }
-    }
+     public void registerGui() {
+     params.clear();
+     try {
+     params.addElement(new String(InetAddress.getLocalHost().getHostName()));
+     }
+     catch (UnknownHostException ex) {
+     }
+     params.addElement(new Integer(7777));
+     try {
+     client.execute("core.registerGui", params);
+     } catch (XmlRpcException e1) {
+     // TODO Auto-generated catch block
+     e1.printStackTrace();
+     } catch (IOException e1) {
+     // TODO Auto-generated catch block
+     e1.printStackTrace();
+     }
+     }
 
-	public void acceptCall() {
-             callId.clear();
-             callId.addElement(new Integer(5)); // just for testing
-             params.clear();
-             params.addElement(accountId.firstElement());
-             try {
-                client.execute("sip.acceptCall", params);
-             } catch (XmlRpcException e1) {
-                 // TODO Auto-generated catch block
-                 e1.printStackTrace();
-             } catch (IOException e1) {
-                 // TODO Auto-generated catch block
-                 e1.printStackTrace();
-             }
-      }
-*/
-
+     public void acceptCall() {
+     callId.clear();
+     callId.addElement(new Integer(5)); // just for testing
+     params.clear();
+     params.addElement(accountId.firstElement());
+     try {
+     client.execute("core.acceptCall", params);
+     } catch (XmlRpcException e1) {
+     // TODO Auto-generated catch block
+     e1.printStackTrace();
+     } catch (IOException e1) {
+     // TODO Auto-generated catch block
+     e1.printStackTrace();
+     }
+     }
+     */
 
     public void menu_REGISTER_actionPerformed(ActionEvent e) {
         Dimension screen_size = Toolkit.getDefaultToolkit().getScreenSize();
@@ -587,13 +570,13 @@ accountId.clear();
 
     }
 
-   public void this_windowClosing(WindowEvent e) {
-accountId.clear();
-      accountId.addElement(new Integer(5));
+    public void this_windowClosing(WindowEvent e) {
+        accountId.clear();
+        accountId.addElement(new Integer(5));
         params.clear();
         params.addElement(accountId.firstElement());
         try {
-             client.execute("sip.unregister", params);
+            client.execute("core.unregister", params);
         } catch (XmlRpcException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
@@ -603,62 +586,4 @@ accountId.clear();
         }
 
     }
-
-
-
-
-
-    //  ----------- CLIENT INTERFACE IMPLEMENTATION -----------
-
-    public boolean changeRegStatus(int accountId, boolean registered) {
-        System.out.println("##### changeRegStatus #####");
-        System.out.println("accountID: " + accountId);
-        System.out.println("registered: " + registered);
-        return true;
-    }
-
-    public boolean changeCallStatus(int callId, String status) {
-        System.out.println("##### changeCallStatus #####");
-        System.out.println("callId: " + callId);
-        System.out.println("status: " + status);
-        return true;
-    }
-
-    public boolean showUserEvent(int accountId, String category, String title, String message, String detailMessage) {
-        System.out.println("##### showUserEvent #####");
-        System.out.println("accountId: " + accountId);
-        System.out.println("category: " + category);
-        System.out.println("title: " + title);
-        System.out.println("message: " + message);
-        System.out.println("detailMessage: " + detailMessage);
-        return true;
-    }
-
-    public boolean registerCore() {
-        System.out.println("##### registerCore #####");
-        return true;
-    }
-
-    public boolean incomingCall(int accountId, int callId, String callerSipUri, String callerDisplayName) {
-        System.out.println("##### incomingCall #####");
-        System.out.println("accountId: " + accountId);
-        System.out.println("callId: " + callId);
-        System.out.println("callerSipUri: " + callerSipUri);
-        System.out.println("callerDisplayName: " + callerDisplayName);
-        return true;
-    }
-
-    public boolean setSpeakerVolume(double level) {
-        System.out.println("##### setSpeakerVolume #####");
-        System.out.println("level: " + level);
-        return true;
-    }
-
-
-    public boolean setMicroVolume(double level) {
-        System.out.println("##### setMicroVolume #####");
-        System.out.println("level: " + level);
-        return true;
-    }
 }
-
