@@ -6,44 +6,51 @@ import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 import java.util.Vector;
-
 import org.apache.xmlrpc.WebServer;
 import org.apache.xmlrpc.XmlRpcClientLite;
 import org.apache.xmlrpc.XmlRpcException;
-
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
-
 /**
  * JUnit test case for the core interface.
- *
+ * 
  * @author Anton Huttenlocher
  * @author Oleksiy Reznikov
  */
 public class CoreInterfaceTest extends TestCase {
 
     XmlRpcClientLite client;
+
     WebServer server;
+
     Vector params = new Vector();
-    String GUI_HOST = "192.168.0.3";
-    String CORE_HOST = "192.168.0.3";
+
+    String GUI_HOST = "192.168.0.1";
+
+    String CORE_HOST = "192.168.0.1";
+
     int GUI_PORT = 8888;
+
     int CORE_PORT = 7777;
 
     public CoreInterfaceTest() {
-            try {
-                client = new XmlRpcClientLite(InetAddress.getByName(CORE_HOST).getHostName(), CORE_PORT);
-            /*    server = new WebServer(GUI_PORT, InetAddress.getByName("192.168.0.3"));
+        try {
 
-                server.start();
-                server.addHandler("gui", new RequestProcessor()); */
+            client = new XmlRpcClientLite(InetAddress.getByName(CORE_HOST)
+                    .getHostName(), CORE_PORT);
 
-            } catch (MalformedURLException e) {
-                fail("Failed: create client.");
-            } catch (UnknownHostException e) {
-                fail("Failed: create client.");
-            }
+            /*
+             * server = new WebServer(GUI_PORT,
+             * InetAddress.getByName(GUI_HOST)); server.start();
+             * server.addHandler("gui", new RequestProcessor());
+             */
+
+        } catch (MalformedURLException e) {
+            fail("Failed: create client.");
+        } catch (UnknownHostException e) {
+            fail("Failed: create client.");
+        }
     }
 
     public void testRegisterGui() {
@@ -52,7 +59,8 @@ public class CoreInterfaceTest extends TestCase {
         params.add(new Integer(GUI_PORT));
         String expected = "OK";
         try {
-            Assert.assertTrue(expected.equals((String) client.execute("core.registerGui", params)));
+            Assert.assertTrue(expected.equals((String) client.execute(
+                    "core.registerGui", params)));
         } catch (XmlRpcException e) {
             fail("Failed: registerGui");
         } catch (IOException e) {
@@ -64,7 +72,8 @@ public class CoreInterfaceTest extends TestCase {
         params.clear();
         params.add(new Integer(0));
         try {
-            Assert.assertTrue(((Boolean) client.execute("core.register", params)).booleanValue());
+            Assert.assertTrue(((Boolean) client
+                    .execute("core.register", params)).booleanValue());
         } catch (XmlRpcException e) {
             fail("Failed: register");
         } catch (IOException e) {
@@ -76,11 +85,12 @@ public class CoreInterfaceTest extends TestCase {
         params.clear();
         params.add(new Integer(0));
         try {
-            Assert.assertTrue(((Boolean) client.execute("core.register", params)).booleanValue());
+            Assert.assertTrue(((Boolean) client.execute("core.unregister",
+                    params)).booleanValue());
         } catch (XmlRpcException e) {
-            fail("Failed: register");
+            fail("Failed: unregister");
         } catch (IOException e) {
-            fail("Failed: register");
+            fail("Failed: unregister");
         }
     }
 
@@ -89,7 +99,8 @@ public class CoreInterfaceTest extends TestCase {
         params.addElement(new Integer(0));
         params.addElement("MUSTERMANN");
         try {
-            Assert.assertTrue(client.execute("core.makeCall", params) instanceof Integer);
+            Assert
+                    .assertTrue(client.execute("core.makeCall", params) instanceof Integer);
         } catch (XmlRpcException e) {
             fail("Failed: makeCall");
         } catch (IOException e) {
@@ -101,7 +112,9 @@ public class CoreInterfaceTest extends TestCase {
         params.clear();
         params.add(new Integer(0));
         try {
-            Assert.assertTrue(((Boolean) client.execute("core.endCall", params)).booleanValue());
+            Assert
+                    .assertTrue(((Boolean) client.execute("core.endCall",
+                            params)).booleanValue());
         } catch (XmlRpcException e) {
             fail("Failed: endCall");
         } catch (IOException e) {
@@ -113,11 +126,12 @@ public class CoreInterfaceTest extends TestCase {
         params.clear();
         params.add(new Integer(0));
         try {
-            Assert.assertTrue(((Boolean) client.execute("core.acceptCall", params)).booleanValue());
+            Assert.assertTrue(((Boolean) client.execute("core.acceptCall",
+                    params)).booleanValue());
         } catch (XmlRpcException e) {
-            fail("Failed: endCall");
+            fail("Failed: acceptCall");
         } catch (IOException e) {
-            fail("Failed: endCall");
+            fail("Failed: acceptCall");
         }
     }
 
@@ -125,22 +139,24 @@ public class CoreInterfaceTest extends TestCase {
         params.clear();
         params.add(new Double(0.5));
         try {
-            Assert.assertTrue(((Boolean) client.execute("core.setSpeakerVolume", params)).booleanValue());
+            Assert.assertTrue(((Boolean) client.execute(
+                    "core.setSpeakerVolume", params)).booleanValue());
         } catch (XmlRpcException e) {
-            fail("Failed: endCall");
+            fail("Failed: setSpeakerVolume");
         } catch (IOException e) {
-            fail("Failed: endCall");
+            fail("Failed: setSpeakerVolume");
         }
     }
 
     public void testGetSpeakerVolume() {
         params.clear();
         try {
-            Assert.assertTrue(client.execute("core.getSpeakerVolume", params) instanceof Double);
+            Assert
+                    .assertTrue(client.execute("core.getSpeakerVolume", params) instanceof Double);
         } catch (XmlRpcException e) {
-            fail("Failed: endCall");
+            fail("Failed: getSpeakerVolume");
         } catch (IOException e) {
-            fail("Failed: endCall");
+            fail("Failed: getSpeakerVolume");
         }
     }
 
@@ -148,22 +164,24 @@ public class CoreInterfaceTest extends TestCase {
         params.clear();
         params.add(new Double(0.5));
         try {
-            Assert.assertTrue(((Boolean) client.execute("core.setMicroVolume", params)).booleanValue());
+            Assert.assertTrue(((Boolean) client.execute("core.setMicroVolume",
+                    params)).booleanValue());
         } catch (XmlRpcException e) {
-            fail("Failed: endCall");
+            fail("Failed: setMicroVolume");
         } catch (IOException e) {
-            fail("Failed: endCall");
+            fail("Failed: setMicroVolume");
         }
     }
 
     public void testGetMicroVolume() {
         params.clear();
         try {
-            Assert.assertTrue(client.execute("core.getMicroVolume", params) instanceof Double);
+            Assert
+                    .assertTrue(client.execute("core.getMicroVolume", params) instanceof Double);
         } catch (XmlRpcException e) {
-            fail("Failed: endCall");
+            fail("Failed: getMicroVolume");
         } catch (IOException e) {
-            fail("Failed: endCall");
+            fail("Failed: getMicroVolume");
         }
     }
 
@@ -172,11 +190,12 @@ public class CoreInterfaceTest extends TestCase {
         params.add(new String("#"));
         params.add(new Integer(0));
         try {
-            Assert.assertTrue(((Boolean) client.execute("core.sendDtmf", params)).booleanValue());
+            Assert.assertTrue(((Boolean) client
+                    .execute("core.sendDtmf", params)).booleanValue());
         } catch (XmlRpcException e) {
-            fail("Failed: endCall");
+            fail("Failed: sendDtmf");
         } catch (IOException e) {
-            fail("Failed: endCall");
+            fail("Failed: sendDtmf");
         }
     }
 
@@ -192,10 +211,10 @@ public class CoreInterfaceTest extends TestCase {
                 Assert.assertTrue(n instanceof Integer);
             }
         } catch (XmlRpcException e) {
-            fail("Failed: endCall");
+            fail("Failed: accountGetAll");
             e.printStackTrace();
         } catch (IOException e) {
-            fail("Failed: endCall");
+            fail("Failed: accountGetAll");
             e.printStackTrace();
         }
     }
@@ -206,11 +225,12 @@ public class CoreInterfaceTest extends TestCase {
         params.addElement("ATTRIBUTE");
         params.addElement("VALUE");
         try {
-            Assert.assertTrue(((Boolean) client.execute("core.accountSet", params)).booleanValue());
+            Assert.assertTrue(((Boolean) client.execute("core.accountSet",
+                    params)).booleanValue());
         } catch (XmlRpcException e) {
-            fail("Failed: makeCall");
+            fail("Failed: accountSet");
         } catch (IOException e) {
-            fail("Failed: makeCall");
+            fail("Failed: accountSet");
         }
     }
 
@@ -219,22 +239,24 @@ public class CoreInterfaceTest extends TestCase {
         params.addElement(new Integer(0));
         params.addElement("MUSTERMANN");
         try {
-            Assert.assertTrue(client.execute("core.accountGet", params) instanceof String);
+            Assert
+                    .assertTrue(client.execute("core.accountGet", params) instanceof String);
         } catch (XmlRpcException e) {
-            fail("Failed: makeCall");
+            fail("Failed: accountGet");
         } catch (IOException e) {
-            fail("Failed: makeCall");
+            fail("Failed: accountGet");
         }
     }
 
     public void testAccountCreate() {
         params.clear();
         try {
-            Assert.assertTrue(client.execute("core.accountCreate", params) instanceof Integer);
+            Assert
+                    .assertTrue(client.execute("core.accountCreate", params) instanceof Integer);
         } catch (XmlRpcException e) {
-            fail("Failed: endCall");
+            fail("Failed: accountCreate");
         } catch (IOException e) {
-            fail("Failed: endCall");
+            fail("Failed: accountCreate");
         }
     }
 
@@ -242,11 +264,12 @@ public class CoreInterfaceTest extends TestCase {
         params.clear();
         params.add(new Integer(0));
         try {
-            Assert.assertTrue(((Boolean) client.execute("core.accountDelete", params)).booleanValue());
+            Assert.assertTrue(((Boolean) client.execute("core.accountDelete",
+                    params)).booleanValue());
         } catch (XmlRpcException e) {
-            fail("Failed: endCall");
+            fail("Failed: accountDelete");
         } catch (IOException e) {
-            fail("Failed: endCall");
+            fail("Failed: accountDelete");
         }
     }
 }
