@@ -1,0 +1,13 @@
+rm hello
+rm hello_mli
+rm hello_arg1
+rm hello_arg1_mli
+rm hello_arg2
+rm hello_arg2_mli
+rm join1
+rm stack
+rm stack_mli
+rm dotprod_serial
+rm dotprod_mutex
+rm condvar1
+rm posix_cancel

@@ -1,0 +1,13 @@
+gcc -Wall -pthread hello.c -o hello
+gcc -Wall -pthread hello_mli.c -o hello_mli
+gcc -Wall -pthread hello_arg1.c -o hello_arg1
+gcc -Wall -pthread hello_arg1_mli.c -o hello_arg1_mli
+gcc -Wall -pthread hello_arg2.c -o hello_arg2
+gcc -Wall -pthread hello_arg2_mli.c -o hello_arg2_mli
+gcc -Wall -pthread join1.c -o join1
+gcc -Wall -pthread stack.c -o stack
+gcc -Wall -pthread stack_mli.c -o stack_mli
+gcc -Wall -pthread dotprod_serial.c -o dotprod_serial
+gcc -Wall -pthread dotprod_mutex.c -o dotprod_mutex
+gcc -Wall -pthread condvar1.c -o condvar1
+gcc -Wall -pthread posix_cancel.c -o posix_cancel
