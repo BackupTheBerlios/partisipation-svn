@@ -22,7 +22,7 @@ import junit.framework.TestCase;
  * @author Oleksiy Reznikov
  */
 public class CoreInterfaceTest extends TestCase {
-    
+
     XmlRpcClientLite client;
     WebServer server;
     Vector params = new Vector();
@@ -30,22 +30,22 @@ public class CoreInterfaceTest extends TestCase {
     String CORE_HOST = "192.168.0.3";
     int GUI_PORT = 8888;
     int CORE_PORT = 7777;
-    
+
     public CoreInterfaceTest() {
             try {
                 client = new XmlRpcClientLite(InetAddress.getByName(CORE_HOST).getHostName(), CORE_PORT);
             /*    server = new WebServer(GUI_PORT, InetAddress.getByName("192.168.0.3"));
-                
+
                 server.start();
                 server.addHandler("gui", new RequestProcessor()); */
-                
+
             } catch (MalformedURLException e) {
                 fail("Failed: create client.");
             } catch (UnknownHostException e) {
                 fail("Failed: create client.");
             }
     }
-    
+
     public void testRegisterGui() {
         params.clear();
         params.add(GUI_HOST);
@@ -59,7 +59,7 @@ public class CoreInterfaceTest extends TestCase {
             fail("Failed: registerGui");
         }
     }
-    
+
     public void testRegister() {
         params.clear();
         params.add(new Integer(0));
@@ -71,7 +71,7 @@ public class CoreInterfaceTest extends TestCase {
             fail("Failed: register");
         }
     }
-    
+
     public void testUnregister() {
         params.clear();
         params.add(new Integer(0));
@@ -83,7 +83,7 @@ public class CoreInterfaceTest extends TestCase {
             fail("Failed: register");
         }
     }
-    
+
     public void testMakeCall() {
         params.clear();
         params.addElement(new Integer(0));
@@ -96,7 +96,7 @@ public class CoreInterfaceTest extends TestCase {
             fail("Failed: makeCall");
         }
     }
-    
+
     public void testEndCall() {
         params.clear();
         params.add(new Integer(0));
@@ -108,7 +108,7 @@ public class CoreInterfaceTest extends TestCase {
             fail("Failed: endCall");
         }
     }
-    
+
     public void testAcceptCall() {
         params.clear();
         params.add(new Integer(0));
@@ -120,7 +120,7 @@ public class CoreInterfaceTest extends TestCase {
             fail("Failed: endCall");
         }
     }
-    
+
     public void testSetSpeakerVolume() {
         params.clear();
         params.add(new Double(0.5));
@@ -132,7 +132,7 @@ public class CoreInterfaceTest extends TestCase {
             fail("Failed: endCall");
         }
     }
-    
+
     public void testGetSpeakerVolume() {
         params.clear();
         try {
@@ -143,7 +143,7 @@ public class CoreInterfaceTest extends TestCase {
             fail("Failed: endCall");
         }
     }
-    
+
     public void testSetMicroVolume() {
         params.clear();
         params.add(new Double(0.5));
@@ -155,7 +155,7 @@ public class CoreInterfaceTest extends TestCase {
             fail("Failed: endCall");
         }
     }
-    
+
     public void testGetMicroVolume() {
         params.clear();
         try {
@@ -166,7 +166,7 @@ public class CoreInterfaceTest extends TestCase {
             fail("Failed: endCall");
         }
     }
-    
+
     public void testSendDtmf() {
         params.clear();
         params.add(new String("#"));
@@ -179,7 +179,7 @@ public class CoreInterfaceTest extends TestCase {
             fail("Failed: endCall");
         }
     }
-    
+
     public void testAccountGetAll() {
         params.clear();
         try {
@@ -199,7 +199,7 @@ public class CoreInterfaceTest extends TestCase {
             e.printStackTrace();
         }
     }
-    
+
     public void testAccountSet() {
         params.clear();
         params.addElement(new Integer(0));
@@ -213,7 +213,7 @@ public class CoreInterfaceTest extends TestCase {
             fail("Failed: makeCall");
         }
     }
-    
+
     public void testAccountGet() {
         params.clear();
         params.addElement(new Integer(0));
@@ -226,7 +226,7 @@ public class CoreInterfaceTest extends TestCase {
             fail("Failed: makeCall");
         }
     }
-    
+
     public void testAccountCreate() {
         params.clear();
         try {
@@ -237,7 +237,7 @@ public class CoreInterfaceTest extends TestCase {
             fail("Failed: endCall");
         }
     }
-    
+
     public void testAccountDelete() {
         params.clear();
         params.add(new Integer(0));

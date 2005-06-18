@@ -13,6 +13,7 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.Vector;
 
+import test.events.*;
 /**
  * Simple client program with a graphical user interface. Makes remote procedure
  * calls and prints the server response into the text area.
@@ -162,22 +163,22 @@ public class Client extends JFrame {
             //client = new XmlRpcClientLite(InetAddress.getLocalHost()
             //        .getHostName(), 7777);
 
-            
+
             // NOTE: this client/server starts on network interface 192.168.0.2
             // if you don't have this IP address assigned to one of your
-            // network interfaces, this code will not run, you must change 
-            // it to a proper value 
-            
+            // network interfaces, this code will not run, you must change
+            // it to a proper value
+
             byte[] b = new byte[4];
             b[0] = (byte) (192 & 0xff);
             b[1] = (byte) (168 & 0xff);
             b[2] = 0;
             b[3] = 2;
-                      
+
             client = new XmlRpcClientLite(InetAddress.getByAddress(b).getHostName(), 7777);
-            
+
             //server = new WebServer(8888, InetAddress.getLocalHost());
-            
+
             byte[] a = new byte[4];
             a[0] = (byte) (192 & 0xff);
             a[1] = (byte) (168 & 0xff);
@@ -310,18 +311,7 @@ public class Client extends JFrame {
         frame_REG.pack();
     }
 
-    class Client_jMenuFileExit_ActionAdapter implements
-            java.awt.event.ActionListener {
-        Client adaptee;
 
-        Client_jMenuFileExit_ActionAdapter(Client adaptee) {
-            this.adaptee = adaptee;
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            adaptee.jMenuFileExit_actionPerformed(e);
-        }
-    }
 
     //File | Exit action performed
     public void jMenuFileExit_actionPerformed(ActionEvent e) {
@@ -342,179 +332,7 @@ accountId.clear();
         System.exit(0);
     }
 
-    class Client_key_1_ActionAdapter implements java.awt.event.ActionListener {
-        Client adaptee;
 
-        Client_key_1_ActionAdapter(Client adaptee) {
-            this.adaptee = adaptee;
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            adaptee.key_1_actionPerformed(e);
-        }
-    }
-
-    class Client_key_2_ActionAdapter implements java.awt.event.ActionListener {
-        Client adaptee;
-
-        Client_key_2_ActionAdapter(Client adaptee) {
-            this.adaptee = adaptee;
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            adaptee.key_2_actionPerformed(e);
-        }
-    }
-
-    class Client_key_3_ActionAdapter implements java.awt.event.ActionListener {
-        Client adaptee;
-
-        Client_key_3_ActionAdapter(Client adaptee) {
-            this.adaptee = adaptee;
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            adaptee.key_3_actionPerformed(e);
-        }
-    }
-
-    class Client_key_4_ActionAdapter implements java.awt.event.ActionListener {
-        Client adaptee;
-
-        Client_key_4_ActionAdapter(Client adaptee) {
-            this.adaptee = adaptee;
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            adaptee.key_4_actionPerformed(e);
-        }
-    }
-
-    class Client_key_5_ActionAdapter implements java.awt.event.ActionListener {
-        Client adaptee;
-
-        Client_key_5_ActionAdapter(Client adaptee) {
-            this.adaptee = adaptee;
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            adaptee.key_5_actionPerformed(e);
-        }
-    }
-
-    class Client_key_6_ActionAdapter implements java.awt.event.ActionListener {
-        Client adaptee;
-
-        Client_key_6_ActionAdapter(Client adaptee) {
-            this.adaptee = adaptee;
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            adaptee.key_6_actionPerformed(e);
-        }
-    }
-
-    class Client_key_7_ActionAdapter implements java.awt.event.ActionListener {
-        Client adaptee;
-
-        Client_key_7_ActionAdapter(Client adaptee) {
-            this.adaptee = adaptee;
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            adaptee.key_7_actionPerformed(e);
-        }
-    }
-
-    class Client_key_8_ActionAdapter implements java.awt.event.ActionListener {
-        Client adaptee;
-
-        Client_key_8_ActionAdapter(Client adaptee) {
-            this.adaptee = adaptee;
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            adaptee.key_8_actionPerformed(e);
-        }
-    }
-
-    class Client_key_9_ActionAdapter implements java.awt.event.ActionListener {
-        Client adaptee;
-
-        Client_key_9_ActionAdapter(Client adaptee) {
-            this.adaptee = adaptee;
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            adaptee.key_9_actionPerformed(e);
-        }
-    }
-
-    class Client_key_0_ActionAdapter implements java.awt.event.ActionListener {
-        Client adaptee;
-
-        Client_key_0_ActionAdapter(Client adaptee) {
-            this.adaptee = adaptee;
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            adaptee.key_0_actionPerformed(e);
-        }
-    }
-
-    class Client_key_REG_CLEAR_ActionAdapter implements
-            java.awt.event.ActionListener {
-        Client adaptee;
-
-        Client_key_REG_CLEAR_ActionAdapter(Client adaptee) {
-            this.adaptee = adaptee;
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            adaptee.key_REG_CLEAR_actionPerformed(e);
-        }
-    }
-
-    class Client_menu_REGISTER_ActionAdapter implements
-            java.awt.event.ActionListener {
-        Client adaptee;
-
-        Client_menu_REGISTER_ActionAdapter(Client adaptee) {
-            this.adaptee = adaptee;
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            adaptee.menu_REGISTER_actionPerformed(e);
-        }
-    }
-
-    // Button REGISTER pressed
-    class Client_key_REG_OK_ActionAdapter implements
-            java.awt.event.ActionListener {
-        Client adaptee;
-
-        Client_key_REG_OK_ActionAdapter(Client adaptee) {
-            this.adaptee = adaptee;
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            adaptee.key_REG_OK_actionPerformed(e);
-        }
-    }
-
-    //  Menu item INFO pressed
-    class Client_item_INFO_ActionAdapter implements
-            java.awt.event.ActionListener {
-        Client adaptee;
-
-        Client_item_INFO_ActionAdapter(Client adaptee) {
-            this.adaptee = adaptee;
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            adaptee.item_INFO_actionPerformed(e);
-        }
-    }
 
     // Menu item INFO clicked
     public void item_INFO_actionPerformed(ActionEvent e) {
@@ -617,33 +435,9 @@ accountId.clear();
     }
 
     // ##############################
-    class Client_key_DIAL_actionAdapter implements
-            java.awt.event.ActionListener {
-        Client adaptee;
 
-        Client_key_DIAL_actionAdapter(Client adaptee) {
-            this.adaptee = adaptee;
-        }
 
-        public void actionPerformed(ActionEvent e) {
-            adaptee.key_DIAL_actionPerformed(e);
-        }
-    }
-
-    class Client_key_CONF_actionAdapter implements
-            java.awt.event.ActionListener {
-        Client adaptee;
-
-        Client_key_CONF_actionAdapter(Client adaptee) {
-            this.adaptee = adaptee;
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            adaptee.key_CONF_actionPerformed(e);
-        }
-    }
-
-    void key_CONF_actionPerformed(ActionEvent e) {
+    public void key_CONF_actionPerformed(ActionEvent e) {
         params.clear();
         params.addElement(input_NUMBER.getText());
         try {
@@ -657,7 +451,7 @@ accountId.clear();
         }
     }
 
-    void key_DIAL_actionPerformed(ActionEvent e) {
+    public void key_DIAL_actionPerformed(ActionEvent e) {
         accountId.addElement(new Integer (5)); // just for testing
         params.clear();
         params.addElement(accountId.firstElement());
@@ -673,20 +467,8 @@ accountId.clear();
         }
     }
 
-    class Client_key_CANCEL_actionAdapter implements
-            java.awt.event.ActionListener {
-        Client adaptee;
 
-        Client_key_CANCEL_actionAdapter(Client adaptee) {
-            this.adaptee = adaptee;
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            adaptee.key_CANCEL_actionPerformed(e);
-        }
-    }
-
-    void key_CANCEL_actionPerformed(ActionEvent e) {
+    public void key_CANCEL_actionPerformed(ActionEvent e) {
       callId.clear();
       callId.addElement(new Integer(3)); // just for testing
         params.clear();
@@ -757,7 +539,7 @@ accountId.clear();
 */
 
 
-    void menu_REGISTER_actionPerformed(ActionEvent e) {
+    public void menu_REGISTER_actionPerformed(ActionEvent e) {
         Dimension screen_size = Toolkit.getDefaultToolkit().getScreenSize();
         Dimension frame_REG_size = frame_REG.getSize();
         if (frame_REG_size.height > screenSize.height) {
@@ -805,7 +587,7 @@ accountId.clear();
 
     }
 
-    void this_windowClosing(WindowEvent e) {
+   public void this_windowClosing(WindowEvent e) {
 accountId.clear();
       accountId.addElement(new Integer(5));
         params.clear();
@@ -880,14 +662,3 @@ accountId.clear();
     }
 }
 
-class Client_this_windowAdapter extends java.awt.event.WindowAdapter {
-    Client adaptee;
-
-    Client_this_windowAdapter(Client adaptee) {
-        this.adaptee = adaptee;
-    }
-
-    public void windowClosing(WindowEvent e) {
-        adaptee.this_windowClosing(e);
-    }
-}
