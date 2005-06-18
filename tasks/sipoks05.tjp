@@ -499,6 +499,10 @@ task Core "Core" {
             effort 3h
             actual:complete 0
         }
+        task threads "Threads for async communication" {
+            effort 4h
+            actual:complete 0
+        }
     }
 
     task uml "UML" {
@@ -534,7 +538,8 @@ task Core "Core" {
         allocate matthias
         task threads "Threads under c (pthread)" {
             effort 2h
-            actual:complete 0
+            actual:complete 80
+            actual:effort 5h
         }
     }
 
