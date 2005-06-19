@@ -334,21 +334,21 @@ task Core "Core" {
     start 2005-04-11
 
     task milestones "Milestones" {
-        task ms_uml "UML concept ready" {
+        task ms_uml "Concept (incl. UML) ready" {
             milestone
-            depends !!uml
+            depends !!concept
         }
-        task ms_interfaces "Interfaces ready" {
+        task ms_environment "Environment ready" {
             milestone
-            depends !!rtp.ifapt, !!audio.ifapt, !!xmlrpc.ifapt, !!sipstack.ifapt, !ms_uml
+            depends !!environment
         }
         task ms_core "Core concept ready" {
             milestone
-            depends !ms_interfaces, !!concept
+            depends !ms_environment, !!concept
         }
         task ms_portable "Core portable" {
             milestone
-            depends !!portable, !ms_core
+            depends !!implementation.portable, !ms_core
         }
         task ms_implementation "Core implemented" {
             milestone
@@ -371,8 +371,7 @@ task Core "Core" {
         }
         task audio_ifapt "Test Interface and adapter for audio" {
             effort 1h
-            allocate enrico
-            allocate matthias
+            allocate enrico, matthias
             actual:complete 0
         }
         task xmlrpc_ifapt "Test Interface and adapter for XML-RPC" {
@@ -387,189 +386,192 @@ task Core "Core" {
         }
         task call "Test making a call" {
             effort 1 h
-            allocate enrico
-            allocate matthias
+            depends !!environment
+            allocate enrico, matthias
             actual:complete 0
         }
         task called "Test being called" {
             effort 1 h
-            allocate enrico
-            allocate matthias
+            depends !!environment
+            allocate enrico, matthias
             actual:complete 0
         }
         task account "Test account management" {
             effort 1 h
-            allocate enrico
-            allocate matthias
+            depends !!environment
+            allocate enrico, matthias
             actual:complete 0
         }
         task register "Test registering gui" {
             effort 1 h
-            allocate enrico
-            allocate matthias
+            depends !!environment
+            allocate enrico, matthias
             actual:complete 0
         }
         task volumne "Test volumne management" {
             effort 1 h
-            allocate enrico
-            allocate matthias
+            depends !!environment
+            allocate enrico, matthias
             actual:complete 0
         }
         task dtmf "Test DTMF" {
             effort 1 h
-            allocate enrico
-            allocate matthias
+            depends !!environment
+            allocate enrico, matthias
             actual:complete 0
         }
 
-    }
-
-    task style "Doxygen + stylechecking" {
-        effort 2h
-        start 2005-06-04
-        allocate enrico
-        allocate matthias
-        actual:complete 0
-    }
-
-    task config "Configuration with xml or ini" {
-        effort 2h
-        start 2005-06-04
-        allocate enrico
-    }
-
-    task rtp "Including of RTP library" {
-        start 2005-06-04
-        allocate matthias
-        task invest "RTP library investigation" {
-            effort 4h
-            actual:complete 0
-        }
-        task ifapt "Implementation of interface and adapter" {
-            effort 8h
-            depends !!testing.rtp_ifapt
-            actual:complete 0
-        }
-    }
-
-    task audio "Audio control" {
-        start 2005-06-04
-        allocate enrico
-        allocate matthias
-        task volumne "Volumne" {
-            effort 6h
-            actual:complete 0
-        }
-        task input "Input" {
-            effort 6h
-            actual:complete 0
-        }
-        task output "Output" {
-            effort 6h
-            actual:complete 0
-        }
-        task codecs "Codecs" {
-            effort 6h
-            actual:complete 0
-        }
-        task ifapt "Implementation of interface and adapter" {
-            effort 8h
-            actual:complete 0
-        }
-    }
-
-    task xmlrpc "XML-RPC" {
-        allocate matthias
-        task dummy "Dummy Core" {
-            effort 6h
-            start 2005-05-26
-            actual:complete 100
-        }
-        task ifapt "Implementation of interface and adapter" {
-            effort 4h
-            actual:complete 100
-            actual:effort 6h
-        }
-        task array "Correction of array result" {
-            effort 1h
-            actual:complete 100
-            actual:effort 3h
-        }
-        task strings "Implementation of correct string return" {
-            effort 3h
-            actual:complete 0
-        }
-        task threads "Threads for async communication" {
-            effort 4h
-            actual:complete 0
-        }
-    }
-
-    task uml "UML" {
-        task update "UML update" {
-            start 2005-06-04
-            effort 1h
-            actual:complete 100
-            allocate matthias
-        }
-        task statemachine "UML Statemachine" {
-            start 2005-06-04
-            depends !update
-            allocate enrico
-            allocate matthias
-            task concept "Concept" {
-                effort 6h
-                actual:complete 0
-            }
-            task investigation "Investigation" {
-                effort 1h
-                actual:complete 0
-            }
-            task implementation "Implementation (interface)" {
-                effort 6h
-                actual:complete 0
-            }
-        }
     }
 
     task concept "Core concept" {
         start 2005-06-04
-        allocate enrico
-        allocate matthias
+
+        task uml "UML" {
+            task update "UML update" {
+                effort 1h
+                actual:complete 100
+                allocate matthias
+            }
+            task statemachine "UML Statemachine" {
+                depends !update
+                allocate enrico
+                allocate matthias
+                task concept "Concept" {
+                    effort 6h
+                    actual:complete 0
+                }
+                task investigation "Investigation" {
+                    effort 1h
+                    actual:complete 0
+                }
+                task implementation "Implementation (interface)" {
+                    effort 6h
+                    actual:complete 0
+                }
+            }
+            task class "UML class diagram" {
+                allocate enrico
+                effort 3h
+                actual:complete 50
+            }
+            task usecase "UML use cases and sequence diagrams" {
+                allocate enrico
+                effort 3h
+                actual:complete 50
+            }
+        }
         task threads "Threads under c (pthread)" {
             effort 2h
             actual:complete 80
             actual:effort 5h
+            allocate matthias
         }
     }
 
-    task portable "Portability of core" {
-        start 2005-06-04
-        effort 6h
-        allocate enrico
-        allocate matthias
-        actual:complete 0
-    }
+    task environment "Define and adapt environment (libraries, etc.)" {
+        depends !concept
 
-    task sipstack "SIP stack" {
-        task libs "Investigation of possible SIP stacks" {
-            effort 12h
-            start 2005-05-11
+        task style "Doxygen + stylechecking" {
+            effort 2h
+            allocate enrico, matthias
+            actual:complete 0
+        }
+
+        task config "Configuration with xml or ini" {
+            effort 2h
+            allocate enrico
+        }
+
+        task sipstack "SIP stack" {
+            task libs "Investigation of possible SIP stacks" {
+                effort 12h
+                allocate enrico
+                allocate matthias
+                actual:complete 100
+            }
+            task ifapt "Implementation of interface and adapter (oSIP)" {
+                effort 8h
+                depends !!!testing.sipstack_ifapt
+                allocate enrico
+                actual:complete 25
+            }
+        }
+
+        task rtp "Including of RTP library" {
+            allocate matthias
+            task invest "RTP library investigation" {
+                effort 4h
+                actual:complete 0
+            }
+            task ifapt "Implementation of interface and adapter" {
+                effort 8h
+                depends !!!testing.rtp_ifapt
+                actual:complete 0
+            }
+        }
+
+        task audio "Audio control" {
             allocate enrico
             allocate matthias
-            actual:complete 100
+            task volumne "Volumne" {
+                effort 6h
+                actual:complete 0
+            }
+            task input "Input" {
+                effort 6h
+                actual:complete 0
+            }
+            task output "Output" {
+                effort 6h
+                actual:complete 0
+            }
+            task codecs "Codecs" {
+                effort 6h
+                actual:complete 0
+            }
+            task ifapt "Implementation of interface and adapter" {
+                effort 8h
+                actual:complete 0
+            }
         }
-        task ifapt "Implementation of interface and adapter (oSIP)" {
-            effort 8h
-            start 2005-06-04
-            depends !!testing.sipstack_ifapt
-            allocate enrico
-            actual:complete 25
+
+        task xmlrpc "XML-RPC" {
+            allocate matthias
+            task dummy "Dummy Core" {
+                effort 6h
+                actual:complete 100
+            }
+            task ifapt "Implementation of interface and adapter" {
+                effort 4h
+                actual:complete 100
+                actual:effort 6h
+            }
+            task array "Correction of array result" {
+                effort 1h
+                actual:complete 100
+                actual:effort 3h
+            }
+            task strings "Implementation of correct string return" {
+                effort 3h
+                actual:complete 0
+            }
+            task threads "Threads for async communication" {
+                effort 4h
+                actual:complete 0
+            }
         }
     }
 
     task implementation "Core implementation" {
-        start 2005-06-04
+        depends !environment
+
+        task portable "Portability of core" {
+            effort 6h
+            allocate enrico
+            allocate matthias
+            actual:complete 0
+        }
+
         task callmanagement "implementation of call management" {
             allocate enrico, matthias
             task call "Make a call" {
@@ -591,7 +593,6 @@ task Core "Core" {
         }
 
         task account "Account management" {
-            start 2005-06-04
             depends !!testing.account
             allocate enrico
             task storage "Data storage (e.g. with XML)" {
