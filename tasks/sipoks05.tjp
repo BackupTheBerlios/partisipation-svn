@@ -128,7 +128,7 @@ macro timeformat [
 ]
 
 project sipoks05 "PartiSIPation - A Sip User Agent" "1.0" 2005-04-11 2005-09-30 {
-    now 2005-06-15
+    now 2005-06-20
     timeformat "%Y-%m-%d"
 
     currency "EUR"
@@ -220,26 +220,32 @@ task GUI "GUI" {
         }
         task call "Test making a call" {
             effort 1 h
+            depends !!base
             actual:complete 0
         }
         task called "Test being called" {
             effort 1 h
+            depends !!base
             actual:complete 0
         }
         task account "Test account management" {
             effort 1 h
+            depends !!base
             actual:complete 0
         }
         task register "Test registering gui" {
             effort 1 h
+            depends !!base
             actual:complete 0
         }
         task volumne "Test volumne management" {
             effort 1 h
+            depends !!base
             actual:complete 0
         }
         task dtmf "Test DTMF" {
             effort 1 h
+            depends !!base
             actual:complete 0
         }
     }
