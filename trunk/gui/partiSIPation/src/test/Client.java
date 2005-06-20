@@ -25,13 +25,18 @@ import test.events.*;
 
 public class Client extends JFrame {
 
-    private String GUI_HOST = "192.168.0.1";
+    private String GUI_HOST = "192.168.0.2";
 
-    private String CORE_HOST = "192.168.0.1";
+    private String CORE_HOST = "192.168.0.2";
 
     private int GUI_PORT = 8888;
 
     private int CORE_PORT = 7777;
+    
+    private int TIMEOUT = 1000;
+    
+    private String XMLRPC_CALL_TIMEOUT = "XML-PRC CALL TIMEOUT. \n"
+        + "CORE SEEMS DOWN.";
     
     Vector accountId = new Vector();
 
@@ -436,22 +441,7 @@ public class Client extends JFrame {
         }
     }
 
-    public void key_DIAL_actionPerformed(ActionEvent e) {
-        accountId.addElement(new Integer(5)); // just for testing
-        params.clear();
-        params.addElement(accountId.firstElement());
-        params.addElement(input_NUMBER.getText());
-        try {
-            client.execute("core.makeCall", params);
-        } catch (XmlRpcException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-        } catch (IOException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-        }
-    }
-
+    
     public void key_CANCEL_actionPerformed(ActionEvent e) {
         callId.clear();
         callId.addElement(new Integer(3)); // just for testing
@@ -575,15 +565,65 @@ public class Client extends JFrame {
         accountId.addElement(new Integer(5));
         params.clear();
         params.addElement(accountId.firstElement());
-        try {
-            client.execute("core.unregister", params);
-        } catch (XmlRpcException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-        } catch (IOException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
+        
+    //    ExeThread t = new ExeThread("core.unregister", params);
+     //   t.execute();
+        System.exit(0);
+    }
+    
+    public void key_DIAL_actionPerformed(ActionEvent e) {
+        accountId.addElement(new Integer(5)); // just for testing
+        params.clear();
+        params.addElement(accountId.firstElement());
+        params.addElement(input_NUMBER.getText());     
+            ExeThread t = new ExeThread("core.makeCall", params);
+            Object o = t.execute();
+            if (o == null) {
+                jDialog.showMessageDialog(this, XMLRPC_CALL_TIMEOUT, "ERROR",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+    }
+
+    class ExeThread extends Thread {
+
+        private String func;
+
+        private Vector par;
+
+        private Object result = null;
+        
+        private int pause = TIMEOUT;
+
+        public ExeThread(String f, Vector p) {
+            func = f;
+            par = p;
         }
 
+        public Object execute() {
+
+            this.start();
+            try {
+                this.sleep(pause);
+            } catch (InterruptedException e) {
+                return result;
+            }
+            return result;
+        }
+
+
+        public void run() {
+            try {
+                result = client.execute(func, par);
+                this.interrupt();
+            } catch (XmlRpcException e1) {
+                result = null;
+            } catch (IOException e1) {
+                result = null;
+            }
+        }
+        
+        public void setTimeout(int timeout) {
+            pause = timeout;
+        }
     }
 }
