@@ -208,11 +208,12 @@ task GUI "GUI" {
 
         task corefuncs "Test case: gui invokes core functions" {
             effort 1h
-            actual:complete 0
+            actual:complete 100
+            actual:effort 4h
         }
         task netif "Test support of localhost and multiple network interfaces" {
             effort 1 h
-            actual:complete 0
+            actual:complete 100
         }
         task rpcerrors "Test xml-rpc error handling" {
             effort 1 h
@@ -270,7 +271,7 @@ task GUI "GUI" {
                 task instcore "install core" {
                 effort 2h
                 start 2005-06-04
-                actual:complete 0
+                actual:complete 100
             }
         }
 
@@ -278,7 +279,8 @@ task GUI "GUI" {
             effort 8h
             start 2005-06-04
             depends !!testing.netif
-            actual:complete 0
+            actual:complete 100
+            actual:effort 1h
         }
 
 
@@ -292,7 +294,7 @@ task GUI "GUI" {
         task mvcif "Interfaces to meet model-view-controller" {
             effort 8h
             start 2005-06-04
-            actual:complete 0
+            actual:complete 100
         }
     }
 
