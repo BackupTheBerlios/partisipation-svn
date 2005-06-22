@@ -368,7 +368,8 @@ task Core "Core" {
         task env "Test Environment for C" {
             effort 6h
             allocate enrico
-            actual:complete 0
+            actual:complete 100
+            actual:effort 3h
         }
         task rtp_ifapt "Test Interface and adapter for RTP library" {
             effort 1h
@@ -388,7 +389,7 @@ task Core "Core" {
         task sipstack_ifapt "Test Interface and adapter for SIP stack (oSIP)" {
             effort 1h
             allocate enrico
-            actual:complete 0
+            actual:complete 25
         }
         task call "Test making a call" {
             effort 1 h
