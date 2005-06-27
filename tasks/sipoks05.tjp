@@ -447,11 +447,11 @@ task Core "Core" {
                 allocate matthias
                 task concept "Concept" {
                     effort 6h
-                    actual:complete 0
+                    actual:complete 100
                 }
                 task investigation "Investigation" {
                     effort 1h
-                    actual:complete 0
+                    actual:complete 100
                 }
                 task implementation "Implementation (interface)" {
                     effort 6h
@@ -471,7 +471,7 @@ task Core "Core" {
         }
         task threads "Threads under c (pthread)" {
             effort 2h
-            actual:complete 80
+            actual:complete 100
             actual:effort 5h
             allocate matthias
         }
