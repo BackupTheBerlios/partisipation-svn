@@ -146,10 +146,8 @@ resource anton "Anton Huttenlocher" {
     limits { weeklymax 6h }
 }
 resource enrico "Enrico Hartung" {
-    limits { 
-        weeklymax 6h 
-        vacation 2005-09-09 - 2005-09-21    
-    }
+    limits { weeklymax 6h }
+    vacation 2005-09-09 - 2005-09-21    
 }
 resource matthias "Matthias Liebig" {
     limits { weeklymax 6h }
