@@ -343,7 +343,7 @@ task Core "Core" {
     start 2005-04-11
 
     task milestones "Milestones" {
-        task ms_uml "Concept (incl. UML) ready" {
+        task ms_concept "Concept (incl. UML) ready" {
             milestone
             depends !!concept
         }
@@ -351,17 +351,17 @@ task Core "Core" {
             milestone
             depends !!environment
         }
-        task ms_core "Core concept ready" {
+        task ms_testing "Core tests ready" {
             milestone
-            depends !ms_environment, !!concept
+            depends !!testing
         }
         task ms_portable "Core portable" {
             milestone
-            depends !!implementation.portable, !ms_core
+            depends !!implementation.portable
         }
         task ms_implementation "Core implemented" {
             milestone
-            depends !!implementation, !ms_portable
+            depends !!implementation
         }
     }
 
@@ -436,6 +436,36 @@ task Core "Core" {
     task concept "Core concept" {
         start 2005-06-04
 
+        task interfaces "Interface Design" {
+            task sipstack "Design of sip stack interface" {
+                effort 4h
+                allocate enrico
+                actual:complete 100
+            }
+            task rtp "Design of rtp interface" {
+                allocate matthias
+                effort 4h
+                actual:complete 0
+            }
+            task codec "Design of codec interface" {
+                allocate enrico, matthias
+                effort 4h
+                actual:complete 0
+            }
+            task audio "Design of audio interface" {
+                allocate enrico, matthias
+                effort 4h
+                actual:complete 0
+            }
+            task xmlrpc "Design of xml-rpc interface" {
+                allocate enrico, matthias
+                effort 2h
+                actual:complete 100
+                actual:effort 3h
+            }
+
+        }
+
         task uml "UML" {
             task update "UML update" {
                 effort 1h
@@ -454,15 +484,12 @@ task Core "Core" {
                     effort 1h
                     actual:complete 100
                 }
-                task implementation "Implementation (interface)" {
-                    effort 6h
-                    actual:complete 0
-                }
             }
             task class "UML class diagram" {
                 allocate enrico
                 effort 3h
                 actual:complete 50
+                depends !!interfaces
             }
             task usecase "UML use cases and sequence diagrams" {
                 allocate enrico
@@ -499,9 +526,9 @@ task Core "Core" {
                 allocate matthias
                 actual:complete 100
             }
-            task ifapt "Implementation of interface and adapter (oSIP)" {
-                effort 8h
-                depends !!!testing.sipstack_ifapt
+            task apt "Implementation of interface and adapter (oSIP)" {
+                effort 4h
+                depends !!!testing.sipstack_ifapt, !!!concept.interfaces.sipstack
                 allocate enrico
                 actual:complete 25
             }
@@ -513,9 +540,9 @@ task Core "Core" {
                 effort 4h
                 actual:complete 0
             }
-            task ifapt "Implementation of interface and adapter" {
-                effort 8h
-                depends !!!testing.rtp_ifapt
+            task apt "Implementation of interface and adapter" {
+                effort 4h
+                depends !!!testing.rtp_ifapt, !!!concept.interfaces.rtp
                 actual:complete 0
             }
         }
@@ -539,9 +566,15 @@ task Core "Core" {
                 effort 6h
                 actual:complete 0
             }
-            task ifapt "Implementation of interface and adapter" {
-                effort 8h
+            task codecapt "Implementation of codec interface and adapter" {
+                effort 4h
                 actual:complete 0
+                depends !!!concept.interfaces.codec
+            }
+            task audioapt "Implementation of audio interface and adapter" {
+                effort 4h
+                actual:complete 0
+                depends !!!concept.interfaces.audio
             }
         }
 
@@ -551,10 +584,11 @@ task Core "Core" {
                 effort 6h
                 actual:complete 100
             }
-            task ifapt "Implementation of interface and adapter" {
-                effort 4h
+            task apt "Implementation of xml-rpc interface and adapter" {
+                effort 2h
                 actual:complete 100
-                actual:effort 6h
+                actual:effort 3h
+                depends !!!concept.interfaces.xmlrpc
             }
             task array "Correction of array result" {
                 effort 1h
@@ -575,6 +609,11 @@ task Core "Core" {
     task implementation "Core implementation" {
         depends !environment
 
+        task statemachine "Implementation of statemachine" {
+            effort 6h
+            allocate enrico, matthias
+            actual:complete 0
+        }
         task portable "Portability of core" {
             effort 6h
             allocate enrico
