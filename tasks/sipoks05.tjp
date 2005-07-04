@@ -128,7 +128,7 @@ macro timeformat [
 ]
 
 project sipoks05 "PartiSIPation - A Sip User Agent" "1.0" 2005-04-11 2005-09-30 {
-    now 2005-06-20
+    now 2005-07-04
     timeformat "%Y-%m-%d"
 
     currency "EUR"
@@ -477,7 +477,7 @@ task Core "Core" {
                 allocate enrico
                 allocate matthias
                 task concept "Concept" {
-                    effort 6h
+                    effort 8h
                     actual:complete 100
                 }
                 task investigation "Investigation" {
@@ -510,8 +510,8 @@ task Core "Core" {
 
         task style "Doxygen + stylechecking" {
             effort 2h
-            allocate enrico, matthias
-            actual:complete 0
+            allocate enrico
+            actual:complete 50
         }
 
         task config "Configuration with xml or ini" {
