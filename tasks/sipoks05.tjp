@@ -201,11 +201,12 @@ task GUI "GUI" {
         task ms_dtmf "DTMF ready" {
             milestone
             depends !!dtmf, !ms_volumne
+
         }
     }
 
     task testing "Test cases for junit" {
-
+        start 2005-06-04
         task corefuncs "Test case: gui invokes core functions" {
             effort 1h
             actual:complete 100
@@ -252,13 +253,14 @@ task GUI "GUI" {
     }
 
     task design "GUI design" {
+        start 2005-06-04
         task clients "Client investigation" {
             effort 2h
             actual:complete 0
         }
         task design "Develop actual GUI design" {
             effort 22h
-            depends !clients
+            depends !clients, !!base
             actual:complete 0
         }
     }
