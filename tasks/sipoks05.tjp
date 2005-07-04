@@ -205,7 +205,6 @@ task GUI "GUI" {
     }
 
     task testing "Test cases for junit" {
-        start 2005-06-04
 
         task corefuncs "Test case: gui invokes core functions" {
             effort 1h
@@ -255,7 +254,6 @@ task GUI "GUI" {
     task design "GUI design" {
         task clients "Client investigation" {
             effort 2h
-            start 2005-06-04
             actual:complete 0
         }
         task design "Develop actual GUI design" {
@@ -271,14 +269,12 @@ task GUI "GUI" {
             depends !!testing.corefuncs
                 task instcore "install core" {
                 effort 2h
-                start 2005-06-04
                 actual:complete 100
             }
         }
 
         task netif "Support of localhost and multiple network interfaces" {
             effort 8h
-            start 2005-06-04
             depends !!testing.netif
             actual:complete 100
             actual:effort 1h
@@ -287,14 +283,12 @@ task GUI "GUI" {
 
         task rpcerrors "Error handling for xml-rpc interface" {
             effort 6h
-            start 2005-06-04
             depends !!testing.rpcerrors
             actual:complete 0
         }
 
         task mvcif "Interfaces to meet model-view-controller" {
             effort 8h
-            start 2005-06-04
             actual:complete 100
         }
     }
