@@ -475,6 +475,7 @@ task Core "Core" {
                 task concept "Concept" {
                     effort 8h
                     actual:complete 100
+                    actual:effort 10h
                 }
                 task investigation "Investigation" {
                     effort 1h
