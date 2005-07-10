@@ -1,0 +1,56 @@
+    Audit::Source - an interface to source code vulnerability scanners
+============================================================================
+
+Synopsis
+
+    use Audit::Source;
+    $audit = new Audit::Source;
+    $audit->run_all($file);
+    $audit->textdump();
+
+Description
+
+    Audit::Source is a group of modules to make processing of source code
+    vulnerability scanners easier. Each scanner is implemented by a separate
+    module (see MODULES) which parses the results and stores them into a
+    common data format. Results from different scanners can be matched
+    against each other.
+
+Modules
+
+    Audit::Source::Rats
+    Audit::Source::Flawfinder
+    Audit::Source::Pscan
+    Audit::Source::Splint
+
+See also
+
+    The files 'one.pl' and 'two.pl' in examples/
+
+    Audit::Source(3pm),
+    Audit::Source::Rats(3pm),
+    Audit::Source::Flawfinder(3pm),
+    Audit::Source::Pscan(3pm),
+    Audit::Source::Splint(3pm)
+
+    match-audit(1), colour-audit(1)
+
+Author
+
+    Max Vozeler <max@hinterhof.net>
+
+License
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; version 2 dated June, 1991.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program;  if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111, USA.
+

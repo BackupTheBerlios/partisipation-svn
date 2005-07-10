@@ -1,0 +1,12 @@
+
+o tests
+o change print/printfs to warn/croak/etc.
+
+o mapping of severities between the different scanners
+
+o Audit::Pscan
+o other modules
+
+o colourscan
+  . more colours
+

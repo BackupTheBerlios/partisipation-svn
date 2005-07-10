@@ -1,0 +1,14 @@
+0.10
+
+ o New module for pscan(1)
+ o New merge() method
+ o New example program
+ o Shrink HTML output
+ o Added --includepath (or -I) argument
+ o Added --verbose arguments
+ o Search scanners in $PATH and fail gracefully
+
+0.9
+
+  <undocumented>
+

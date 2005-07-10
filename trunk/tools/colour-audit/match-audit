@@ -1,0 +1,124 @@
+#!/usr/bin/perl -w
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; version 2 dated June, 1991.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program;  if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111, USA.
+#
+#  Copyright 2004, Max Vozeler <max@hinterhof.net>
+#
+
+=head1 NAME
+
+B<match-audit> - generates text report of potential source vulnerabilties
+
+=head1 SYNOPSIS
+
+B<match-audit> [options] <file> ...
+
+=head1 DESCRIPTION
+
+B<match-audit> takes one or more source code files as input, processes them
+with the available vulnerability scanners (see B<SCANNERS>) and generates a
+text report of potential vulnerabilities from the merged scanner warnings.
+
+=cut
+
+use strict;
+use Pod::Usage;
+use Getopt::Long;
+use Text::Wrap;
+use Audit::Source;
+
+my $scanner = new Audit::Source;
+my $man = 0;
+my $help = 0;
+my $basedir = '.';
+my $outdir;
+
+GetOptions(
+  'help|?' => \$help,
+  'man' => \$man,
+  'includepath|I=s' => sub { shift; $scanner->includepath(@_); },
+  'verbose' => sub { $scanner->verbose(); }
+) or pod2usage(2);
+
+pod2usage(-exitstatus => 0, -verbose => 2) if $man;
+pod2usage(1) if $help || $#ARGV == -1;
+
+# scan the files
+foreach my $file (@ARGV) {
+    if (!$scanner->run_all($file)) {
+        printf "%s parse error\n", ref($scanner);
+        next;
+    }
+}
+
+$scanner->textdump();
+
+exit(0);
+
+__END__
+
+=head1 OPTIONS
+
+=over
+
+=item B<--includepath> <dir>
+
+Add directory <dir> to the header search path.
+
+=item B<--verbose>	
+
+Show processing warnings and errors in detail.
+
+=item B<--help>	
+
+Print usage and exit.
+
+=item B<--man>
+
+Print full documentation and exit.
+
+=back
+
+=head1 SCANNERS
+
+Currently supported scanners are:
+
+=over
+
+=item B<splint> (Secure Programming Lint),
+
+=item B<rats> (Rough Auditing Tool for Security).
+
+=item B<pscan>
+
+=item B<flawfinder>
+
+=back 
+
+=head1 AUTHOR
+
+Max Vozeler <max@hinterhof.net>
+
+=head1 SEE ALSO
+
+=over
+
+=item L<colour-audit(1)>
+
+=item L<Audit::Source(3pm)>
+
+=back
+
+=cut
+

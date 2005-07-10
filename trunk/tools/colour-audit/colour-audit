@@ -1,0 +1,285 @@
+#!/usr/bin/perl -w
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; version 2 dated June, 1991.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program;  if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111, USA.
+#
+#  Copyright 2004, Max Vozeler <max@hinterhof.net>
+# 
+
+=head1 NAME
+
+B<colour-audit> - generates HTML report of potential source vulnerabilties
+
+=head1 SYNOPSIS
+
+B<colour-audit> [options] <file> ...
+
+=head1 DESCRIPTION
+
+B<colour-audit> takes one or more source code files as input, processes it
+with the available vulnerability scanners (see B<SCANNERS>) and generates a
+set of HTML pages from the merged scanner warnings. Each line in the output
+is marked with a colour choosen according to how many different scanners
+warned about that line. The line number links to a page with the complete
+scanner warnings.
+
+=cut
+
+use strict;
+use Pod::Usage;
+use Getopt::Long;
+use Audit::Source;
+
+my $man = 0;
+my $help = 0;
+my $basedir = '.';
+my $outdir;
+
+my %colours = (
+    0 => 'yellow',
+    1 => '#e5bf00',
+    2 => '#ff6800',
+    3 => '#d20000',
+);
+
+my $scanner = new Audit::Source;
+process_argv($scanner);
+
+foreach my $file (@ARGV) {
+    # open file for reading
+    if (!open(FILE, '<' . $file)) {
+        print STDERR "cannot open $file: $!\n";
+        next;
+    }
+    
+    # scan with all scanners
+    $scanner->run_all($file);
+    
+    # get matching entries
+    my $lines = $scanner->file($file);
+    my $numlines = (keys %$lines);
+    
+    # create target directory
+    $basedir =~ s,([^/])$,$1/,;
+    $outdir = $file;
+    $outdir =~ s|.*/||;
+    $outdir =~ s|/$||;
+    $outdir = $basedir . $outdir;
+    foreach ($basedir, $outdir) {
+        if (! -d $_) {
+            mkdir $_ || die "cannot create $_: $!\n";
+        }
+    }
+    
+    my $outfile = "$outdir/index.html";
+    open(HTML, '>' . $outfile) || die "cannot write $outfile: $!\n";
+    
+    print_html_header(*HTML, $file, $numlines);
+    print HTML '<table border="0" cellpadding="0" cellspacing="0">'; 
+    
+    my $line = 1;
+    while (<FILE>) {
+        if (not exists $lines->{$line}) {
+            printf HTML '<tr><td class="num">%d</td>'
+              . '<td class="match0"><pre>%s</pre></td></tr>',
+              $line, escape($_);
+            $line++;
+            next;
+        }
+    
+        my $entries = $lines->{$line};
+        my $num = ($entries->{'matchnum'} > 3) ? 3 : $entries->{'matchnum'};
+        printf HTML '<tr><td class="num"><a name="line%d"></a>'
+          . '<a href="details%d.html">%d</a></td>'
+          . '<td class="match%d"><pre>%s</pre></td>'
+          . '</tr>',
+          $line, $line, $line, $num, escape($_);
+      
+        open(DETAILS, ">" . "$outdir/details$line.html") ||
+          die "cannot write $outdir/details$line.html: $!\n";
+      
+        printf DETAILS '<html><body>'
+          . '<h3><a href="index.html#line%d">%s</a> line %d</h3>'
+          . '<pre>%s</pre><ul>', $line, $file, $line, escape($_);
+
+        foreach my $entry (@{$entries->{'data'}}) {
+            printf DETAILS '<li>%s: severity %s<br>description: %s</li>',
+              $entry->{'source'}, $entry->{'severity'}, $entry->{'desc'};
+        }
+       
+        print DETAILS '</ul></body></html>';
+        close(DETAILS);
+        $line++;
+    }
+    
+    print HTML '</table><hr>';
+    print_html_legend(*HTML);
+
+    printf HTML '<hr><div id="footer">%s %s</div>',
+      "Generated using colour-audit / Audit::Source version",
+      $Audit::Source::VERSION;
+
+    print HTML '</body></html>';
+    close(HTML);
+    printf "generated %s [%d lines matched]\n", "$outdir/index.html",$numlines;
+}
+
+sub print_html_header {
+    my $out = shift;
+    my $file = shift;
+    my $matchnum = shift;
+
+    print $out <<HEADEND;
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+  <title>colour-audit: $file</title>
+  <style type="text/css">
+    pre { display: inline; }
+    .match0, .match1, .match2, .match3, .match4 {
+      border-left: solid 5px yellow;
+      padding-left: 5px;
+      padding-right: 5px;
+      margin-left: 5px;
+      margin-top: 0px;
+      margin-bottom: 0px;
+    }
+    .match0 { border-left: solid 5px $colours{0}; }
+    .match1 { border-left: solid 5px $colours{1}; }
+    .match2 { border-left: solid 5px $colours{2}; }
+    .match3 { border-left: solid 5px $colours{3}; }
+    .num { font-size: smaller; padding-right: 5px; }
+    #footer { font-size: smaller; }
+  </style>
+  </head>
+HEADEND
+
+    printf $out '<body><h3>%s</h3>
+      <p>%d lines caused warnings [<a href="#legend">Legend</a>]</p>',
+      $file, $matchnum;
+}
+
+sub print_html_legend {
+    my $out = shift;
+    my $x;
+
+    print $out
+      '<h3><a name="legend">Legend</a></h3>
+       <table border="0" cellpadding="2">
+       <tr>
+         <td class="match0">&nbsp;</td>
+         <td>not matched</td>
+       </tr>';
+
+    foreach $x (sort keys %colours) {
+        next if $x == 0;
+        printf $out
+          '<tr>
+             <td class="match%d">&nbsp;</td>
+             <td>matched by %d scanners</td>
+           </tr>',
+            $x, $x;
+    }
+
+    print $out '</table>';
+}
+
+sub process_argv {
+    my $scanner = shift;
+    GetOptions(
+      'help|?' => \$help,
+      'man' => \$man,
+      'dir=s' => \$basedir,
+      'includepath|I=s' => sub { shift; $scanner->includepaths(@_); },
+      'verbose' => sub { $scanner->verbose(); }
+      ) or pod2usage(2);
+    
+    pod2usage(-exitstatus => 0, -verbose => 2) if $man;
+    pod2usage(1) if $help || $#ARGV == -1;
+}
+
+sub indent {
+    my $str = shift || '';
+    $str =~ s/\n\s*/\n    /sg;
+    return $str;
+}
+
+sub escape {
+    my $str = shift || '';
+    $str =~ s/\&/\&amp;/sg;
+    $str =~ s/</\&lt;/sg;
+    $str =~ s/>/\&gt;/sg;
+    if ($str eq "\n") {
+        return "&nbsp;\n";
+    }
+    return $str;
+}
+
+=head1 OPTIONS
+
+=over
+
+=item B<--dir> <dir>
+
+Create output in directory <dir>; defaults to '.'
+
+=item B<--includepath> <dir>
+
+Add directory <dir> to the header search path.
+
+=item B<--verbose>	
+
+Show processing warnings and errors in detail.
+
+=item B<--help>	
+
+Print usage and exit.
+
+=item B<--man>
+
+Print full documentation and exit.
+
+=back
+
+=head1 SCANNERS
+
+Currently supported scanners are:
+
+=over
+
+=item L<splint(1)> (Secure Programming Lint),
+
+=item L<rats(1)> (Rough Auditing Tool for Security).
+
+=item L<pscan(1)>
+
+=item L<flawfinder(1)>
+
+=back 
+
+=head1 SEE ALSO
+
+=over
+
+=item L<match-audit(1)>
+
+=item L<Audit::Source(3pm)>
+
+=back
+
+=head1 AUTHOR
+
+Max Vozeler <max@hinterhof.net>
+
+=cut
+
