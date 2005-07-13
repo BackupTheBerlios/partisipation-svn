@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <thread_management.h>
+#include <threads/thread_management.h>
 
 void *
 test_thread(void * args) {
