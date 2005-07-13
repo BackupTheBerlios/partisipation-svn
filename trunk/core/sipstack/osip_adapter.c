@@ -3,29 +3,30 @@
 
 #include <sip_stack_interface.h>
 
-bool register(int const accountId,
+int send_register(int const accountId,
           char* const callee) {
 
 }
 
 int start_call() {
+    int callID = 4;
     return callID;
 }
 
-bool cancel_call(int callId) {
-    return true;
+int cancel_call(int callId) {
+    return 1;
 }
 
-bool quit_call(int callId) {
-    return true;
+int quit_call(int callId) {
+    return 1;
 }
 
-bool decline_call(int callId) {
-    return true;
+int decline_call(int callId) {
+    return 1;
 }
 
-bool set_listener(int listener) {
-    return true;
+int set_listener(int listener) {
+    return 1;
 }
 
 

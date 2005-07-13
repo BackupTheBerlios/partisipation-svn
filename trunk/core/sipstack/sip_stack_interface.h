@@ -1,12 +1,11 @@
-bool register(int const accountId,
-          char* const callee);
+int send_register(int const accountId, char* const callee);
 
 int start_call();
 
-bool cancel_call(int callId);
+int cancel_call(int callId);
 
-bool quit_call(int callId);
+int quit_call(int callId);
 
-bool decline_call(int callId);
+int decline_call(int callId);
 
-bool set_listener(int listener);
+int set_listener(int listener);

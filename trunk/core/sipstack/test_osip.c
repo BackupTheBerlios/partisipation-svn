@@ -4,21 +4,21 @@
 START_TEST (test_osip_ifapt)
 {
     /* unit test code */
-    register();
+    //int isRegistered = register(...);
 
     /* start call and quit it*/
-    callID = start_call();
-    fail_unless(quit_call(callId));
+    //int callID = start_call();
+    //fail_unless(quit_call(callID));
 
     /* start call and cancel it*/
-    callID = start_call();
-    fail_unless(cancel_call(callId));
+    //callID = start_call();
+    //fail_unless(cancel_call(callID));
 
     /* start new SipListener thread and use its id as parameter listener */
-    fail_unless(set_listener(listener));
+    //fail_unless(set_listener(listener));
 
     /* */
-    fail_unless();
+    //fail_unless();
 
 }
 END_TEST
