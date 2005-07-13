@@ -1,5 +1,7 @@
 package test;
 
+import javax.swing.ImageIcon;
+
 /**
  * This class provides all functions of the GUI to the core.
  * 
@@ -9,46 +11,58 @@ package test;
  */
 public class GuiStub {
 
-    private Client gui;
-
-    public GuiStub(Client g) {
+    //private Client gui;
+    private Gui gui;
+    private ClassLoader cl;
+    /* public GuiStub(Client g) {
         gui = g;
+    } */
+    
+    public GuiStub(Gui g) {
+        gui = g;
+        cl = gui.cl;
     }
 
     public boolean changeRegStatus(int accountId, boolean registered) {
-        gui.textarea_LOG.append("CHANGE REG STATUS" + "\n");
+        gui.jTextArea1.append("CHANGE REG STATUS" + "\n");
         return true;
     }
 
     public boolean changeCallStatus(int callId, String callStatus) {
-        gui.textarea_LOG.append("CHANGE CALL STATUS" + "\n");
+        gui.jTextArea1.append("Call status is: "+callStatus+"\n");
+        if (callStatus.equalsIgnoreCase("ACCEPTED")) {
+            gui.phone_down_active = true;
+            gui.jLabel14.setIcon(new ImageIcon(cl.getResource("test/ressources/phone_down.gif")));
+        }
+        //gui.jTextArea1.append("CHANGE CALL STATUS" + "\n");
         return true;
     }
 
     public boolean showUserEvent(int accountId, String category, String title,
             String message, String details) {
-        gui.textarea_LOG.append("SHOW USER EVENT" + "\n");
+        gui.jTextArea1.append("SHOW USER EVENT" + "\n");
         return true;
     }
 
     public boolean registerCore() {
-        gui.textarea_LOG.append("REGISTER CORE" + "\n");
+        gui.jTextArea1.append("REGISTER CORE" + "\n");
         return true;
     }
 
     public boolean incomingCall(int accountId, int callId, String sipUri,
             String displayName) {
-        gui.textarea_LOG.append("INCOMING CALL" + "\n");
+        gui.jTextArea1.append("INCOMING CALL" + "\n");
         return true;
     }
 
     public boolean setSpeakerVolume(double level) {
-        gui.textarea_LOG.append("SET SPEAKER VOLUME" + "\n");
+        gui.jSlider1.setValue((int)(level * 100));
+        gui.jTextArea1.append("SET SPEAKER VOLUME" + "\n");
         return true;
     }
 
     public boolean setMicroVolume(double level) {
-        gui.textarea_LOG.append("SET MICRO VOLUME" + "\n");
+        gui.jTextArea1.append("SET MICRO VOLUME" + "\n");
         return true;
     }
 
