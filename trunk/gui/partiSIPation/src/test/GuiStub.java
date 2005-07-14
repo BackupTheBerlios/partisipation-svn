@@ -1,6 +1,7 @@
 package test;
 
 import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
 
 /**
  * This class provides all functions of the GUI to the core.
@@ -51,7 +52,23 @@ public class GuiStub {
 
     public boolean incomingCall(int accountId, int callId, String sipUri,
             String displayName) {
-        gui.jTextArea1.append("INCOMING CALL" + "\n");
+        Object[] options = {"Accept", "Decline"};
+        int n = JOptionPane.showOptionDialog(gui,
+                "Incoming call from "
+                + sipUri + " ("+ displayName +").\n",
+                "INCOMING CALL", JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+
+        gui.jTextArea1.append(Utils.getTimestamp()+": Call from "+ sipUri + " ("+ displayName +") "); 
+        if (n == 0) {
+            gui.jTextArea1.append("accepted.\n");
+            gui.phone_down_active = true;
+            gui.jLabel14.setEnabled(true);
+            gui.list2.addElement(sipUri + " ("+ displayName +")");
+            gui.jLabel14.setIcon(new ImageIcon(cl.getResource("test/ressources/phone_down.gif")));
+        } else {
+            gui.jTextArea1.append("declined.\n");
+        }
         return true;
     }
 
