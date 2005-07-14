@@ -4,6 +4,7 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.util.Vector;
+import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -28,10 +29,12 @@ import org.apache.xmlrpc.WebServer;
 import org.apache.xmlrpc.XmlRpcClientLite;
 import org.netbeans.lib.awtextra.AbsoluteConstraints;
 import org.netbeans.lib.awtextra.AbsoluteLayout;
+import java.util.Enumeration;
 
 /**
  *
- * @author  Anton
+ * @author Anton Huttenlocher
+ * @author Oleksiy Reznikov
  */
 public class Gui extends JFrame {
     
@@ -45,10 +48,7 @@ public class Gui extends JFrame {
     private int GUI_PORT = 8888;
 
     private int CORE_PORT = 7777;
-       
-    private String XMLRPC_CALL_TIMEOUT = "XML-PRC CALL TIMEOUT. \n"
-        + "CORE UNREACHABLE.";
-    
+
     Vector accountId = new Vector();
 
     Vector callId = new Vector();
@@ -85,14 +85,26 @@ public class Gui extends JFrame {
             params.clear();
             params.addElement(GUI_HOST);
             params.addElement(new Integer(GUI_PORT));     
-                ExeThread t = new ExeThread(client, "core.registerGui", params);
-                t.setTimeout(3000);
-                Object o = t.execute();
+                
+                Object o = execute("core.registerGui", params, 3000);
                 if (o == null) {
-                    JOptionPane.showMessageDialog(this, XMLRPC_CALL_TIMEOUT, "ERROR",
-                            JOptionPane.ERROR_MESSAGE);
+// --- something
                 } else if (((String) o).equalsIgnoreCase("OK")) {
-                    // OK returned
+                    jTextArea1.append(Utils.getTimestamp()+": GUI registration successful.\n");
+                    
+                    params.clear();
+                    o = execute("core.accountGetAll", params);
+                    
+                    if (o != null && o instanceof Vector) {
+                        Vector v = (Vector) o;
+                        Enumeration e = v.elements();
+                        while (e.hasMoreElements()) {
+                            Integer n = (Integer) e.nextElement();
+                            list1.addElement(n.toString());
+                            accounts.add(n);
+                        }
+                    }
+                    
                 } else {
                     // ERROR returned
                 }
@@ -118,7 +130,7 @@ public class Gui extends JFrame {
         jTabbedPane1 = new JTabbedPane();
         jPanel1 = new JPanel();
         //jComboBox1 = new JComboBox();
-        jTextField1 = new JTextField(20);
+        jTextField1 = new JTextField();
         jLabel1 = new JLabel();
         jLabel2 = new JLabel();
         jLabel3 = new JLabel();
@@ -147,16 +159,11 @@ public class Gui extends JFrame {
         jMenuItem2 = new JMenuItem();
         jScrollPane1 = new JScrollPane();
         jScrollPane2 = new JScrollPane();
-        list = new Vector();
-        /*list.add("1");
-        list.add("2");
-        list.add("3");
-        list.add("4");
-        list.add("5");
-        list.add("6");
-        list.add("7");
-        list.add("8");*/
-        jList1 = new JList(list);
+        jScrollPane3 = new JScrollPane();
+        list1 = new DefaultListModel();
+        list2 = new DefaultListModel();
+        jList1 = new JList(list1);
+        jList2 = new JList(list2);
         jLabel17 = new JLabel();
         jLabel18 = new JLabel();
         jLabel19 = new JLabel();
@@ -181,14 +188,15 @@ public class Gui extends JFrame {
         jButton4 = new JButton();
         jButton5 = new JButton();
         jTextArea1 = new JTextArea();
-
+        accounts = new Vector();
+        
         getContentPane().setLayout(new AbsoluteLayout());
 
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         jPanel1.setLayout(new AbsoluteLayout());
 
 
-        jPanel1.add(jTextField1, new AbsoluteConstraints(170, 10, 175, -1));
+        jPanel1.add(jTextField1, new AbsoluteConstraints(170, 10, 410, -1));
 
         cl = this.getClass().getClassLoader();
         
@@ -231,25 +239,33 @@ public class Gui extends JFrame {
         jLabel13.setIcon(new ImageIcon(cl.getResource("test/ressources/phone_up.gif")));
         jLabel13.setVerticalAlignment(SwingConstants.TOP);
         jLabel13.setPreferredSize(new java.awt.Dimension(54, 54));
-        jPanel1.add(jLabel13, new AbsoluteConstraints(170, 50, 54, 54));
+        jPanel1.add(jLabel13, new AbsoluteConstraints(590, 10, 54, 54));
         
         jLabel14.setIcon(new ImageIcon(cl.getResource("test/ressources/phone_down_dis.gif")));
         jLabel14.setVerticalAlignment(SwingConstants.TOP);
         jLabel14.setPreferredSize(new java.awt.Dimension(54, 54));
-        jPanel1.add(jLabel14, new AbsoluteConstraints(290, 50, 54, 54));
+        jPanel1.add(jLabel14, new AbsoluteConstraints(590, 150, 54, 54));
 
         jLabel15.setIcon(new ImageIcon(cl.getResource("test/ressources/addressbook.gif")));
         jLabel15.setVerticalAlignment(SwingConstants.TOP);
         jLabel15.setPreferredSize(new java.awt.Dimension(54, 54));
-        jPanel1.add(jLabel15, new AbsoluteConstraints(230, 50, 54, 54));
+        jPanel1.add(jLabel15, new AbsoluteConstraints(590, 80, 54, 54));
 
-//        jPanel1.add(jTextArea1, new AbsoluteConstraints(170,120,170,140));
         
         jScrollPane2.setAutoscrolls(true);
         jTextArea1.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(1, 1, 1, 1)));
         jScrollPane2.setViewportView(jTextArea1);
         
-        jPanel1.add(jScrollPane2, new AbsoluteConstraints(170,120,170,140));
+        jPanel1.add(jScrollPane2, new AbsoluteConstraints(10, 220, 640, 120));
+        
+        jList2.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        jScrollPane3.setAutoscrolls(true);
+        jList2.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(1, 1, 1, 1)));
+        jList2.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        jList2.setValueIsAdjusting(true);
+        jScrollPane3.setViewportView(jList2);
+        
+        jPanel1.add(jScrollPane3, new AbsoluteConstraints(170, 40, 410, 170));
         
         jTabbedPane1.addTab("Calls", jPanel1);
 
@@ -263,17 +279,17 @@ public class Gui extends JFrame {
         jList1.setValueIsAdjusting(true);
         jScrollPane1.setViewportView(jList1);
         
-        jPanel3.add(jTextField8, new AbsoluteConstraints(340, 20, 200, -1));
+        jPanel3.add(jTextField8, new AbsoluteConstraints(350, 20, 200, -1));
 
-        jPanel3.add(jTextField2, new AbsoluteConstraints(340, 50, 200, -1));
+        jPanel3.add(jTextField2, new AbsoluteConstraints(350, 50, 200, -1));
 
-        jPanel3.add(jTextField3, new AbsoluteConstraints(340, 80, 200, -1));
+        jPanel3.add(jTextField3, new AbsoluteConstraints(350, 80, 200, -1));
 
         jLabel17.setText("Account Name:");
-        jPanel3.add(jLabel17, new AbsoluteConstraints(210, 20, 90, -1));
+        jPanel3.add(jLabel17, new AbsoluteConstraints(210, 20, 110, -1));
 
         jLabel18.setText("User Name:");
-        jPanel3.add(jLabel18, new AbsoluteConstraints(210, 80, 100, -1));
+        jPanel3.add(jLabel18, new AbsoluteConstraints(210, 80, 110, -1));
 
         jLabel19.setText("Domain:");
         jPanel3.add(jLabel19, new AbsoluteConstraints(210, 140, 80, -1));
@@ -287,7 +303,7 @@ public class Gui extends JFrame {
         jLabel22.setText("Authentication Name:");
         jPanel3.add(jLabel22, new AbsoluteConstraints(210, 110, -1, -1));
 
-        jPanel3.add(jTextField4, new AbsoluteConstraints(340, 110, 200, -1));
+        jPanel3.add(jTextField4, new AbsoluteConstraints(350, 110, 200, -1));
 
         jLabel23.setText("Password:");
         jPanel3.add(jLabel23, new AbsoluteConstraints(210, 170, -1, -1));
@@ -295,19 +311,19 @@ public class Gui extends JFrame {
         jLabel24.setText("Registrar:");
         jPanel3.add(jLabel24, new AbsoluteConstraints(210, 230, -1, -1));
 
-        jPanel3.add(jTextField5, new AbsoluteConstraints(340, 140, 200, -1));
+        jPanel3.add(jTextField5, new AbsoluteConstraints(350, 140, 200, -1));
 
         jPasswordField1.setPreferredSize(new java.awt.Dimension(11, 19));
-        jPanel3.add(jPasswordField1, new AbsoluteConstraints(340, 170, 200, -1));
+        jPanel3.add(jPasswordField1, new AbsoluteConstraints(350, 170, 200, -1));
 
-        jPanel3.add(jTextField6, new AbsoluteConstraints(340, 200, 200, -1));
+        jPanel3.add(jTextField6, new AbsoluteConstraints(350, 200, 200, -1));
 
-        jPanel3.add(jTextField7, new AbsoluteConstraints(340, 230, 200, -1));
+        jPanel3.add(jTextField7, new AbsoluteConstraints(350, 230, 200, -1));
 
         jLabel25.setText("Auto-Register:");
         jPanel3.add(jLabel25, new AbsoluteConstraints(210, 260, -1, -1));
 
-        jPanel3.add(jCheckBox1, new AbsoluteConstraints(340, 260, -1, -1));
+        jPanel3.add(jCheckBox1, new AbsoluteConstraints(350, 260, -1, -1));
         
         jButton1.setText("Register");
         jPanel3.add(jButton1, new AbsoluteConstraints(270, 300, 130, -1));
@@ -371,6 +387,12 @@ public class Gui extends JFrame {
         menuBar.add(helpMenu);
 
         setJMenuBar(menuBar);
+        
+        jList1.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                jList1ValueChanged(evt);
+            }
+        });
         
         jLabel1.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mousePressed(java.awt.event.MouseEvent evt) {
@@ -537,6 +559,36 @@ public class Gui extends JFrame {
             }
         });
 
+        jButton1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton1MouseClicked(evt);
+            }
+        });
+        
+        jButton2.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton2MouseClicked(evt);
+            }
+        });
+        
+        jButton3.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton3MouseClicked(evt);
+            }
+        });
+        
+        jButton4.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton4MouseClicked(evt);
+            }
+        });
+        
+        jButton5.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton5MouseClicked(evt);
+            }
+        });
+        
         jSlider1.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 jSlider1StateChanged(evt);
@@ -607,10 +659,13 @@ public class Gui extends JFrame {
     public JTabbedPane jTabbedPane1;
     public JMenuBar menuBar;
     public JList jList1;
+    public JList jList2;
     public ClassLoader cl;
-    public Vector list;
+    public DefaultListModel list1;
+    public DefaultListModel list2;
     public JScrollPane jScrollPane1;
     public JScrollPane jScrollPane2;
+    public JScrollPane jScrollPane3;
     public JTextField jTextField2;
     public JTextField jTextField3;
     public JTextField jTextField4;
@@ -626,6 +681,7 @@ public class Gui extends JFrame {
     public JButton jButton5;
     public JCheckBox jCheckBox1;
     public JTextArea jTextArea1;
+    public Vector accounts;
     // End of variables declaration
     
     public void jLabel1MousePressed(java.awt.event.MouseEvent evt) {
@@ -751,13 +807,9 @@ public class Gui extends JFrame {
         Vector v = new Vector();
         v.add(new Integer(1));
         v.add(new String("Bob"));
-        ExeThread t = new ExeThread(client, "core.makeCall", v);
-        Object o = t.execute();
-        if (o == null) {
-            JOptionPane.showMessageDialog(this, XMLRPC_CALL_TIMEOUT, "ERROR",
-                    JOptionPane.ERROR_MESSAGE);
-        }
-         }
+        //ExeThread t = new ExeThread(client);
+        Object o = execute("core.makeCall", v);
+    }
     
     private void jLabel14MousePressed(java.awt.event.MouseEvent evt) {
         if (phone_down_active)
@@ -765,7 +817,12 @@ public class Gui extends JFrame {
          }   
     private void jLabel14MouseReleased(java.awt.event.MouseEvent evt) {
         if (phone_down_active)
-        jLabel14.setIcon(new ImageIcon(cl.getResource("test/ressources/phone_down.gif")));
+            jLabel14.setIcon(new ImageIcon(cl.getResource("test/ressources/phone_down_dis.gif")));
+        	//jLabel14.setEnabled(false);
+        	phone_down_active = false;
+        	int i = jList2.getSelectedIndex();
+        	jTextArea1.append(Utils.getTimestamp()+": Connection to " + (String) jList2.getSelectedValue()+" terminated.\n");
+        	list2.remove(i);
          }
     
     public void jLabel15MousePressed(java.awt.event.MouseEvent evt) {
@@ -775,7 +832,168 @@ public class Gui extends JFrame {
         jLabel15.setIcon(new ImageIcon(cl.getResource("test/ressources/addressbook.gif")));
          }
     
+    /* "Register" button clicked */
+    public void jButton1MouseClicked(java.awt.event.MouseEvent evt) {
+        int i = jList1.getSelectedIndex();
+        Integer accId = (Integer) accounts.elementAt(i);   
+        
+        params.clear();
+        params.add(accounts.elementAt(i));    
+        if (((Boolean) execute("core.register", params)).booleanValue()) {
+            list1.set(i, accounts.elementAt(i)+": registered");
+            jTextArea1.append(Utils.getTimestamp()+": Account with ID "+ accId.toString()+" registered.\n");
+        }
+    }
+    
+    /* "Unregister" button clicked */
+    public void jButton2MouseClicked(java.awt.event.MouseEvent evt) {
+        int i = jList1.getSelectedIndex();
+        Integer accId = (Integer) accounts.elementAt(i);
+        
+        params.clear();
+        params.add(accounts.elementAt(i));    
+        if (((Boolean) execute("core.unregister", params)).booleanValue()) {
+            list1.set(i, accounts.elementAt(i).toString());
+            jTextArea1.append(Utils.getTimestamp()+": Account with ID "+  accId+   " unregistered.\n");
+        }
+    }
+    
+    /* "Set Values" button clicked */
+    public void jButton3MouseClicked(java.awt.event.MouseEvent evt) {
+        int i = jList1.getSelectedIndex();
+        //Integer accId = new Integer(i+1);
+        Integer accId = (Integer) accounts.elementAt(i);    
+        
+        // set name
+        params.clear();
+        params.add(accId);
+        params.add(jTextField8.getText());
+        execute("core.accountSet", params);
+        // set displayname
+        params.clear();
+        params.add(accId);
+        params.add(jTextField2.getText());
+        execute("core.accountSet", params);
+        // set username
+        params.clear();
+        params.add(accId);
+        params.add(jTextField3.getText());
+        execute("core.accountSet", params);
+        // set authusername
+        params.clear();
+        params.add(accId);
+        params.add(jTextField4.getText());
+        execute("core.accountSet", params);
+        // set domain
+        params.clear();
+        params.add(accId);
+        params.add(jTextField5.getText());
+        execute("core.accountSet", params);
+        // set outboundproxy
+        params.clear();
+        params.add(accId);
+        params.add(jTextField6.getText());
+        execute("core.accountSet", params);
+        // set registrar
+        params.clear();
+        params.add(accId);
+        params.add(jTextField7.getText());
+        execute("core.accountSet", params);
+        // set password
+        params.clear();
+        params.add(accId);
+        params.add(new String(jPasswordField1.getPassword()));
+        execute("core.accountSet", params);
+    }
+    
+    /* "Delete" button clicked */
+    public void jButton4MouseClicked(java.awt.event.MouseEvent evt) {
+        int i = jList1.getSelectedIndex();
+        Integer accId = (Integer) accounts.elementAt(i);
+        
+        params.clear();
+        params.add(accounts.elementAt(i));        
+        if (((Boolean) execute("core.accountDelete", params)).booleanValue()) {
+            list1.remove(i);
+            accounts.remove(i);
+            jTextArea1.append(Utils.getTimestamp()+": Account with ID "+accId+" removed.\n");
+        }
+    }
+    
+    /* "Create" button clicked */
+    public void jButton5MouseClicked(java.awt.event.MouseEvent evt) {
+        jTextField3.setText("5");
+        //jLabel15.setIcon(new ImageIcon(cl.getResource("test/ressources/addressbook.gif")));
+    }
+    
     public void jSlider1StateChanged(javax.swing.event.ChangeEvent evt) {
         jLabel16.setText("Level: "+jSlider1.getValue()+"%");
          }    
+    
+    private void jList1ValueChanged(javax.swing.event.ListSelectionEvent evt) {
+        int i = jList1.getSelectedIndex();
+        //Integer accId = (Integer) accounts.elementAt(i);    
+        Integer accId = new Integer(i+1);
+        
+        params.clear();
+        params.add(accId);
+        params.add(new String("name"));
+        jTextField8.setText((String) execute("core.accountGet",params));
+        params.clear();
+        params.add(accId);
+        params.add(new String("displayname"));
+        jTextField2.setText((String) execute("core.accountGet",params));
+        params.clear();
+        params.add(accId);
+        params.add(new String("username"));
+        jTextField3.setText((String) execute("core.accountGet",params));
+        params.clear();
+        params.add(accId);
+        params.add(new String("authusername"));
+        jTextField4.setText((String) execute("core.accountGet",params));
+        params.clear();
+        params.add(accId);
+        params.add(new String("domain"));
+        jTextField5.setText((String) execute("core.accountGet",params));
+        params.clear();
+        params.add(accId);
+        params.add(new String("outboundproxy"));
+        jTextField6.setText((String) execute("core.accountGet",params));
+        params.clear();
+        params.add(accId);
+        params.add(new String("registrar"));
+        jTextField7.setText((String) execute("core.accountGet",params));
+        params.clear();
+        params.add(accId);
+        params.add(new String("password"));
+        jPasswordField1.setText((String) execute("core.accountGet",params));
+    }
+    
+    /**
+     * Execute with specified timeout.
+     * 
+     * @param s
+     * @param v
+     * @param p
+     * @return
+     */
+    private Object execute(String s, Vector v, int p) {
+        ExeThread t = new ExeThread(client, s, v);
+        /* if (p > 0) {
+            t.setTimeout(p);
+            } */
+        return t.execute();
+    }
+    
+    /**
+     * Execute with standard timeout.
+     * 
+     * @param s
+     * @param v
+     * @return
+     */
+    private Object execute(String s, Vector v) {
+        ExeThread t = new ExeThread(client, s, v);
+        return t.execute();
+    }
 }
