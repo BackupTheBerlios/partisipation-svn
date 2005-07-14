@@ -49,8 +49,15 @@ public class XmlRpcBoss {
                 methodCall = "<methodName>gui.registerCore</methodName>"
                     +"<params></params>";
             }
-            else if (args[0].equalsIgnoreCase("incomingCall")) {	
-                
+            else if (args[0].equalsIgnoreCase("incomingCall")) {
+                methodCall = "<methodName>gui.incomingCall</methodName>"
+                        + "<params><param><value><i4>" + args[1]
+                        + "</i4></value></param>" + "<param><value><i4>"
+                        + args[2] + "</i4></value></param>"
+                        + "<param><value><string>" + args[3]
+                        + "</string></value></param>"
+                        + "<param><value><string>" + args[4]
+                        + "</string></value></param>" + "</params>";
             }
             else if (args[0].equalsIgnoreCase("setSpeakerVolume")) {	
                 methodCall = "<methodName>gui.setSpeakerVolume</methodName>"
