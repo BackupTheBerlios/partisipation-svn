@@ -15,7 +15,7 @@ STYLEDOCDIR = $(DOCDIR)style/
 all: compile style doxygen
 
 style:
-	$(MAKE) -C $(TOOLSDIR)colour-audit
+	$(MAKE) -C $(TOOLSDIR)colour-audit -f Makefile.gen
 	mkdir -p $(STYLEDOCDIR)
 	$(PERL) $(TOOLSDIR)colour-audit/colour-audit -i $(XMLRPCLIB) -d $(STYLEDOCDIR) $(SOURCEFILES)
 

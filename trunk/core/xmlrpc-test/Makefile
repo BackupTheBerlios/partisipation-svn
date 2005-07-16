@@ -1,9 +1,16 @@
-GCC_FLAGS = -L/usr/local/lib -L/usr/lib  -L/usr/local/lib -L/usr/ssl/lib -lxmlrpc_server_abyss -lxmlrpc_server -lxmlrpc_abyss -lxmlrpc_client -lpthread -lxmlrpc -lxmlparse -lxmltok -lwwwxml   -lwwwinit -lwwwapp -lwwwhtml -lwwwtelnet -lwwwnews -lwwwhttp -lwwwmime -lwwwgopher -lwwwftp -lwwwfile -lwwwdir -lwwwcache -lwwwstream -lwwwmux -lwwwtrans -lwwwcore -lwwwutils -lmd5 -ldl -lcurl -lssl -lcrypto -ldl -lz -lxmlrpc_client
-BINARY_FILE = xmlrpc_server
-
 compile:
-	find ./ | grep \\.c$$ | grep -v docs/ | xargs gcc -c -I ./
-	find ./ | grep \\.o$$ | grep -v docs/ | xargs gcc -o ${BINARY_FILE} $(GCC_FLAGS)
+	find ./ -maxdepth 1 | grep \\.c$$ | grep -v docs/ | xargs gcc -c -I ./
+
+	$(MAKE) -C accounts
+	$(MAKE) -C callback
+	$(MAKE) -C calls
+	$(MAKE) -C extras
+	$(MAKE) -C registration
+	$(MAKE) -C threads
+	$(MAKE) -C volume
+
+	gcc -o xmlrpc_server xmlrpc_server.o registration/registration_management.o registration/xmlrpc/dispatcher.o calls/call_management.o calls/xmlrpc/dispatcher.o accounts/account_management.o accounts/xmlrpc/dispatcher.o volume/volume_management.o volume/xmlrpc/dispatcher.o extras/extras_management.o extras/xmlrpc/dispatcher.o callback/callback_util.o callback/gui_callback.o -L/usr/local/lib -L/usr/lib  -L/usr/local/lib -L/usr/ssl/lib -lxmlrpc_server_abyss -lxmlrpc_server -lxmlrpc_abyss -lxmlrpc_client -lpthread -lxmlrpc -lxmlparse -lxmltok -lwwwxml   -lwwwinit -lwwwapp -lwwwhtml -lwwwtelnet -lwwwnews -lwwwhttp -lwwwmime -lwwwgopher -lwwwftp -lwwwfile -lwwwdir -lwwwcache -lwwwstream -lwwwmux -lwwwtrans -lwwwcore -lwwwutils -lmd5 -ldl -lcurl -lssl -lcrypto -ldl -lz -lxmlrpc_client
 
 clean:
 	rm -f *.o */*.o */*/*.o
+	rm -f xmlrpc_server
