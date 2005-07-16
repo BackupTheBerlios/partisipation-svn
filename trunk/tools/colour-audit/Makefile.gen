@@ -1,0 +1,5 @@
+PERL = /usr/bin/perl
+
+compile:
+	$(PERL) Makefile.PL
+	$(MAKE)
