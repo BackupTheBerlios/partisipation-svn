@@ -673,7 +673,7 @@ task Core "Core" {
             allocate enrico
             effort 1h
             actual:complete 100
-			actual:effort 3h
+			actual:effort 6h
         }
     }
 
