@@ -128,7 +128,7 @@ macro timeformat [
 ]
 
 project sipoks05 "PartiSIPation - A Sip User Agent" "1.0" 2005-04-11 2005-09-30 {
-    now 2005-07-14
+    now 2005-07-20
     timeformat "%Y-%m-%d"
 
     currency "EUR"
@@ -482,11 +482,17 @@ task Core "Core" {
                     actual:complete 100
                 }
             }
-            task class "UML class diagram" {
+            task class "UML components diagram" {
+                allocate enrico
+                effort 2h
+                actual:complete 100
+                depends !!interfaces
+            }
+            task components "UML class diagram" {
                 allocate enrico
                 effort 3h
                 actual:complete 50
-                depends !!interfaces
+                depends !update
             }
             task usecase "UML use cases and sequence diagrams" {
                 allocate enrico
