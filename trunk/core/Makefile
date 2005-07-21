@@ -24,9 +24,13 @@ doxygen:
 
 compile:
 	$(MAKE) -C sipstack
+	$(MAKE) -C util
 	$(MAKE) -C xmlrpc-test
+	$(MAKE) -C core
 
 clean:
 	-rm $(DOCDIR) -r
 	$(MAKE) -C sipstack clean
+	$(MAKE) -C util clean
 	$(MAKE) -C xmlrpc-test clean
+	$(MAKE) -C core clean

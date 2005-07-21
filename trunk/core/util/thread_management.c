@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <threads/storage.h>
+#include <storage.h>
 
 #define MAXTHREADS 64
 
