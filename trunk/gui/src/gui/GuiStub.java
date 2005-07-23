@@ -33,7 +33,7 @@ public class GuiStub {
         gui.jTextArea1.append("Call status is: "+callStatus+"\n");
         if (callStatus.equalsIgnoreCase("ACCEPTED")) {
             gui.phone_down_active = true;
-            gui.jLabel14.setIcon(new ImageIcon(cl.getResource("test/ressources/phone_down.gif")));
+            gui.jLabel14.setIcon(new ImageIcon(cl.getResource("test/resources/phone_down.gif")));
         }
         //gui.jTextArea1.append("CHANGE CALL STATUS" + "\n");
         return true;
@@ -65,7 +65,7 @@ public class GuiStub {
             gui.phone_down_active = true;
             gui.jLabel14.setEnabled(true);
             gui.list2.addElement(sipUri + " ("+ displayName +")");
-            gui.jLabel14.setIcon(new ImageIcon(cl.getResource("test/ressources/phone_down.gif")));
+            gui.jLabel14.setIcon(new ImageIcon(cl.getResource("test/resources/phone_down.gif")));
         } else {
             gui.jTextArea1.append("declined.\n");
         }

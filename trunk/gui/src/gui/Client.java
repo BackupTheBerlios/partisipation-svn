@@ -13,7 +13,7 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.Vector;
 
-import test.events.*;
+import gui.events.*;
 
 /**
  * Simple client program with a graphical user interface. Makes remote procedure
@@ -344,7 +344,7 @@ public class Client extends JFrame {
     public void item_INFO_actionPerformed(ActionEvent e) {
         ClassLoader cl = this.getClass().getClassLoader();
         try {
-            URL logoURL = cl.getResource("test/ressources/logo.jpg");
+            URL logoURL = cl.getResource("test/resources/logo.jpg");
             ImageIcon icon = new ImageIcon(logoURL);
 
             JOptionPane.showMessageDialog(this, "", "Info",

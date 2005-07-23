@@ -200,53 +200,53 @@ public class Gui extends JFrame {
 
         cl = this.getClass().getClassLoader();
         
-        jLabel1.setIcon(new ImageIcon(cl.getResource("test/ressources/1.gif")));
+        jLabel1.setIcon(new ImageIcon(cl.getResource("test/resources/1.gif")));
         jPanel1.add(jLabel1, new AbsoluteConstraints(10, 10, -1, -1));
 
-        jLabel2.setIcon(new ImageIcon(cl.getResource("test/ressources/2.gif")));
+        jLabel2.setIcon(new ImageIcon(cl.getResource("test/resources/2.gif")));
         jPanel1.add(jLabel2, new AbsoluteConstraints(60, 10, -1, -1));
 
-        jLabel3.setIcon(new ImageIcon(cl.getResource("test/ressources/3.gif")));
+        jLabel3.setIcon(new ImageIcon(cl.getResource("test/resources/3.gif")));
         jPanel1.add(jLabel3, new AbsoluteConstraints(110, 10, -1, -1));
 
-        jLabel4.setIcon(new ImageIcon(cl.getResource("test/ressources/4.gif")));
+        jLabel4.setIcon(new ImageIcon(cl.getResource("test/resources/4.gif")));
         jPanel1.add(jLabel4, new AbsoluteConstraints(10, 60, -1, -1));
 
-        jLabel5.setIcon(new ImageIcon(cl.getResource("test/ressources/5.gif")));
+        jLabel5.setIcon(new ImageIcon(cl.getResource("test/resources/5.gif")));
         jPanel1.add(jLabel5, new AbsoluteConstraints(60, 60, -1, -1));
 
-        jLabel6.setIcon(new ImageIcon(cl.getResource("test/ressources/6.gif")));
+        jLabel6.setIcon(new ImageIcon(cl.getResource("test/resources/6.gif")));
         jPanel1.add(jLabel6, new AbsoluteConstraints(110, 60, -1, -1));
 
-        jLabel7.setIcon(new ImageIcon(cl.getResource("test/ressources/7.gif")));
+        jLabel7.setIcon(new ImageIcon(cl.getResource("test/resources/7.gif")));
         jPanel1.add(jLabel7, new AbsoluteConstraints(10, 110, -1, -1));
 
-        jLabel8.setIcon(new ImageIcon(cl.getResource("test/ressources/8.gif")));
+        jLabel8.setIcon(new ImageIcon(cl.getResource("test/resources/8.gif")));
         jPanel1.add(jLabel8, new AbsoluteConstraints(60, 110, -1, -1));
 
-        jLabel9.setIcon(new ImageIcon(cl.getResource("test/ressources/9.gif")));
+        jLabel9.setIcon(new ImageIcon(cl.getResource("test/resources/9.gif")));
         jPanel1.add(jLabel9, new AbsoluteConstraints(110, 110, -1, -1));
 
-        jLabel10.setIcon(new ImageIcon(cl.getResource("test/ressources/asterisk.gif")));
+        jLabel10.setIcon(new ImageIcon(cl.getResource("test/resources/asterisk.gif")));
         jPanel1.add(jLabel10, new AbsoluteConstraints(10, 160, -1, -1));
 
-        jLabel11.setIcon(new ImageIcon(cl.getResource("test/ressources/0.gif")));
+        jLabel11.setIcon(new ImageIcon(cl.getResource("test/resources/0.gif")));
         jPanel1.add(jLabel11, new AbsoluteConstraints(60, 160, -1, -1));
 
-        jLabel12.setIcon(new ImageIcon(cl.getResource("test/ressources/sharp.gif")));
+        jLabel12.setIcon(new ImageIcon(cl.getResource("test/resources/sharp.gif")));
         jPanel1.add(jLabel12, new AbsoluteConstraints(110, 160, -1, -1));
 
-        jLabel13.setIcon(new ImageIcon(cl.getResource("test/ressources/phone_up.gif")));
+        jLabel13.setIcon(new ImageIcon(cl.getResource("test/resources/phone_up.gif")));
         jLabel13.setVerticalAlignment(SwingConstants.TOP);
         jLabel13.setPreferredSize(new java.awt.Dimension(54, 54));
         jPanel1.add(jLabel13, new AbsoluteConstraints(590, 10, 54, 54));
         
-        jLabel14.setIcon(new ImageIcon(cl.getResource("test/ressources/phone_down_dis.gif")));
+        jLabel14.setIcon(new ImageIcon(cl.getResource("test/resources/phone_down_dis.gif")));
         jLabel14.setVerticalAlignment(SwingConstants.TOP);
         jLabel14.setPreferredSize(new java.awt.Dimension(54, 54));
         jPanel1.add(jLabel14, new AbsoluteConstraints(590, 150, 54, 54));
 
-        jLabel15.setIcon(new ImageIcon(cl.getResource("test/ressources/addressbook.gif")));
+        jLabel15.setIcon(new ImageIcon(cl.getResource("test/resources/addressbook.gif")));
         jLabel15.setVerticalAlignment(SwingConstants.TOP);
         jLabel15.setPreferredSize(new java.awt.Dimension(54, 54));
         jPanel1.add(jLabel15, new AbsoluteConstraints(590, 80, 54, 54));
@@ -685,124 +685,124 @@ public class Gui extends JFrame {
     // End of variables declaration
     
     public void jLabel1MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel1.setIcon(new ImageIcon(cl.getResource("test/ressources/1_on.gif")));
+        jLabel1.setIcon(new ImageIcon(cl.getResource("test/resources/1_on.gif")));
          }   
     public void jLabel1MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel1.setIcon(new ImageIcon(cl.getResource("test/ressources/1.gif")));
+        jLabel1.setIcon(new ImageIcon(cl.getResource("test/resources/1.gif")));
          }
     public void jLabel1MouseClicked(java.awt.event.MouseEvent evt) {
         jTextField1.setText(jTextField1.getText() + "1");
          }
     
     public void jLabel2MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel2.setIcon(new ImageIcon(cl.getResource("test/ressources/2_on.gif")));
+        jLabel2.setIcon(new ImageIcon(cl.getResource("test/resources/2_on.gif")));
          }   
     public void jLabel2MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel2.setIcon(new ImageIcon(cl.getResource("test/ressources/2.gif")));
+        jLabel2.setIcon(new ImageIcon(cl.getResource("test/resources/2.gif")));
          }
     public void jLabel2MouseClicked(java.awt.event.MouseEvent evt) {
         jTextField1.setText(jTextField1.getText() + "2");
          }
     
     public void jLabel3MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel3.setIcon(new ImageIcon(cl.getResource("test/ressources/3_on.gif")));
+        jLabel3.setIcon(new ImageIcon(cl.getResource("test/resources/3_on.gif")));
          }   
     public void jLabel3MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel3.setIcon(new ImageIcon(cl.getResource("test/ressources/3.gif")));
+        jLabel3.setIcon(new ImageIcon(cl.getResource("test/resources/3.gif")));
          }
     public void jLabel3MouseClicked(java.awt.event.MouseEvent evt) {
         jTextField1.setText(jTextField1.getText() + "3");
          }
     
     public void jLabel4MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel4.setIcon(new ImageIcon(cl.getResource("test/ressources/4_on.gif")));
+        jLabel4.setIcon(new ImageIcon(cl.getResource("test/resources/4_on.gif")));
          }   
     public void jLabel4MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel4.setIcon(new ImageIcon(cl.getResource("test/ressources/4.gif")));
+        jLabel4.setIcon(new ImageIcon(cl.getResource("test/resources/4.gif")));
          }
     public void jLabel4MouseClicked(java.awt.event.MouseEvent evt) {
         jTextField1.setText(jTextField1.getText() + "4");
          }
     
     public void jLabel5MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel5.setIcon(new ImageIcon(cl.getResource("test/ressources/5_on.gif")));
+        jLabel5.setIcon(new ImageIcon(cl.getResource("test/resources/5_on.gif")));
          }   
     public void jLabel5MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel5.setIcon(new ImageIcon(cl.getResource("test/ressources/5.gif")));
+        jLabel5.setIcon(new ImageIcon(cl.getResource("test/resources/5.gif")));
          }
     public void jLabel5MouseClicked(java.awt.event.MouseEvent evt) {
         jTextField1.setText(jTextField1.getText() + "5");
          }
     
     public void jLabel6MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel6.setIcon(new ImageIcon(cl.getResource("test/ressources/6_on.gif")));
+        jLabel6.setIcon(new ImageIcon(cl.getResource("test/resources/6_on.gif")));
          }   
     public void jLabel6MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel6.setIcon(new ImageIcon(cl.getResource("test/ressources/6.gif")));
+        jLabel6.setIcon(new ImageIcon(cl.getResource("test/resources/6.gif")));
          }
     public void jLabel6MouseClicked(java.awt.event.MouseEvent evt) {
         jTextField1.setText(jTextField1.getText() + "6");
          }
     
     public void jLabel7MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel7.setIcon(new ImageIcon(cl.getResource("test/ressources/7_on.gif")));
+        jLabel7.setIcon(new ImageIcon(cl.getResource("test/resources/7_on.gif")));
          }   
     public void jLabel7MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel7.setIcon(new ImageIcon(cl.getResource("test/ressources/7.gif")));
+        jLabel7.setIcon(new ImageIcon(cl.getResource("test/resources/7.gif")));
          }
     public void jLabel7MouseClicked(java.awt.event.MouseEvent evt) {
         jTextField1.setText(jTextField1.getText() + "7");
          }
     
     public void jLabel8MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel8.setIcon(new ImageIcon(cl.getResource("test/ressources/8_on.gif")));
+        jLabel8.setIcon(new ImageIcon(cl.getResource("test/resources/8_on.gif")));
          }   
     public void jLabel8MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel8.setIcon(new ImageIcon(cl.getResource("test/ressources/8.gif")));
+        jLabel8.setIcon(new ImageIcon(cl.getResource("test/resources/8.gif")));
          }
     public void jLabel8MouseClicked(java.awt.event.MouseEvent evt) {
         jTextField1.setText(jTextField1.getText() + "8");
          }
     
     public void jLabel9MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel9.setIcon(new ImageIcon(cl.getResource("test/ressources/9_on.gif")));
+        jLabel9.setIcon(new ImageIcon(cl.getResource("test/resources/9_on.gif")));
          }   
     public void jLabel9MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel9.setIcon(new ImageIcon(cl.getResource("test/ressources/9.gif")));
+        jLabel9.setIcon(new ImageIcon(cl.getResource("test/resources/9.gif")));
          }
     public void jLabel9MouseClicked(java.awt.event.MouseEvent evt) {
         jTextField1.setText(jTextField1.getText() + "9");
          }
     
     public void jLabel10MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel10.setIcon(new ImageIcon(cl.getResource("test/ressources/asterisk_on.gif")));
+        jLabel10.setIcon(new ImageIcon(cl.getResource("test/resources/asterisk_on.gif")));
          }   
     public void jLabel10MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel10.setIcon(new ImageIcon(cl.getResource("test/ressources/asterisk.gif")));
+        jLabel10.setIcon(new ImageIcon(cl.getResource("test/resources/asterisk.gif")));
          }
     
     public void jLabel11MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel11.setIcon(new ImageIcon(cl.getResource("test/ressources/0_on.gif")));
+        jLabel11.setIcon(new ImageIcon(cl.getResource("test/resources/0_on.gif")));
          }   
     public void jLabel11MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel11.setIcon(new ImageIcon(cl.getResource("test/ressources/0.gif")));
+        jLabel11.setIcon(new ImageIcon(cl.getResource("test/resources/0.gif")));
          }
     public void jLabel11MouseClicked(java.awt.event.MouseEvent evt) {
         jTextField1.setText(jTextField1.getText() + "0");
          }
     
     public void jLabel12MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel12.setIcon(new ImageIcon(cl.getResource("test/ressources/sharp_on.gif")));
+        jLabel12.setIcon(new ImageIcon(cl.getResource("test/resources/sharp_on.gif")));
          }   
     public void jLabel12MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel12.setIcon(new ImageIcon(cl.getResource("test/ressources/sharp.gif")));
+        jLabel12.setIcon(new ImageIcon(cl.getResource("test/resources/sharp.gif")));
          }
     
     public void jLabel13MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel13.setIcon(new ImageIcon(cl.getResource("test/ressources/phone_up_on.gif")));
+        jLabel13.setIcon(new ImageIcon(cl.getResource("test/resources/phone_up_on.gif")));
          }   
     private void jLabel13MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel13.setIcon(new ImageIcon(cl.getResource("test/ressources/phone_up.gif")));
+        jLabel13.setIcon(new ImageIcon(cl.getResource("test/resources/phone_up.gif")));
         
         Vector v = new Vector();
         v.add(new Integer(1));
@@ -813,11 +813,11 @@ public class Gui extends JFrame {
     
     private void jLabel14MousePressed(java.awt.event.MouseEvent evt) {
         if (phone_down_active)
-        jLabel14.setIcon(new ImageIcon(cl.getResource("test/ressources/phone_down_on.gif")));
+        jLabel14.setIcon(new ImageIcon(cl.getResource("test/resources/phone_down_on.gif")));
          }   
     private void jLabel14MouseReleased(java.awt.event.MouseEvent evt) {
         if (phone_down_active)
-            jLabel14.setIcon(new ImageIcon(cl.getResource("test/ressources/phone_down_dis.gif")));
+            jLabel14.setIcon(new ImageIcon(cl.getResource("test/resources/phone_down_dis.gif")));
         	//jLabel14.setEnabled(false);
         	phone_down_active = false;
         	int i = jList2.getSelectedIndex();
@@ -826,10 +826,10 @@ public class Gui extends JFrame {
          }
     
     public void jLabel15MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel15.setIcon(new ImageIcon(cl.getResource("test/ressources/addressbook_on.gif")));
+        jLabel15.setIcon(new ImageIcon(cl.getResource("test/resources/addressbook_on.gif")));
          }   
     public void jLabel15MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel15.setIcon(new ImageIcon(cl.getResource("test/ressources/addressbook.gif")));
+        jLabel15.setIcon(new ImageIcon(cl.getResource("test/resources/addressbook.gif")));
          }
     
     /* "Register" button clicked */
@@ -923,7 +923,7 @@ public class Gui extends JFrame {
     /* "Create" button clicked */
     public void jButton5MouseClicked(java.awt.event.MouseEvent evt) {
         jTextField3.setText("5");
-        //jLabel15.setIcon(new ImageIcon(cl.getResource("test/ressources/addressbook.gif")));
+        //jLabel15.setIcon(new ImageIcon(cl.getResource("test/resources/addressbook.gif")));
     }
     
     public void jSlider1StateChanged(javax.swing.event.ChangeEvent evt) {
