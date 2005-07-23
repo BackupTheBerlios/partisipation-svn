@@ -38,7 +38,7 @@
 	
     <target name="gendoc">
 	<mkdir dir="${doc}"/>  
-        <javadoc sourcepath="${src}" destdir="${doc}" packagenames="test.*">
+        <javadoc sourcepath="${src}" destdir="${doc}" packagenames="gui.*">
             <classpath refid="classpath"/>   
             <packageset dir="${src}">
                 <include name="*"/>
@@ -51,8 +51,8 @@
 		<javac srcdir="${src}" destdir="${bin}" debug="${compile.debug}">
 			<classpath refid="classpath"/>
 		</javac>
-        <copy todir="${bin}/test/ressources">
-          <fileset dir="${src}/test/ressources"/>         
+        <copy todir="${bin}/gui/resources">
+          <fileset dir="${src}/gui/resources"/>         
         </copy>
 	</target>
  
