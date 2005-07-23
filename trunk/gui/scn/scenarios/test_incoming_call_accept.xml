@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE scenario SYSTEM "../scenario.dtd">
+<scenario name="Incoming Call">
+
+	<call method="incomingCall">
+		<param>1</param>
+		<param>34527</param>
+		<param>antoshka@iptel.org</param>
+		<param>Mr. Anton Huttenlocher</param>
+		<print>The GUI is going to show a dialog box now. Please ACCEPT this call.</print>
+	</call>
+	<expect method="acceptCall">
+		<param>34527</param>
+	</expect>
+
+</scenario>

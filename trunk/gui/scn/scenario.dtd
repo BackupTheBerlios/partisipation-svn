@@ -1,0 +1,40 @@
+﻿<?xml encoding="UTF-8"?>
+
+<!-- 
+    SCRIPT: Document type definitions for the scenarios. 
+    
+    AUTHORS: Anton Huttenlocher, Oleksiy Reznikov
+
+    NOTE: Please pay attention to the number, type, and order
+          of parameters for each method call in your
+          scenario files. They must conform to the
+          GUI interface specification. This is NOT
+          ensured by this DTD (i.e. a scenario that
+          is completely valid against this DTD will
+          fail at execution if you'll use a string value 
+          where an integer does belong to according to
+          the interface specification).
+-->
+
+<!-- Root element of a scenario -->
+<!ELEMENT scenario (call+,expect?)*>
+<!ATTLIST scenario name CDATA #IMPLIED>
+
+<!-- Description of a single XML-RPC call to be sent -->
+<!ELEMENT call (param*,sleep?,print?)>
+<!ATTLIST call method CDATA #REQUIRED>
+
+<!-- Parameter of a GUI method; heed the NOTE above! -->
+<!ELEMENT param (#PCDATA)>
+
+<!-- A message to be printed to the console -->
+<!ELEMENT print (#PCDATA)>
+
+<!-- Pause time in MILLISECONDS -->
+<!ELEMENT sleep (#PCDATA)>
+
+<!-- Expected reaction from GUI, i.e which core method
+     shall the GUI call as response to the previous call
+     and which parameter values ought be contained -->
+<!ELEMENT expect (param*)>
+<!ATTLIST expect method CDATA #REQUIRED>
