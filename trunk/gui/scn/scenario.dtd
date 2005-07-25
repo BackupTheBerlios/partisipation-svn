@@ -1,4 +1,4 @@
-﻿<?xml encoding="UTF-8"?>
+<?xml encoding="UTF-8"?>
 
 <!-- 
     SCRIPT: Document type definitions for the scenarios. 
@@ -17,11 +17,11 @@
 -->
 
 <!-- Root element of a scenario -->
-<!ELEMENT scenario (call+,expect?)*>
+<!ELEMENT scenario (sleep|print|call|expect)*>
 <!ATTLIST scenario name CDATA #IMPLIED>
 
 <!-- Description of a single XML-RPC call to be sent -->
-<!ELEMENT call (param*,sleep?,print?)>
+<!ELEMENT call (param*)>
 <!ATTLIST call method CDATA #REQUIRED>
 
 <!-- Parameter of a GUI method; heed the NOTE above! -->
