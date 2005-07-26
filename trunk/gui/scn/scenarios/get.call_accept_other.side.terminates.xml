@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE scenario SYSTEM "../scenario.dtd">
+
+<scenario name="Get call and other side terminates.">
+<print>Please accept this call.</print>
+<call method="incomingCall">
+	<param>3</param>
+	<param>123</param>
+	<param>antoshka@iptel.org</param>
+	<param>Anton Huttenlocher</param>
+</call>
+<expect method="acceptCall">
+	<param>123</param>
+</expect>
+<sleep>500</sleep>
+<call method="changeCallStatus">
+	<param>123</param>
+	<param>ACCEPTED</param>
+</call>
+<print>This call ought be active now.</print>
+<sleep>10000</sleep>
+<call method="changeCallStatus">
+	<param>123</param>
+	<param>CANCELLED</param>
+</call>
+<print>This call ought be terminated now.</print>
+</scenario>
