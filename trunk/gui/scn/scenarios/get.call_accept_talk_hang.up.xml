@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE scenario SYSTEM "../scenario.dtd">
+<scenario name="Accept incoming call and hang up after a while.">
+
+<print>Please accept this call.</print>
+<call method="incomingCall">
+		<param>1</param>
+		<param>34527</param>
+		<param>antoshka@iptel.org</param>
+		<param>Mr. Anton Huttenlocher</param>
+</call>
+<expect method="acceptCall">
+	<param>34527</param>
+</expect>
+<call method="changeCallStatus">
+	<param>34527</param>
+	<param>TRYING</param>
+</call>
+<sleep>1000</sleep>
+<call method="changeCallStatus">
+	<param>34527</param>
+	<param>RINGING</param>
+</call>
+<sleep>5000</sleep>
+<call method="changeCallStatus">
+	<param>34527</param>
+	<param>ACCEPTED</param>
+</call>
+<print>Please wait for a while and then terminated this call.</print>
+<expect method="endCall">
+	<param>34527</param>
+</expect>
+<sleep>3000</sleep>
+<call method="changeCallStatus">
+	<param>34527</param>
+	<param>TERMINATED</param>
+</call>
+</scenario>
