@@ -14,16 +14,6 @@
 </expect>
 <call method="changeCallStatus">
 	<param>34527</param>
-	<param>TRYING</param>
-</call>
-<sleep>1000</sleep>
-<call method="changeCallStatus">
-	<param>34527</param>
-	<param>RINGING</param>
-</call>
-<sleep>5000</sleep>
-<call method="changeCallStatus">
-	<param>34527</param>
 	<param>ACCEPTED</param>
 </call>
 <print>Please wait for a while and then terminated this call.</print>
