@@ -98,7 +98,7 @@ public class Tester {
 
                 expfct = node.getAttributes().getNamedItem("method")
                         .getNodeValue();
-                setParameters(node, expar);
+                setExpected(node);
 
                 while (suspend) {
                     
@@ -156,17 +156,36 @@ public class Tester {
         } else
             return s;
     }
+    
+    /**
+     * Set expected parameters. Note, that they are set only with their
+     * String representation, not converted to a proper type.
+     * 
+     * @param node
+     */
+    private void setExpected(Node node) {
+        expar.clear();
+        NodeList c = node.getChildNodes();
+        if (c != null) {
+            for (int i = 0; i < c.getLength(); i++) {
+                if (c.item(i).getNodeType() == Node.ELEMENT_NODE) {
+                String s = c.item(i).getFirstChild().getNodeValue();
+                expar.add(s);
+                }
+            }
+        }
+    }
 
     private void setParameters(Node node, Vector par) {
         par.clear();
-
         NodeList c = node.getChildNodes();
+        
         int k = 0;
         if (c != null) {
             for (int i = 0; i < c.getLength(); i++) {
                 if (c.item(i).getNodeType() == Node.ELEMENT_NODE) {
                     String s = c.item(i).getFirstChild().getNodeValue();
-
+                    
                     if (sendfct.equalsIgnoreCase("changeRegStatus")) {
                         if (k == 0)
                             par.add(k, new Integer(s));
@@ -377,14 +396,15 @@ public class Tester {
                 tester.traverse(document);
 
                 System.out.println("> SCENARIO COMPLETED.");
+                System.exit(0);
                 
             } catch (UnknownHostException e) {
                 e.printStackTrace();
             } catch (SAXException e) {
-                e.printStackTrace();
+                System.out.println("> Your XML file seems to be invalid.");
             } catch (IOException e) {
-                e.printStackTrace();
-            }
+                System.out.println("> No XML file found. Check your path.");
+            } 
         }
     }
 }
