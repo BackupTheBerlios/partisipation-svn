@@ -26,6 +26,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 import org.apache.xmlrpc.WebServer;
+import org.apache.xmlrpc.XmlRpc;
 import org.apache.xmlrpc.XmlRpcClientLite;
 import org.netbeans.lib.awtextra.AbsoluteConstraints;
 import org.netbeans.lib.awtextra.AbsoluteLayout;
@@ -48,6 +49,8 @@ public class Gui extends JFrame {
     private int GUI_PORT = 8888;
 
     private int CORE_PORT = 7777;
+    
+    private int slidervalue = 50;
 
     Vector accountId = new Vector();
 
@@ -73,7 +76,8 @@ public class Gui extends JFrame {
 
             client = new XmlRpcClientLite(InetAddress.getByName(CORE_HOST)
                     .getHostName(), CORE_PORT);
-
+            
+           // XmlRpc.setDebug(true);
             server = new WebServer(GUI_PORT, InetAddress.getByName(GUI_HOST));
 
             GuiStub guiStub = new GuiStub(this);
@@ -86,34 +90,33 @@ public class Gui extends JFrame {
             params.addElement(GUI_HOST);
             params.addElement(new Integer(GUI_PORT));     
                 
-                Object o = execute("core.registerGui", params, 3000);
+                Object o = execute("core.registerGui", params, 5000);
                 if (o == null) {
 // --- something
                 } else if (((String) o).equalsIgnoreCase("OK")) {
-                    jTextArea1.append(Utils.getTimestamp()+": GUI registration successful.\n");
+                    print("GUI registered.");
                     
                     params.clear();
                     o = execute("core.accountGetAll", params);
                     
+                    int a = 0;
                     if (o != null && o instanceof Vector) {
                         Vector v = (Vector) o;
                         Enumeration e = v.elements();
                         while (e.hasMoreElements()) {
                             Integer n = (Integer) e.nextElement();
-                            list1.addElement(n.toString());
+                            list1.addElement("#"+n.toString()+": not registered");
                             accounts.add(n);
+                            a++;
                         }
-                    }
-                    
+                        print("Got " + a + " accounts.");
+                    }                    
                 } else {
-                    // ERROR returned
+                    print("ERROR: GUI not registered.");
                 }
-
         } catch (MalformedURLException e1) {
-            // TODO Auto-generated catch block
             e1.printStackTrace();
         } catch (UnknownHostException e1) {
-            // TODO Auto-generated catch block
             e1.printStackTrace();
         }
 
@@ -149,8 +152,8 @@ public class Gui extends JFrame {
         jLabel16 = new JLabel();
         jPanel3 = new JPanel();
         jPanel4 = new JPanel();
-        jSlider1 = new JSlider();
-        jSlider2 = new JSlider();
+        jSlider1 = new JSlider(0, 100, 50);
+        jSlider2 = new JSlider(0, 100, 50);
         menuBar = new JMenuBar();
         helpMenu = new JMenu();
         contentsMenuItem = new JMenuItem();
@@ -173,6 +176,8 @@ public class Gui extends JFrame {
         jTextField4 = new JTextField();
         jLabel23 = new JLabel();
         jLabel24 = new JLabel();
+        jLabel27 = new JLabel();
+        jLabel28 = new JLabel();
         jTextField2 = new JTextField();
         jTextField3 = new JTextField();
         jTextField5 = new JTextField();
@@ -181,14 +186,17 @@ public class Gui extends JFrame {
         jTextField7 = new JTextField();
         jTextField8 = new JTextField();
         jLabel25 = new JLabel();
+        jLabel26 = new JLabel();
         jCheckBox1 = new JCheckBox();
         jButton1 = new JButton();
         jButton2 = new JButton();
         jButton3 = new JButton();
         jButton4 = new JButton();
         jButton5 = new JButton();
+        jButton6 = new JButton();
         jTextArea1 = new JTextArea();
         accounts = new Vector();
+        calls = new Vector();
         
         getContentPane().setLayout(new AbsoluteLayout());
 
@@ -200,53 +208,53 @@ public class Gui extends JFrame {
 
         cl = this.getClass().getClassLoader();
         
-        jLabel1.setIcon(new ImageIcon(cl.getResource("test/resources/1.gif")));
+        jLabel1.setIcon(new ImageIcon(cl.getResource("gui/resources/1.gif")));
         jPanel1.add(jLabel1, new AbsoluteConstraints(10, 10, -1, -1));
 
-        jLabel2.setIcon(new ImageIcon(cl.getResource("test/resources/2.gif")));
+        jLabel2.setIcon(new ImageIcon(cl.getResource("gui/resources/2.gif")));
         jPanel1.add(jLabel2, new AbsoluteConstraints(60, 10, -1, -1));
 
-        jLabel3.setIcon(new ImageIcon(cl.getResource("test/resources/3.gif")));
+        jLabel3.setIcon(new ImageIcon(cl.getResource("gui/resources/3.gif")));
         jPanel1.add(jLabel3, new AbsoluteConstraints(110, 10, -1, -1));
 
-        jLabel4.setIcon(new ImageIcon(cl.getResource("test/resources/4.gif")));
+        jLabel4.setIcon(new ImageIcon(cl.getResource("gui/resources/4.gif")));
         jPanel1.add(jLabel4, new AbsoluteConstraints(10, 60, -1, -1));
 
-        jLabel5.setIcon(new ImageIcon(cl.getResource("test/resources/5.gif")));
+        jLabel5.setIcon(new ImageIcon(cl.getResource("gui/resources/5.gif")));
         jPanel1.add(jLabel5, new AbsoluteConstraints(60, 60, -1, -1));
 
-        jLabel6.setIcon(new ImageIcon(cl.getResource("test/resources/6.gif")));
+        jLabel6.setIcon(new ImageIcon(cl.getResource("gui/resources/6.gif")));
         jPanel1.add(jLabel6, new AbsoluteConstraints(110, 60, -1, -1));
 
-        jLabel7.setIcon(new ImageIcon(cl.getResource("test/resources/7.gif")));
+        jLabel7.setIcon(new ImageIcon(cl.getResource("gui/resources/7.gif")));
         jPanel1.add(jLabel7, new AbsoluteConstraints(10, 110, -1, -1));
 
-        jLabel8.setIcon(new ImageIcon(cl.getResource("test/resources/8.gif")));
+        jLabel8.setIcon(new ImageIcon(cl.getResource("gui/resources/8.gif")));
         jPanel1.add(jLabel8, new AbsoluteConstraints(60, 110, -1, -1));
 
-        jLabel9.setIcon(new ImageIcon(cl.getResource("test/resources/9.gif")));
+        jLabel9.setIcon(new ImageIcon(cl.getResource("gui/resources/9.gif")));
         jPanel1.add(jLabel9, new AbsoluteConstraints(110, 110, -1, -1));
 
-        jLabel10.setIcon(new ImageIcon(cl.getResource("test/resources/asterisk.gif")));
+        jLabel10.setIcon(new ImageIcon(cl.getResource("gui/resources/asterisk.gif")));
         jPanel1.add(jLabel10, new AbsoluteConstraints(10, 160, -1, -1));
 
-        jLabel11.setIcon(new ImageIcon(cl.getResource("test/resources/0.gif")));
+        jLabel11.setIcon(new ImageIcon(cl.getResource("gui/resources/0.gif")));
         jPanel1.add(jLabel11, new AbsoluteConstraints(60, 160, -1, -1));
 
-        jLabel12.setIcon(new ImageIcon(cl.getResource("test/resources/sharp.gif")));
+        jLabel12.setIcon(new ImageIcon(cl.getResource("gui/resources/sharp.gif")));
         jPanel1.add(jLabel12, new AbsoluteConstraints(110, 160, -1, -1));
 
-        jLabel13.setIcon(new ImageIcon(cl.getResource("test/resources/phone_up.gif")));
+        jLabel13.setIcon(new ImageIcon(cl.getResource("gui/resources/phone_up.gif")));
         jLabel13.setVerticalAlignment(SwingConstants.TOP);
         jLabel13.setPreferredSize(new java.awt.Dimension(54, 54));
         jPanel1.add(jLabel13, new AbsoluteConstraints(590, 10, 54, 54));
         
-        jLabel14.setIcon(new ImageIcon(cl.getResource("test/resources/phone_down_dis.gif")));
+        jLabel14.setIcon(new ImageIcon(cl.getResource("gui/resources/phone_down_dis.gif")));
         jLabel14.setVerticalAlignment(SwingConstants.TOP);
         jLabel14.setPreferredSize(new java.awt.Dimension(54, 54));
         jPanel1.add(jLabel14, new AbsoluteConstraints(590, 150, 54, 54));
 
-        jLabel15.setIcon(new ImageIcon(cl.getResource("test/resources/addressbook.gif")));
+        jLabel15.setIcon(new ImageIcon(cl.getResource("gui/resources/addressbook.gif")));
         jLabel15.setVerticalAlignment(SwingConstants.TOP);
         jLabel15.setPreferredSize(new java.awt.Dimension(54, 54));
         jPanel1.add(jLabel15, new AbsoluteConstraints(590, 80, 54, 54));
@@ -326,45 +334,50 @@ public class Gui extends JFrame {
         jPanel3.add(jCheckBox1, new AbsoluteConstraints(350, 260, -1, -1));
         
         jButton1.setText("Register");
-        jPanel3.add(jButton1, new AbsoluteConstraints(270, 300, 130, -1));
+        jPanel3.add(jButton1, new AbsoluteConstraints(336, 300, 100, -1));
 
         jButton2.setText("Unregister");
-        jPanel3.add(jButton2, new AbsoluteConstraints(400, 300, 130, -1));
+        jPanel3.add(jButton2, new AbsoluteConstraints(446, 300, 100, -1));
 
         jButton3.setText("Set Values");
-        jPanel3.add(jButton3, new AbsoluteConstraints(530, 300, 130, -1));
+        jPanel3.add(jButton3, new AbsoluteConstraints(556, 300, 100, -1));
         
-        jButton4.setText("Delete Account");
-        jPanel3.add(jButton4, new AbsoluteConstraints(140, 300, 130, -1));
+        jButton4.setText("Delete");
+        jPanel3.add(jButton4, new AbsoluteConstraints(226, 300, 100, -1));
 
-        jButton5.setText("Create Account");
-        jPanel3.add(jButton5, new AbsoluteConstraints(10, 300, 130, -1));
+        jButton5.setText("Create");
+        jPanel3.add(jButton5, new AbsoluteConstraints(119, 300, 100, -1));
+        
+        jButton6.setText("Clear");
+        jPanel3.add(jButton6, new AbsoluteConstraints(10, 300, 100, -1));
 
         jPanel3.add(jScrollPane1, new AbsoluteConstraints(10, 10, 190, 260));
 
         jPanel4.setLayout(new AbsoluteLayout());
+      
+        jPanel4.add(jSlider1, new AbsoluteConstraints(140, 80, 420, -1));
 
-        jSlider1.setMinimum(0);
-        jSlider1.setMaximum(105);
-        jSlider1.setExtent(5);
-        jSlider1.setValue(50);
+        jPanel4.add(jSlider2, new AbsoluteConstraints(100, 220, 420, -1));
         
-        jSlider2.setMinimum(0);
-        jSlider2.setMaximum(105);
-        jSlider2.setExtent(5);
-        jSlider2.setValue(50);
-        
-        jLabel16.setText("Level: ");
-        jPanel4.add(jLabel16, new AbsoluteConstraints(210, 20, -1, -1));
-        
-        jPanel4.add(jSlider1, new AbsoluteConstraints(40, 20, 160, -1));
+        jLabel27.setIcon(new ImageIcon(cl.getResource("gui/resources/speaker.gif")));
+        jPanel4.add(jLabel27, new AbsoluteConstraints(20, 40, 100, 100));
 
-        jPanel4.add(jSlider2, new AbsoluteConstraints(40, 50, 160, -1));
+        jLabel28.setIcon(new ImageIcon(cl.getResource("gui/resources/micro.gif")));
+        jPanel4.add(jLabel28, new AbsoluteConstraints(540, 180, 100, 100));
+        
+        jLabel16.setFont(new java.awt.Font("Tahoma", 1, 24));
+        jLabel16.setText(" 50%");
+        jPanel4.add(jLabel16, new org.netbeans.lib.awtextra.AbsoluteConstraints(570, 70, -1, -1));
+
+        jLabel26.setFont(new java.awt.Font("Tahoma", 1, 24));
+        jLabel26.setText(" 50%");
+        jPanel4.add(jLabel26, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 210, -1, -1));
         
         jTabbedPane1.addTab("Options", jPanel4);
 
         getContentPane().add(jTabbedPane1, new AbsoluteConstraints(0, 0, 670, 380));
-
+        this.setResizable(false);
+        
         helpMenu.setText("Help");
         helpMenu.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -391,6 +404,12 @@ public class Gui extends JFrame {
         jList1.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
                 jList1ValueChanged(evt);
+            }
+        });
+        
+        jList2.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                jList2ValueChanged(evt);
             }
         });
         
@@ -589,9 +608,37 @@ public class Gui extends JFrame {
             }
         });
         
+        jButton6.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton6MouseClicked(evt);
+            }
+        });
+        
         jSlider1.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 jSlider1StateChanged(evt);
+            }
+        });
+        jSlider1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                jSlider1MousePressed(evt);
+            }
+            public void mouseReleased(java.awt.event.MouseEvent evt) {
+                jSlider1MouseReleased(evt);
+            }
+        });
+        
+        jSlider2.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                jSlider2StateChanged(evt);
+            }
+        });       
+        jSlider2.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                jSlider2MousePressed(evt);
+            }
+            public void mouseReleased(java.awt.event.MouseEvent evt) {
+                jSlider2MouseReleased(evt);
             }
         });
         
@@ -623,7 +670,6 @@ public class Gui extends JFrame {
     public JMenuItem contentsMenuItem;
     public JMenu helpMenu;
     public JTextField jTextField1;
-    //public JComboBox jComboBox1;
     public JLabel jLabel1;
     public JLabel jLabel10;
     public JLabel jLabel11;
@@ -642,6 +688,9 @@ public class Gui extends JFrame {
     public JLabel jLabel23;
     public JLabel jLabel24;
     public JLabel jLabel25;
+    public JLabel jLabel26;
+    public JLabel jLabel27;
+    public JLabel jLabel28;
     public JLabel jLabel3;
     public JLabel jLabel4;
     public JLabel jLabel5;
@@ -679,236 +728,278 @@ public class Gui extends JFrame {
     public JButton jButton3;
     public JButton jButton4;
     public JButton jButton5;
+    public JButton jButton6;
     public JCheckBox jCheckBox1;
     public JTextArea jTextArea1;
     public Vector accounts;
+    public Vector calls;
     // End of variables declaration
     
     public void jLabel1MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel1.setIcon(new ImageIcon(cl.getResource("test/resources/1_on.gif")));
+        jLabel1.setIcon(new ImageIcon(cl.getResource("gui/resources/1_on.gif")));
          }   
     public void jLabel1MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel1.setIcon(new ImageIcon(cl.getResource("test/resources/1.gif")));
+        jLabel1.setIcon(new ImageIcon(cl.getResource("gui/resources/1.gif")));
          }
     public void jLabel1MouseClicked(java.awt.event.MouseEvent evt) {
         jTextField1.setText(jTextField1.getText() + "1");
          }
     
     public void jLabel2MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel2.setIcon(new ImageIcon(cl.getResource("test/resources/2_on.gif")));
+        jLabel2.setIcon(new ImageIcon(cl.getResource("gui/resources/2_on.gif")));
          }   
     public void jLabel2MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel2.setIcon(new ImageIcon(cl.getResource("test/resources/2.gif")));
+        jLabel2.setIcon(new ImageIcon(cl.getResource("gui/resources/2.gif")));
          }
     public void jLabel2MouseClicked(java.awt.event.MouseEvent evt) {
         jTextField1.setText(jTextField1.getText() + "2");
          }
     
     public void jLabel3MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel3.setIcon(new ImageIcon(cl.getResource("test/resources/3_on.gif")));
+        jLabel3.setIcon(new ImageIcon(cl.getResource("gui/resources/3_on.gif")));
          }   
     public void jLabel3MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel3.setIcon(new ImageIcon(cl.getResource("test/resources/3.gif")));
+        jLabel3.setIcon(new ImageIcon(cl.getResource("gui/resources/3.gif")));
          }
     public void jLabel3MouseClicked(java.awt.event.MouseEvent evt) {
         jTextField1.setText(jTextField1.getText() + "3");
          }
     
     public void jLabel4MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel4.setIcon(new ImageIcon(cl.getResource("test/resources/4_on.gif")));
+        jLabel4.setIcon(new ImageIcon(cl.getResource("gui/resources/4_on.gif")));
          }   
     public void jLabel4MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel4.setIcon(new ImageIcon(cl.getResource("test/resources/4.gif")));
+        jLabel4.setIcon(new ImageIcon(cl.getResource("gui/resources/4.gif")));
          }
     public void jLabel4MouseClicked(java.awt.event.MouseEvent evt) {
         jTextField1.setText(jTextField1.getText() + "4");
          }
     
     public void jLabel5MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel5.setIcon(new ImageIcon(cl.getResource("test/resources/5_on.gif")));
+        jLabel5.setIcon(new ImageIcon(cl.getResource("gui/resources/5_on.gif")));
          }   
     public void jLabel5MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel5.setIcon(new ImageIcon(cl.getResource("test/resources/5.gif")));
+        jLabel5.setIcon(new ImageIcon(cl.getResource("gui/resources/5.gif")));
          }
     public void jLabel5MouseClicked(java.awt.event.MouseEvent evt) {
         jTextField1.setText(jTextField1.getText() + "5");
          }
     
     public void jLabel6MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel6.setIcon(new ImageIcon(cl.getResource("test/resources/6_on.gif")));
+        jLabel6.setIcon(new ImageIcon(cl.getResource("gui/resources/6_on.gif")));
          }   
     public void jLabel6MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel6.setIcon(new ImageIcon(cl.getResource("test/resources/6.gif")));
+        jLabel6.setIcon(new ImageIcon(cl.getResource("gui/resources/6.gif")));
          }
     public void jLabel6MouseClicked(java.awt.event.MouseEvent evt) {
         jTextField1.setText(jTextField1.getText() + "6");
          }
     
     public void jLabel7MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel7.setIcon(new ImageIcon(cl.getResource("test/resources/7_on.gif")));
+        jLabel7.setIcon(new ImageIcon(cl.getResource("gui/resources/7_on.gif")));
          }   
     public void jLabel7MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel7.setIcon(new ImageIcon(cl.getResource("test/resources/7.gif")));
+        jLabel7.setIcon(new ImageIcon(cl.getResource("gui/resources/7.gif")));
          }
     public void jLabel7MouseClicked(java.awt.event.MouseEvent evt) {
         jTextField1.setText(jTextField1.getText() + "7");
          }
     
     public void jLabel8MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel8.setIcon(new ImageIcon(cl.getResource("test/resources/8_on.gif")));
+        jLabel8.setIcon(new ImageIcon(cl.getResource("gui/resources/8_on.gif")));
          }   
     public void jLabel8MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel8.setIcon(new ImageIcon(cl.getResource("test/resources/8.gif")));
+        jLabel8.setIcon(new ImageIcon(cl.getResource("gui/resources/8.gif")));
          }
     public void jLabel8MouseClicked(java.awt.event.MouseEvent evt) {
         jTextField1.setText(jTextField1.getText() + "8");
          }
     
     public void jLabel9MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel9.setIcon(new ImageIcon(cl.getResource("test/resources/9_on.gif")));
+        jLabel9.setIcon(new ImageIcon(cl.getResource("gui/resources/9_on.gif")));
          }   
     public void jLabel9MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel9.setIcon(new ImageIcon(cl.getResource("test/resources/9.gif")));
+        jLabel9.setIcon(new ImageIcon(cl.getResource("gui/resources/9.gif")));
          }
     public void jLabel9MouseClicked(java.awt.event.MouseEvent evt) {
         jTextField1.setText(jTextField1.getText() + "9");
          }
     
     public void jLabel10MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel10.setIcon(new ImageIcon(cl.getResource("test/resources/asterisk_on.gif")));
+        jLabel10.setIcon(new ImageIcon(cl.getResource("gui/resources/asterisk_on.gif")));
          }   
     public void jLabel10MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel10.setIcon(new ImageIcon(cl.getResource("test/resources/asterisk.gif")));
+        jLabel10.setIcon(new ImageIcon(cl.getResource("gui/resources/asterisk.gif")));
          }
     
     public void jLabel11MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel11.setIcon(new ImageIcon(cl.getResource("test/resources/0_on.gif")));
+        jLabel11.setIcon(new ImageIcon(cl.getResource("gui/resources/0_on.gif")));
          }   
     public void jLabel11MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel11.setIcon(new ImageIcon(cl.getResource("test/resources/0.gif")));
+        jLabel11.setIcon(new ImageIcon(cl.getResource("gui/resources/0.gif")));
          }
     public void jLabel11MouseClicked(java.awt.event.MouseEvent evt) {
         jTextField1.setText(jTextField1.getText() + "0");
          }
     
     public void jLabel12MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel12.setIcon(new ImageIcon(cl.getResource("test/resources/sharp_on.gif")));
+        jLabel12.setIcon(new ImageIcon(cl.getResource("gui/resources/sharp_on.gif")));
          }   
     public void jLabel12MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel12.setIcon(new ImageIcon(cl.getResource("test/resources/sharp.gif")));
+        jLabel12.setIcon(new ImageIcon(cl.getResource("gui/resources/sharp.gif")));
          }
     
     public void jLabel13MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel13.setIcon(new ImageIcon(cl.getResource("test/resources/phone_up_on.gif")));
+        jLabel13.setIcon(new ImageIcon(cl.getResource("gui/resources/phone_up_on.gif")));
          }   
     private void jLabel13MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel13.setIcon(new ImageIcon(cl.getResource("test/resources/phone_up.gif")));
+        jLabel13.setIcon(new ImageIcon(cl.getResource("gui/resources/phone_up.gif")));  
+        
+        String sipurl = jTextField1.getText();
         
         Vector v = new Vector();
         v.add(new Integer(1));
-        v.add(new String("Bob"));
-        //ExeThread t = new ExeThread(client);
+        v.add(sipurl);
         Object o = execute("core.makeCall", v);
+        if (o != null) {
+            int id = ((Integer) o).intValue();
+            Call c = new Call(id, 1, sipurl, "");		// SET proper name and ACCOUNT_ID !!!
+            calls.add(c);
+            list2.addElement("["+id+"] : <TRY> : "+jTextField1.getText());
+            print("Trying to call "+sipurl+" (call # "+id+").");
+        }
     }
     
     private void jLabel14MousePressed(java.awt.event.MouseEvent evt) {
-        if (phone_down_active)
-        jLabel14.setIcon(new ImageIcon(cl.getResource("test/resources/phone_down_on.gif")));
+        if (jList2.getSelectedIndex() > -1) {
+            jLabel14.setIcon(new ImageIcon(cl.getResource("gui/resources/phone_down_on.gif")));
          }   
+    }
     private void jLabel14MouseReleased(java.awt.event.MouseEvent evt) {
-        if (phone_down_active)
-            jLabel14.setIcon(new ImageIcon(cl.getResource("test/resources/phone_down_dis.gif")));
-        	//jLabel14.setEnabled(false);
-        	phone_down_active = false;
-        	int i = jList2.getSelectedIndex();
-        	jTextArea1.append(Utils.getTimestamp()+": Connection to " + (String) jList2.getSelectedValue()+" terminated.\n");
-        	list2.remove(i);
-         }
+        int i = jList2.getSelectedIndex();
+        if (i > -1) {
+            Call c = (Call) calls.elementAt(i);
+            params.clear();
+            params.add(new Integer(c.id));
+            execute("core.endCall", params);
+            list2.removeElementAt(i);
+            list2.insertElementAt("["+c.id+"] : <TER> : "+c.sipurl, i);
+            print("Terminating call # "+c.id+" ...");
+            jLabel14.setIcon(new ImageIcon(cl.getResource("gui/resources/phone_down.gif")));
+        }
+    }
     
     public void jLabel15MousePressed(java.awt.event.MouseEvent evt) {
-        jLabel15.setIcon(new ImageIcon(cl.getResource("test/resources/addressbook_on.gif")));
+        jLabel15.setIcon(new ImageIcon(cl.getResource("gui/resources/addressbook_on.gif")));
          }   
     public void jLabel15MouseReleased(java.awt.event.MouseEvent evt) {
-        jLabel15.setIcon(new ImageIcon(cl.getResource("test/resources/addressbook.gif")));
+        jLabel15.setIcon(new ImageIcon(cl.getResource("gui/resources/addressbook.gif")));
          }
     
     /* "Register" button clicked */
     public void jButton1MouseClicked(java.awt.event.MouseEvent evt) {
         int i = jList1.getSelectedIndex();
+        if (i > -1) {
         Integer accId = (Integer) accounts.elementAt(i);   
         
         params.clear();
         params.add(accounts.elementAt(i));    
-        if (((Boolean) execute("core.register", params)).booleanValue()) {
-            list1.set(i, accounts.elementAt(i)+": registered");
-            jTextArea1.append(Utils.getTimestamp()+": Account with ID "+ accId.toString()+" registered.\n");
+      //  if (((Boolean) execute("core.register", params)).booleanValue()) {
+            list1.set(i, "#"+accounts.elementAt(i)+": registering ...");
+       // }
         }
     }
     
     /* "Unregister" button clicked */
     public void jButton2MouseClicked(java.awt.event.MouseEvent evt) {
         int i = jList1.getSelectedIndex();
+        if (i > -1) {
         Integer accId = (Integer) accounts.elementAt(i);
         
         params.clear();
         params.add(accounts.elementAt(i));    
-        if (((Boolean) execute("core.unregister", params)).booleanValue()) {
-            list1.set(i, accounts.elementAt(i).toString());
-            jTextArea1.append(Utils.getTimestamp()+": Account with ID "+  accId+   " unregistered.\n");
+       // if (((Boolean) execute("core.unregister", params)).booleanValue()) {
+            list1.set(i, "#"+accounts.elementAt(i).toString()+": unregistering ...");
+           // jTextArea1.append(Utils.getTimestamp()+": Account with ID "+  accId+   " unregistered.\n");
+       // }
         }
     }
     
     /* "Set Values" button clicked */
     public void jButton3MouseClicked(java.awt.event.MouseEvent evt) {
         int i = jList1.getSelectedIndex();
+        if (i > -1) {
         //Integer accId = new Integer(i+1);
         Integer accId = (Integer) accounts.elementAt(i);    
-        
+        setValues(accId);
+    }
+    }
+    
+    private void setValues(Integer accId) {
         // set name
         params.clear();
         params.add(accId);
+        params.add("name");
         params.add(jTextField8.getText());
         execute("core.accountSet", params);
         // set displayname
         params.clear();
         params.add(accId);
+        params.add("displayname");
         params.add(jTextField2.getText());
         execute("core.accountSet", params);
         // set username
         params.clear();
         params.add(accId);
+        params.add("username");
         params.add(jTextField3.getText());
         execute("core.accountSet", params);
         // set authusername
         params.clear();
         params.add(accId);
+        params.add("authusername");
         params.add(jTextField4.getText());
         execute("core.accountSet", params);
         // set domain
         params.clear();
         params.add(accId);
+        params.add("domain");
         params.add(jTextField5.getText());
         execute("core.accountSet", params);
         // set outboundproxy
         params.clear();
         params.add(accId);
+        params.add("outboundproxy");
         params.add(jTextField6.getText());
         execute("core.accountSet", params);
         // set registrar
         params.clear();
         params.add(accId);
+        params.add("registrar");
         params.add(jTextField7.getText());
         execute("core.accountSet", params);
         // set password
         params.clear();
         params.add(accId);
+        params.add("password");
         params.add(new String(jPasswordField1.getPassword()));
+        execute("core.accountSet", params);
+        // set autoregister
+        params.clear();
+        params.add(accId);
+        params.add("autoregister");
+        if (jCheckBox1.isSelected()) {
+            params.add(new String("true"));
+        } else {
+            params.add(new String("false"));
+        }
         execute("core.accountSet", params);
     }
     
     /* "Delete" button clicked */
     public void jButton4MouseClicked(java.awt.event.MouseEvent evt) {
         int i = jList1.getSelectedIndex();
+        if (i > -1) {
         Integer accId = (Integer) accounts.elementAt(i);
         
         params.clear();
@@ -916,22 +1007,77 @@ public class Gui extends JFrame {
         if (((Boolean) execute("core.accountDelete", params)).booleanValue()) {
             list1.remove(i);
             accounts.remove(i);
+            jTextField2.setText("");
+            jTextField3.setText("");
+            jTextField4.setText("");
+            jTextField5.setText("");
+            jTextField6.setText("");
+            jTextField7.setText("");
+            jTextField8.setText("");
+            jPasswordField1.setText("");
+            jCheckBox1.setSelected(false);
             jTextArea1.append(Utils.getTimestamp()+": Account with ID "+accId+" removed.\n");
+        }
         }
     }
     
     /* "Create" button clicked */
     public void jButton5MouseClicked(java.awt.event.MouseEvent evt) {
-        jTextField3.setText("5");
-        //jLabel15.setIcon(new ImageIcon(cl.getResource("test/resources/addressbook.gif")));
+       params.clear();
+       Integer accId = (Integer) execute("core.accountCreate",params);
+       if (accId != null) {
+           setValues(accId);
+           accounts.add(accId);
+           list1.addElement("#"+accId.toString()+": not registered");
+       }
+    }
+    
+    /* "Clear" button clicked */
+    public void jButton6MouseClicked(java.awt.event.MouseEvent evt) {
+        jTextField2.setText("");
+        jTextField3.setText("");
+        jTextField4.setText("");
+        jTextField5.setText("");
+        jTextField6.setText("");
+        jTextField7.setText("");
+        jTextField8.setText("");
+        jPasswordField1.setText("");
+        jCheckBox1.setSelected(false);
     }
     
     public void jSlider1StateChanged(javax.swing.event.ChangeEvent evt) {
-        jLabel16.setText("Level: "+jSlider1.getValue()+"%");
+        jLabel16.setText(jSlider1.getValue()+"%");
          }    
+    public void jSlider1MousePressed(java.awt.event.MouseEvent evt) {
+        slidervalue = jSlider1.getValue();
+         }   
+    public void jSlider1MouseReleased(java.awt.event.MouseEvent evt) {
+        int v = jSlider1.getValue();
+        if (v != slidervalue) {
+            params.clear();
+            params.add(new Double((double) v / 100));
+            execute("core.setSpeakerVolume",params);
+        }
+        }
+    
+    public void jSlider2StateChanged(javax.swing.event.ChangeEvent evt) {
+        jLabel26.setText(jSlider2.getValue()+"%");
+         }
+    public void jSlider2MousePressed(java.awt.event.MouseEvent evt) {
+        slidervalue = jSlider2.getValue();
+         }   
+    public void jSlider2MouseReleased(java.awt.event.MouseEvent evt) {
+        int v = jSlider2.getValue();
+        if (v != slidervalue) {
+            params.clear();
+            params.add(new Double((double) v / 100));
+            execute("core.setMicroVolume",params);
+        }
+         }
     
     private void jList1ValueChanged(javax.swing.event.ListSelectionEvent evt) {
         int i = jList1.getSelectedIndex();
+        if (i > -1) {
         //Integer accId = (Integer) accounts.elementAt(i);    
         Integer accId = new Integer(i+1);
         
@@ -967,6 +1113,29 @@ public class Gui extends JFrame {
         params.add(accId);
         params.add(new String("password"));
         jPasswordField1.setText((String) execute("core.accountGet",params));
+        params.clear();
+        params.add(accId);
+        params.add(new String("autoregister"));
+        String s = (String) execute("core.accountGet",params);
+        if (s.equalsIgnoreCase("true")) {
+            jCheckBox1.setSelected(true);
+        } else {
+            jCheckBox1.setSelected(false);
+        }
+    }
+    }
+    
+    private void jList2ValueChanged(javax.swing.event.ListSelectionEvent evt) {
+        int i = jList2.getSelectedIndex();
+        if (i > -1) {
+            jLabel14.setIcon(new ImageIcon(cl.getResource("gui/resources/phone_down.gif")));
+        } else {
+            jLabel14.setIcon(new ImageIcon(cl.getResource("gui/resources/phone_down_dis.gif")));
+        }
+        }
+    
+    private void print(String s) {
+        jTextArea1.append(Utils.getTimestamp()+": "+s+"\n");
     }
     
     /**
@@ -977,11 +1146,9 @@ public class Gui extends JFrame {
      * @param p
      * @return
      */
-    private Object execute(String s, Vector v, int p) {
+    public Object execute(String s, Vector v, int p) {
         ExeThread t = new ExeThread(client, s, v);
-        /* if (p > 0) {
-            t.setTimeout(p);
-            } */
+        t.setTimeout(p);
         return t.execute();
     }
     
@@ -992,7 +1159,7 @@ public class Gui extends JFrame {
      * @param v
      * @return
      */
-    private Object execute(String s, Vector v) {
+    public Object execute(String s, Vector v) {
         ExeThread t = new ExeThread(client, s, v);
         return t.execute();
     }
