@@ -43,19 +43,42 @@ public class GuiStub {
     }
 
     public boolean changeCallStatus(int callId, String callStatus) {
-        //print("Call status is "+callStatus+" for call # "+ callId);
         if (callStatus.equalsIgnoreCase("ACCEPTED")) {
             
-            Call nc = getCall(callId, gui.calls);//pendingCalls);
+            Call c = getCall(callId, gui.calls);
+          	if (c == null) {
+          	    // accepted by user: add call to the list 
+          	    c = getCall(callId, pendingCalls); 
+          	    //int index = getIndex(c.id, pendingCalls);
+          	    removeCall(callId,pendingCalls);
+          	    gui.calls.addElement(c);
+          	    gui.list2.addElement("["+callId+"] : <ACC> : "+c.sipurl);
+          	} else {
+          	    // accepted by other side: update call status
+          	    int index = getIndex(c.id, gui.calls);
+          	    gui.list2.removeElementAt(index);
+          	    gui.list2.insertElementAt("["+callId+"] : <ACC> : "+getCall(callId, gui.calls).sipurl, index);
+          	}        	
+          	
+            
+       /*     Call nc = getCall(callId, gui.calls); //pendingCalls);
             int index = getIndex(nc.id, gui.calls); //pendingCalls);
-
-            print("Call # "+callId+" accepted.");
-               
+ 
+       //     gui.list2.removeElementAt(index);
+            gui.calls.add(nc);
+       //     pendingCalls.remove(index);
+            //gui.list2.insertElementAt("["+callId+"] : <ACC> : "+getCall(callId, gui.calls).sipurl, index);
+            
             gui.list2.removeElementAt(index);
             gui.list2.insertElementAt("["+callId+"] : <ACC> : "+getCall(callId, gui.calls).sipurl, index);
+          //  gui.list2.addElement("["+callId+"] : <ACC> : "+getCall(callId, gui.calls).sipurl);
+            
+            */
+            
+            print("Call # "+callId+" accepted.");
             
          } else if (callStatus.equalsIgnoreCase("TERMINATED")) {
-        	
+             
         	if (getCall(callId, pendingCalls) == null) { // hang-up-termination by the other side
         	    Call c = getCall(callId, gui.calls);
               	int index = getIndex(c.id, gui.calls);
@@ -69,7 +92,7 @@ public class GuiStub {
             
           	Call c = getCall(callId, gui.calls);
           	if (c == null) {
-          	    c = getCall(callId, pendingCalls);
+          	    c = getCall(callId, pendingCalls);   	  
           	}
           	int index = getIndex(c.id, gui.calls);
           	if (index == -1) {
@@ -77,11 +100,11 @@ public class GuiStub {
           	}
 
        if (callStatus.equalsIgnoreCase("TRYING")) {           
-          //  gui.list2.removeElementAt(index);
-          //  gui.list2.insertElementAt("["+callId+"] : <TRY> : "+getCall(callId, gui.calls).sipurl, index);
-           gui.calls.add(c);
-           gui.list2.addElement("["+callId+"] : <TRY> : "+getCall(callId, gui.calls).sipurl); //, index);
-           pendingCalls.remove(index);
+            gui.list2.removeElementAt(index);
+            gui.list2.insertElementAt("["+callId+"] : <TRY> : "+getCall(callId, gui.calls).sipurl, index);
+    //       gui.calls.add(c);
+      //     gui.list2.addElement("["+callId+"] : <TRY> : "+getCall(callId, gui.calls).sipurl); //, index);
+    //       pendingCalls.remove(index);
         } else if (callStatus.equalsIgnoreCase("RINGING")) {
             gui.list2.removeElementAt(index);
             gui.list2.insertElementAt("["+callId+"] : <RIN> : "+getCall(callId, gui.calls).sipurl, index);
@@ -90,6 +113,7 @@ public class GuiStub {
             print("Call # " + callId +" declined.");
         } else if (callStatus.equalsIgnoreCase("CANCELLED")) {
             removeCall(callId, gui.calls);
+            gui.list2.remove(index);
             print("Call # " + callId +" cancelled.");
         } else if (callStatus.equalsIgnoreCase("UNREACHABLE")) {
             removeCall(callId, gui.calls);
