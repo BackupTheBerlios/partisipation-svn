@@ -27,12 +27,11 @@ class ExeThread {
 
     private Object result = null;
     
-    private int pause = 3000;
+    private int pause = 60000;
     
     private XmlRpcClientLite client = null;
     
-    private String XMLRPC_CALL_TIMEOUT = "XML-PRC CALL TIMEOUT. \n"
-        + "CORE UNREACHABLE.";
+    private String XMLRPC_CALL_TIMEOUT = "XML-PRC CALL TIMEOUT. \n";
     
     private Thread watchthread = null;
     
