@@ -1,5 +1,9 @@
 compile:
-	find ./ | grep \\.c$$ | grep -v docs/ | xargs gcc -c -I ./
+	find ./ | grep \\.c$$ | grep -v tests/ | xargs gcc -c -Wall -I./
+	gcc -o check_osip_adapter test_osip.o osip_adapter.o -L/usr/local/lib -lcheck -leXosip2
 
 clean:
-	rm -f *.o */*.o */*/*.o
+	find ./ | grep \\.o$$ | xargs rm -f
+
+check: compile
+
