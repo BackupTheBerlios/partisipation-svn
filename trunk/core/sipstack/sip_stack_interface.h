@@ -1,11 +1,17 @@
-int send_register(int const accountId, char* const callee);
+int init();
 
-int start_call();
+int sipstack_send_register(char* const identity, char* const registrar, int expire);
 
-int cancel_call(int callId);
+int sipstack_update_register(int id, int expire);
 
-int quit_call(int callId);
+int sipstack_unregister(int id);
 
-int decline_call(int callId);
+int sipstack_start_call(int callId);
 
-int set_listener(int listener);
+int sipstack_cancel_call(int callId);
+
+int sipstack_quit_call(int callId);
+
+int sipstack_decline_call(int callId);
+
+int sipstack_set_listener(int listener);
