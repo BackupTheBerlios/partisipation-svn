@@ -15,13 +15,7 @@ CFLAGS = -Wall
 
 export CFLAGS
 
-compile:
-	$(MAKE) -C sipstack
-	$(MAKE) -C util
-	$(MAKE) -C xmlrpc-test
-	$(MAKE) -C core
-
-all: compile style doxygen check
+all: compile style doxygen #check
 
 style:
 	$(MAKE) -C $(TOOLSDIR)colour-audit -f Makefile.gen
@@ -31,8 +25,8 @@ style:
 doxygen:
 	$(DOXYGEN)
 
-check:
-	find ./ | grep check_ | grep -v docs/ | xargs bash -c
+#check:
+#	find ./ | grep check_ | grep -v docs/ | xargs bash -c
 
 compile:
 	$(MAKE) -C sipstack
