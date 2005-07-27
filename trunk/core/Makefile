@@ -11,6 +11,10 @@ DOCDIR = ./docs/
 
 STYLEDOCDIR = $(DOCDIR)style/
 
+CFLAGS = -Wall
+
+export CFLAGS
+
 compile:
 	$(MAKE) -C sipstack
 	$(MAKE) -C util

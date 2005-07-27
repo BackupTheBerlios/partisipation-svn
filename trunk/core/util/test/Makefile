@@ -1,7 +1,7 @@
 compile:
-	find ./ -maxdepth 1 | grep \\.c$$ | grep -v docs/ | xargs gcc -c -I../
+	find ./ -maxdepth 1 | grep \\.c$$ | grep -v docs/ | xargs gcc $(CFLAGS) -c -I../
 
-	gcc -otest_thread_management test_thread_management.o ../thread_management.o -lpthread
+	gcc $(CFLAGS) -otest_thread_management test_thread_management.o ../thread_management.o -lpthread
 
 clean:
 	rm test_thread_management

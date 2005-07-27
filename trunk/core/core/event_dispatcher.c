@@ -150,10 +150,6 @@ dispatch(void * args) {
             
             Enqueue(*param, queues[pos]->eventPool);
             
-            ElementType x = Front(queues[pos]->eventPool);
-            void * y = x.params[0];
-            int z = (int) y;
-            printf("test: %d\n", z);
             sleep(4);
             
             res = destroy_queue(pos);

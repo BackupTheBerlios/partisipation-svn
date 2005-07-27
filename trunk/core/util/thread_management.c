@@ -19,10 +19,10 @@ int             activeThreads;
 // highest number of active threads (protected by lock):
 int             peak;
 
-/*
-    Private function, do not call. 
-    It handles the work of start_thread as a separate thread.
-*/
+/**
+ * Private function, do not call. 
+ * It handles the work of start_thread as a separate thread.
+ */
 void *
 add_thread(void * args) {
     int i, rc;
@@ -76,10 +76,10 @@ add_thread(void * args) {
     pthread_exit(NULL);
 }
 
-/*
-    Private function, do not call. 
-    It handles the work of thread_terminated as a separate thread.
-*/
+/**
+ * Private function, do not call. 
+ * It handles the work of thread_terminated as a separate thread.
+ */
 void *
 remove_thread(void * args) {
 
@@ -123,12 +123,12 @@ remove_thread(void * args) {
     pthread_exit(NULL);
 }
 
-/*
-    This function should be called whenever a thread needs to be created.
-    It prevents "fire&forget" thread starting by holding track of currently
-    running threads. It is possible that your thread is not starting 
-    instantly because thread launching is asynchronous.
-*/
+/**
+ * This function should be called whenever a thread needs to be created.
+ * It prevents "fire&forget" thread starting by holding track of currently
+ * running threads. It is possible that your thread is not starting 
+ * instantly because thread launching is asynchronous.
+ */
 int
 start_thread(void*(*start_routine) (void *), void * args) {
     int rc;
@@ -145,11 +145,11 @@ start_thread(void*(*start_routine) (void *), void * args) {
     return 1;
 }
 
-/*
-    This function should be called by a thread that was launched using the
-    start_thread() function. It signals its termination to the thread 
-    management.
-*/
+/**
+ * This function should be called by a thread that was launched using the
+ * start_thread() function. It signals its termination to the thread 
+ * management.
+ */
 int
 thread_terminated(pthread_t tid) {
     int rc;
@@ -165,9 +165,9 @@ thread_terminated(pthread_t tid) {
     return 1;
 }
 
-/*
-    Initialize thread management. Create lock and reserve memory.
-*/
+/**
+ * Initialize thread management. Create lock and reserve memory.
+ */
 int
 tm_init() {
     
@@ -187,9 +187,10 @@ tm_init() {
     return 1;
 }
 
-/*
-    Destroy lock and free memory.
-*/
+/**
+ * Destroy lock and free memory.
+ * @return test
+ */
 int
 tm_destroy() {
 

@@ -1,3 +1,9 @@
+/** 
+ * \file thread_management.h
+ * A Documented file.
+ *   
+ * Details.
+ */
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>

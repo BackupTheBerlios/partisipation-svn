@@ -1,4 +1,4 @@
 compile:
-	find ./ -maxdepth 1 | grep \\.c$$ | grep -v docs/ | xargs gcc -c -I ../
+	find ./ -maxdepth 1 | grep \\.c$$ | grep -v docs/ | xargs gcc $(CFLAGS) -c -I ../
 
 	$(MAKE) -C xmlrpc
