@@ -1,8 +1,12 @@
 /** 
- * \file thread_management.h
- * A Documented file.
+ * @file thread_management.h
+ * A thread launcher that keeps track of running threads.
  *   
- * Details.
+ * This utility file tries to ease the use of threads. Thread referenced are
+ * save for future use like cancelling all threads. Additionally, it abstracts
+ * from the used thread library as much as possible.
+ *
+ * @author Matthias Liebig
  */
 #include <pthread.h>
 #include <stdio.h>

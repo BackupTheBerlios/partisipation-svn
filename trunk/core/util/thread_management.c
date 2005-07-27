@@ -1,3 +1,13 @@
+/** 
+ * @file thread_management.c
+ * A thread launcher that keeps track of running threads.
+ *   
+ * This utility file tries to ease the use of threads. Thread referenced are
+ * save for future use like cancelling all threads. Additionally, it abstracts
+ * from the used thread library as much as possible.
+ *
+ * @author Matthias Liebig
+ */
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -5,23 +15,37 @@
 
 #include <storage.h>
 
+/**
+ * Amount of threads that can run simultaneously.
+ */
 #define MAXTHREADS 64
 
-// global lock for thread references:
+/**
+ * global lock for thread references
+ */
 pthread_mutex_t thrManLock;
 
-// thread references:
+/**
+ * thread references
+ */
 pthread_t *     threads;
 
-// number of active threads (protected by lock):
+/**
+ * number of active threads (protected by lock)
+ */
 int             activeThreads;
 
-// highest number of active threads (protected by lock):
+/**
+ * highest number of active threads (protected by lock)
+ */
 int             peak;
 
 /**
  * Private function, do not call. 
- * It handles the work of start_thread as a separate thread.
+ * It handles the work of start_thread() as a separate thread.
+ * @param args an instance of thread_data containing the start routine and the
+ * arguments of the thread that has to be started
+ * @return nothing so far
  */
 void *
 add_thread(void * args) {
@@ -78,7 +102,9 @@ add_thread(void * args) {
 
 /**
  * Private function, do not call. 
- * It handles the work of thread_terminated as a separate thread.
+ * It handles the work of thread_terminated() as a separate thread.
+ * @param args the thread id of the thread that will be removed
+ * @return nothing so far
  */
 void *
 remove_thread(void * args) {
@@ -128,6 +154,10 @@ remove_thread(void * args) {
  * It prevents "fire&forget" thread starting by holding track of currently
  * running threads. It is possible that your thread is not starting 
  * instantly because thread launching is asynchronous.
+ * @param start_routine the initial function that will be called when the
+ * thread is started
+ * @param args the arguments of the start routine - a type-free pointer
+ * @return whether starting the thread was successfull (boolean)
  */
 int
 start_thread(void*(*start_routine) (void *), void * args) {
@@ -149,6 +179,8 @@ start_thread(void*(*start_routine) (void *), void * args) {
  * This function should be called by a thread that was launched using the
  * start_thread() function. It signals its termination to the thread 
  * management.
+ * @param tid the (own) thread id - usually obtained by calling pthread_self()
+ * @return whether removing thread reference was successful (boolean)
  */
 int
 thread_terminated(pthread_t tid) {
@@ -166,7 +198,9 @@ thread_terminated(pthread_t tid) {
 }
 
 /**
- * Initialize thread management. Create lock and reserve memory.
+ * Initialize thread management. Create lock and reserve memory. Call this
+ * before calling any other function of thread management.
+ * @return if initialization was successfull (boolean)
  */
 int
 tm_init() {
@@ -188,8 +222,9 @@ tm_init() {
 }
 
 /**
- * Destroy lock and free memory.
- * @return test
+ * Destroy lock and free memory. Call this function when you are done using
+ * thread management.
+ * @return if releasing thread management was successfull (boolean)
  */
 int
 tm_destroy() {
