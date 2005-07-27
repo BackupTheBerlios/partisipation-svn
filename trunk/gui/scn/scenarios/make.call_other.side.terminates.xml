@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE scenario SYSTEM "../scenario.dtd">
+
+<scenario name="Make call and other side terminates.">
+<print>Please dial the number 123456789.</print>
+<expect method="makeCall">
+	<param>1</param>
+	<param>123456789</param>
+</expect>
+<call method="changeCallStatus">
+	<param>1</param>
+	<param>TRYING</param>
+</call>
+<sleep>1000</sleep>
+<call method="changeCallStatus">
+	<param>1</param>
+	<param>RINGING</param>
+</call>
+<sleep>5000</sleep>
+<call method="changeCallStatus">
+	<param>1</param>
+	<param>CANCELLED</param>
+</call>
+<print>This call ought be terminated now.</print>
+</scenario>

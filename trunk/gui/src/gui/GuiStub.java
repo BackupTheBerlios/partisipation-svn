@@ -8,10 +8,10 @@ import javax.swing.JOptionPane;
 
 /**
  * This class provides all functions of the GUI to the core.
- * 
+ *
  * @author Oleksiy Reznikov
  * @author Anton Huttenlocher
- *  
+ *
  */
 public class GuiStub {
 
@@ -44,11 +44,11 @@ public class GuiStub {
 
     public boolean changeCallStatus(int callId, String callStatus) {
         if (callStatus.equalsIgnoreCase("ACCEPTED")) {
-            
+
             Call c = getCall(callId, gui.calls);
           	if (c == null) {
-          	    // accepted by user: add call to the list 
-          	    c = getCall(callId, pendingCalls); 
+          	    // accepted by user: add call to the list
+          	    c = getCall(callId, pendingCalls);
           	    //int index = getIndex(c.id, pendingCalls);
           	    removeCall(callId,pendingCalls);
           	    gui.calls.addElement(c);
@@ -58,27 +58,27 @@ public class GuiStub {
           	    int index = getIndex(c.id, gui.calls);
           	    gui.list2.removeElementAt(index);
           	    gui.list2.insertElementAt("["+callId+"] : <ACC> : "+getCall(callId, gui.calls).sipurl, index);
-          	}        	
-          	
-            
+          	}
+
+
        /*     Call nc = getCall(callId, gui.calls); //pendingCalls);
             int index = getIndex(nc.id, gui.calls); //pendingCalls);
- 
+
        //     gui.list2.removeElementAt(index);
             gui.calls.add(nc);
        //     pendingCalls.remove(index);
             //gui.list2.insertElementAt("["+callId+"] : <ACC> : "+getCall(callId, gui.calls).sipurl, index);
-            
+
             gui.list2.removeElementAt(index);
             gui.list2.insertElementAt("["+callId+"] : <ACC> : "+getCall(callId, gui.calls).sipurl, index);
           //  gui.list2.addElement("["+callId+"] : <ACC> : "+getCall(callId, gui.calls).sipurl);
-            
+
             */
-            
+
             print("Call # "+callId+" accepted.");
-            
+
          } else if (callStatus.equalsIgnoreCase("TERMINATED")) {
-             
+
         	if (getCall(callId, pendingCalls) == null) { // hang-up-termination by the other side
         	    Call c = getCall(callId, gui.calls);
               	int index = getIndex(c.id, gui.calls);
@@ -87,19 +87,19 @@ public class GuiStub {
         	    removeCall(callId, pendingCalls);
         	}
         	print("Call # " + callId +" terminated.");
-        }  
+        }
         else {
-            
+
           	Call c = getCall(callId, gui.calls);
           	if (c == null) {
-          	    c = getCall(callId, pendingCalls);   	  
+          	    c = getCall(callId, pendingCalls);
           	}
           	int index = getIndex(c.id, gui.calls);
           	if (index == -1) {
           	    index = getIndex(c.id, pendingCalls);
           	}
 
-       if (callStatus.equalsIgnoreCase("TRYING")) {           
+       if (callStatus.equalsIgnoreCase("TRYING")) {
             gui.list2.removeElementAt(index);
             gui.list2.insertElementAt("["+callId+"] : <TRY> : "+getCall(callId, gui.calls).sipurl, index);
     //       gui.calls.add(c);
@@ -118,8 +118,8 @@ public class GuiStub {
         } else if (callStatus.equalsIgnoreCase("UNREACHABLE")) {
             removeCall(callId, gui.calls);
             print("Call # " + callId +" unreachable.");
-        } 
-        
+        }
+
         }
         return true;
     }
@@ -161,11 +161,11 @@ public class GuiStub {
 
         Call c = new Call(callId, accountId, sipUri, displayName);
         pendingCalls.add(c);
-        print("Incoming call # "+ callId + " from "+ sipUri + " ("+ displayName+")"); 
-        
+        print("Incoming call # "+ callId + " from "+ sipUri + " ("+ displayName+")");
+
         params.clear();
         params.add(new Integer(callId));
-        
+
         if (n == 0) {
             gui.execute("core.acceptCall", params);
         } else {
@@ -183,7 +183,7 @@ public class GuiStub {
         gui.jSlider2.setValue((int)(level * 100));
         return true;
     }
-    
+
     private Call getCall(int n, Vector vec) {
         Enumeration e = vec.elements();
         while (e.hasMoreElements()) {
@@ -194,9 +194,9 @@ public class GuiStub {
         }
         return null;
     }
-    
+
     /**
-     * 
+     *
      * @param id
      * @param vec
      */
@@ -212,7 +212,7 @@ public class GuiStub {
         }
         return;
     }
-    
+
     private int getIndex(int callId, Vector vec) {
         Enumeration e = vec.elements();
         int i = 0;
@@ -225,10 +225,10 @@ public class GuiStub {
         }
         return -1;
     }
-    
+
     private void print(String s) {
         gui.jTextArea1.append(Utils.getTimestamp()+": "+s+"\n");
     }
-    
+
     }
 

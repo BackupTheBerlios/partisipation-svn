@@ -16,7 +16,7 @@
 	<param>34527</param>
 	<param>ACCEPTED</param>
 </call>
-<print>Please wait for a while and then terminated this call.</print>
+<print>Please wait for a while and then terminate this call.</print>
 <expect method="endCall">
 	<param>34527</param>
 </expect>

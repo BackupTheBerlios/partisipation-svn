@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE scenario SYSTEM "../scenario.dtd">
+
+<scenario name="Make call, other side accepts then change speaker and micro volume.">
+<print>Please dial the number 123456789.</print>
+<expect method="makeCall">
+	<param>1</param>
+	<param>123456789</param>
+</expect>
+<call method="changeCallStatus">
+	<param>1</param>
+	<param>TRYING</param>
+</call>
+<sleep>1000</sleep>
+<call method="changeCallStatus">
+	<param>1</param>
+	<param>RINGING</param>
+</call>
+<sleep>5000</sleep>
+<call method="changeCallStatus">
+	<param>1</param>
+	<param>ACCEPTED</param>
+</call>
+<call method="changeCallStatus">
+	<param>1</param>
+	<param>ACCEPTED</param>
+</call>
+<print>This call ought be active now.</print>
+<sleep>5000</sleep>
+<call method="setSpeakerVolume">
+	<param>0.8</param>
+</call>
+<print>The speaker volume should be at 80% now.</print>
+<sleep>5000</sleep>
+<call method="setMicroVolume">
+	<param>0.75</param>
+</call>
+<print>The micro volume should be at 75% now.</print>
+
+
+</scenario>
