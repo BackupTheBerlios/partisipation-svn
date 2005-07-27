@@ -128,7 +128,7 @@ macro timeformat [
 ]
 
 project sipoks05 "PartiSIPation - A Sip User Agent" "1.0" 2005-04-11 2005-09-30 {
-    now 2005-07-20
+    now 2005-07-27
     timeformat "%Y-%m-%d"
 
     currency "EUR"
@@ -511,11 +511,19 @@ task Core "Core" {
     task environment "Define and adapt environment (libraries, etc.)" {
         depends !concept
 
-        task style "Doxygen + stylechecking" {
-            effort 2h
-            allocate enrico
-            actual:complete 100
-			actual:effort 4h
+        task style "Coding styles, documentation" {
+            task doxygen "including Doxygen" {
+                effort 2h
+                allocate enrico
+                actual:complete 100
+                actual:effort 4h
+            }
+            task styleguide "Styleguide for new developer" {
+                effort 4h
+                allocate matthias
+                actual:complete 100
+            }
+
         }
 
         task config "Configuration with xml or ini" {
@@ -531,7 +539,7 @@ task Core "Core" {
                 actual:complete 100
             }
             task apt "Implementation of interface and adapter (oSIP)" {
-                effort 4h
+                effort 6h
                 depends !!!testing.sipstack_ifapt, !!!concept.interfaces.sipstack
                 allocate enrico
                 actual:complete 25
@@ -539,13 +547,14 @@ task Core "Core" {
         }
 
         task rtp "Including of RTP library" {
-            allocate matthias
+            allocate anton
+            allocate oleksiy
             task invest "RTP library investigation" {
-                effort 4h
+                effort 6h
                 actual:complete 0
             }
             task apt "Implementation of interface and adapter" {
-                effort 4h
+                effort 6h
                 depends !!!testing.rtp_ifapt, !!!concept.interfaces.rtp
                 actual:complete 0
             }
@@ -647,7 +656,8 @@ task Core "Core" {
 
         task account "Account management" {
             depends !!testing.account
-            allocate enrico
+            allocate anton
+            allocate oleksiy
             task storage "Data storage (e.g. with XML)" {
                 effort 2h
                 actual:complete 0
