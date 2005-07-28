@@ -98,14 +98,8 @@ int sipstack_cancel_call(int callId) {
     return 0;
 }
 
-<<<<<<< .mine
 int sipstack_quit_call(int callId) {
     return 0;
-=======
-    printf("callId: %d\n", callId);
-    
-    return 1;
->>>>>>> .r150
 }
 
 int sipstack_decline_call(int callId) {
