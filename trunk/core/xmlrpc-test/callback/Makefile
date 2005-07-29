@@ -1,2 +1,11 @@
+STYLEDOCDIR_LOCAL = $(STYLEDOCDIR)/callback
+
 compile:
-	find ./ -maxdepth 1 | grep \\.c$$ | grep -v docs/ | xargs gcc $(CFLAGS) -c -I ../
+	find ./ -maxdepth 1 | grep \\.c$$ | grep -v docs/ | xargs $(COMPILE.c) -I ../
+
+clean:
+	find ./ | grep \\.o$$ | xargs rm -f
+
+style:
+	mkdir -p $(STYLEDOCDIR_LOCAL)
+	$(PERL) $(TOOLSDIR)colour-audit/colour-audit -i $(CAINCLUDES) -d $(STYLEDOCDIR_LOCAL) *.c
