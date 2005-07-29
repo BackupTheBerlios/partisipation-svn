@@ -4,7 +4,7 @@ compile:
 	find ./ -maxdepth 1 | grep \\.c$$ | grep -v docs/ | xargs $(COMPILE.c) -I ../../
 
 clean:
-	find ./ | grep \\.o$$ | xargs rm -f
+	find ./ -maxdepth 1 | grep \\.o$$ | xargs rm -f
 
 style:
 	mkdir -p $(STYLEDOCDIR_LOCAL)

@@ -6,7 +6,7 @@ compile:
 	$(LINK.c) -o test_thread_management test_thread_management.o ../thread_management.o -lpthread
 
 clean:
-	find ./ | grep \\.o$$ | xargs rm -f
+	find ./ -maxdepth 1 | grep \\.o$$ | xargs rm -f
 	rm -f test_thread_management
 
 style:

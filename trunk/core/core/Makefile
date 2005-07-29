@@ -7,7 +7,8 @@ compile:
 	$(MAKE) -C test
 
 clean:
-	find ./ | grep \\.o$$ | xargs rm -f
+	find ./ -maxdepth 1 | grep \\.o$$ | xargs rm -f
+	$(MAKE) -C queue clean
 	$(MAKE) -C test clean
 
 style:

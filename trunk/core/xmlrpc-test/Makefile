@@ -16,7 +16,7 @@ compile:
 	$(LINK.c) -o xmlrpc_server xmlrpc_server.o registration/registration_management.o registration/xmlrpc/dispatcher.o calls/call_management.o calls/xmlrpc/dispatcher.o accounts/account_management.o accounts/xmlrpc/dispatcher.o volume/volume_management.o volume/xmlrpc/dispatcher.o extras/extras_management.o extras/xmlrpc/dispatcher.o callback/callback_util.o callback/gui_callback.o $(LIBS_CLIENT) $(LIBS_ABYSS)
 
 clean:
-	find ./ | grep \\.o$$ | xargs rm -f
+	find ./ -maxdepth 1 | grep \\.o$$ | xargs rm -f
 	rm -f xmlrpc_server
 	$(MAKE) -C accounts clean
 	$(MAKE) -C callback clean

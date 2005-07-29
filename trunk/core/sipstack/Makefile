@@ -5,7 +5,7 @@ compile:
 #	$(LINK.c) -o check_osip_adapter test_osip.o osip_adapter.o -L/usr/local/lib -lcheck -leXosip2
 
 clean:
-	find ./ | grep \\.o$$ | xargs rm -f
+	find ./ -maxdepth 1 | grep \\.o$$ | xargs rm -f
 
 check: compile
 

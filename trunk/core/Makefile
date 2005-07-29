@@ -35,7 +35,6 @@ doxygen:
 #	find ./ | grep check_ | grep -v docs/ | xargs bash -c
 
 compile:
-	echo $(COMPILE.c)
 	$(MAKE) -C sipstack
 	$(MAKE) -C util
 	$(MAKE) -C xmlrpc-test

@@ -6,7 +6,7 @@ compile:
 	$(LINK.c) -o test_dispatcher test_dispatcher.o ../event_dispatcher.o ../../util/thread_management.o ../queue/queue.o ../queue/queue_datatype.o -lpthread
 
 clean:
-	find ./ | grep \\.o$$ | xargs rm -f
+	find ./ -maxdepth 1 | grep \\.o$$ | xargs rm -f
 	rm -f test_dispatcher
 
 style:

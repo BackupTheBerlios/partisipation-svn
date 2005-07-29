@@ -6,7 +6,7 @@ compile:
 	$(MAKE) -C xmlrpc
 
 clean:
-	find ./ | grep \\.o$$ | xargs rm -f
+	find ./ -maxdepth 1 | grep \\.o$$ | xargs rm -f
 	$(MAKE) -C xmlrpc clean
 
 style:
