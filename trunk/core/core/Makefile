@@ -16,3 +16,8 @@ style:
 	$(PERL) $(TOOLSDIR)colour-audit/colour-audit -i $(CAINCLUDES) -d $(STYLEDOCDIR_LOCAL) *.c
 	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C queue style
 	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C test style
+
+indent:
+	find ./ -maxdepth 1 | grep \\.[ch]$$ | grep -v docs/ | xargs indent
+	$(MAKE) -C queue indent
+	$(MAKE) -C test indent

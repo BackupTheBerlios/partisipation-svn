@@ -17,6 +17,9 @@ CC = gcc
 export COMPILE.c
 export LINK.c
 
+INDENT_PROFILE = $(CURDIR)/indent.pro
+export INDENT_PROFILE
+
 all: compile style doxygen #check
 
 style:
@@ -46,3 +49,9 @@ clean:
 	$(MAKE) -C util clean
 	$(MAKE) -C xmlrpc-test clean
 	$(MAKE) -C core clean
+
+indent:
+	$(MAKE) -C sipstack indent
+	$(MAKE) -C util indent
+	$(MAKE) -C xmlrpc-test indent
+	$(MAKE) -C core indent

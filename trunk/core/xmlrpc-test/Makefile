@@ -34,3 +34,12 @@ style:
 	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C extras style
 	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C registration style
 	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C volume style
+
+indent:
+	find ./ -maxdepth 1 | grep \\.[ch]$$ | grep -v docs/ | xargs indent
+	$(MAKE) -C accounts indent
+	$(MAKE) -C callback indent
+	$(MAKE) -C calls indent
+	$(MAKE) -C extras indent
+	$(MAKE) -C registration indent
+	$(MAKE) -C volume indent
