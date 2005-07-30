@@ -1,3 +1,4 @@
+
 /** 
  * @file thread_management.h
  * A thread launcher that keeps track of running threads.
@@ -12,16 +13,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int
-tm_init();
+int tm_init();
 
-int
-start_thread(void * (*start_routine) (void *),
-             void *   args);
+int start_thread(void *(*start_routine) (void *), void *args);
 
-int
-thread_terminated(pthread_t tid);
+int thread_terminated(pthread_t tid);
 
-int
-tm_destroy();
-
+int tm_destroy();

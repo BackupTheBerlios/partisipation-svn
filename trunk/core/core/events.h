@@ -1,5 +1,5 @@
 #ifndef HEVENTS_USED
-#define HEVENTS_USED
+#    define HEVENTS_USED
 
 typedef enum {
     INVALID_EVENT,

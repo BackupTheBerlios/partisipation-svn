@@ -7,6 +7,6 @@
 
 ElementType const
 get_null_element() {
-    ElementType const elemNull = {INVALID_EVENT, NULL};
+    ElementType const elemNull = { INVALID_EVENT, NULL };
     return elemNull;
 }

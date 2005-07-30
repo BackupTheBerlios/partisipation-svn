@@ -7,15 +7,16 @@
 #include <event_dispatcher.h>
 #include <events.h>
 
-int 
+int
 main() {
     int x;
+
     tm_init();
     ed_init();
-    void ** params1;
+    void **params1;
     params1 = (void **) malloc(sizeof(int));
     params1[0] = (void *) 27;
-    void ** params2;
+    void **params2;
     params2 = (void **) malloc(sizeof(int));
     params2[0] = (void *) 99;
     event_dispatch(GUI_MAKE_CALL, params1);

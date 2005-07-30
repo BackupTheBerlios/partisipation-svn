@@ -1,3 +1,4 @@
+
 /** 
  * @file storage.h
  * Type definitions for thread management.
@@ -8,23 +9,23 @@
  * @author Matthias Liebig
  */
 #ifndef HSTORAGE_USED
-#define HSTORAGE_USED
+#    define HSTORAGE_USED
 
 /**
  * This struct is needed to pass the arguments of start_thread() to 
  * add_thread() which is a thread itself.
  */
-typedef struct 
- {
+typedef struct {
+
    /**
     * The initial function that will be called when the thread is started.
     */
-   void*(*start_routine) (void *);
-   
+    void *(*start_routine) (void *);
+
    /**
     * The arguments of the start routine - a type-free pointer
     */
-   void* args;
- } thread_data;
- 
+    void *args;
+} thread_data;
+
 #endif

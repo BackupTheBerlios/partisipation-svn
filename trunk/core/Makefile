@@ -20,7 +20,7 @@ export LINK.c
 INDENT_PROFILE = $(CURDIR)/indent.pro
 export INDENT_PROFILE
 
-all: compile style doxygen #check
+all: indent compile style doxygen #check
 
 style:
 	$(MAKE) -C $(TOOLSDIR)colour-audit -f Makefile.gen

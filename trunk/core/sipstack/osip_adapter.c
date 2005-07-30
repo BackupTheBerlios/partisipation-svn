@@ -5,21 +5,23 @@
 #include <eXosip2/eXosip.h>
 #include "sip_stack_interface.h"
 
-int sipstack_init() {
-    /*init eXosip2 and osip*/
+int
+sipstack_init() {
+    /*
+     * init eXosip2 and osip
+     */
     int i;
 
-    TRACE_INITIALIZE (6, stdout);
+    TRACE_INITIALIZE(6, stdout);
 
     i = eXosip_init();
-    if(i!=0) {
+    if (i != 0) {
         fprintf(stderr, "\ncould not initialize eXosip\n");
         return -1;
     }
-
     //i = eXosip_listen_to(IPPROTO_UDP, INADDR_ANY, 5060);
     i = eXosip_listen_addr(IPPROTO_UDP, INADDR_ANY, 5065, AF_INET, 0);
-    if(i!=0) {
+    if (i != 0) {
         eXosip_quit();
         fprintf(stderr, "could not initialize transport layer\n");
         return -1;
@@ -32,15 +34,17 @@ int sipstack_init() {
     @param char* registrar
     @param int expire
 */
-int sipstack_send_register(char* const identity, char* const registrar, int expire) {
+int
+sipstack_send_register(char *const identity, char *const registrar, int expire) {
     osip_message_t *reg = NULL;
     int id;
     int i;
 
     eXosip_lock();
-    id = eXosip_register_build_initial_register(identity, registrar, NULL, expire, &reg);
+    id = eXosip_register_build_initial_register(identity, registrar, NULL,
+                                                expire, &reg);
 
-    if(id < 0) {
+    if (id < 0) {
         eXosip_unlock();
         return -1;
     }
@@ -53,14 +57,15 @@ int sipstack_send_register(char* const identity, char* const registrar, int expi
     return id;
 }
 
-int sipstack_unregister(int id) {
+int
+sipstack_unregister(int id) {
     osip_message_t *reg = NULL;
     int i;
 
     eXosip_lock();
-    i = eXosip_register_build_register(id, 0 , &reg);
+    i = eXosip_register_build_register(id, 0, &reg);
 
-    if(i < 0) {
+    if (i < 0) {
         eXosip_unlock();
         return -1;
     }
@@ -69,14 +74,15 @@ int sipstack_unregister(int id) {
     return i;
 }
 
-int sipstack_update_register(int id, int expire) {
+int
+sipstack_update_register(int id, int expire) {
     osip_message_t *reg = NULL;
     int i;
 
     eXosip_lock();
     i = eXosip_register_build_register(id, expire, &reg);
 
-    if(i < 0) {
+    if (i < 0) {
         eXosip_unlock();
         fprintf(stdout, "cannot build REGISTER\n");
         return -1;
@@ -89,23 +95,29 @@ int sipstack_update_register(int id, int expire) {
 /**
     start a new call
 */
-int sipstack_start_call(int id) {
+int
+sipstack_start_call(int id) {
     int callID = id;
+
     return callID;
 }
 
-int sipstack_cancel_call(int callId) {
+int
+sipstack_cancel_call(int callId) {
     return 0;
 }
 
-int sipstack_quit_call(int callId) {
+int
+sipstack_quit_call(int callId) {
     return 0;
 }
 
-int sipstack_decline_call(int callId) {
+int
+sipstack_decline_call(int callId) {
     return 0;
 }
 
-int sipstack_set_listener(int listener) {
+int
+sipstack_set_listener(int listener) {
     return 0;
 }

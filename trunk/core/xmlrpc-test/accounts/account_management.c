@@ -4,10 +4,9 @@
 #include <accounts/account_management.h>
 #include <constants.h>
 
-void 
-account_get_all(int * accountIds, 
-                int * length) {
-    
+void
+account_get_all(int *accountIds, int *length) {
+
     // do something
     *length = 7;
     if (*length < MAX_ACCOUNTID_AMOUNT) {
@@ -24,62 +23,59 @@ account_get_all(int * accountIds,
 }
 
 int
-account_set(int    const accountId,
-            char * const attribute,
-            char * const value) {
-          
+account_set(int const accountId, char *const attribute, char *const value) {
+
     // do something
-    
+
     printf("accountId: %d\n", accountId);
     printf("attribute: %s\n", attribute);
     printf("value: %s\n", value);
-        
+
     return 1;
 }
-            
-char*
-account_get(int    const accountId,
-            char * const attribute) {
-          
+
+char *
+account_get(int const accountId, char *const attribute) {
+
     // do something
     printf("accountId: %d\n", accountId);
     printf("attribute: %s\n", attribute);
-        
+
     return "value";
 }
-            
+
 int
 account_create() {
-    
+
     // do something
     printf("leaving accountCreate\n");
-    
+
     return 7;
 }
-               
+
 int
 account_delete(int const accountId) {
-    
+
     // do something
     printf("accountId: %d\n", accountId);
-        
+
     return 1;
 }
 
 int
 account_register(int const accountId) {
-    
+
     // do something
     printf("accountId: %d\n", accountId);
-    
+
     return 1;
 }
 
 int
 account_unregister(int const accountId) {
-    
+
     // do something
     printf("accountId: %d\n", accountId);
-    
+
     return 1;
 }
