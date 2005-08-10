@@ -334,8 +334,8 @@ public class Tester {
             return "";
     }
 
-    public boolean setValue(int accId, String attr, String value) {
-        gotfct = "setValue";
+    public boolean accountSet(int accId, String attr, String value) {
+        gotfct = "accountSet";
         gotpar.clear();
         gotpar.add(new Integer(accId));
         gotpar.add(attr);
