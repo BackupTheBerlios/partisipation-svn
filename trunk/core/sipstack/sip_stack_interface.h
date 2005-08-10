@@ -1,4 +1,6 @@
-int init();
+int sipstack_init();
+
+int sipstack_quit();
 
 int sipstack_send_register(char *const identity, char *const registrar,
                            int expire);
