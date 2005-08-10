@@ -21,7 +21,7 @@
 <sleep>10000</sleep>
 <call method="changeCallStatus">
 	<param>123</param>
-	<param>CANCELLED</param>
+	<param>TERMINATED</param>
 </call>
 <print>This call ought be terminated now.</print>
 </scenario>
