@@ -68,7 +68,7 @@ public class XmlRpcBoss {
             else if (args[0].equalsIgnoreCase("setMicroVolume")) {	
                 
             } else {
-                System.out.println("No provides no such method");
+                System.out.println("No such method");
                 return;
             }
             
