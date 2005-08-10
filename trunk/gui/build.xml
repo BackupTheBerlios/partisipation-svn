@@ -2,20 +2,22 @@
 
 <!--
    SCRIPT:  Apache Ant Buildfile for the GUI
-   
+
    AUTHORS: Anton Huttenlocher, Oleksiy Reznikov
-   
+
    PURPOSE: Easily compiles the GUI source files and generates JavaDoc documentation.
-   
+
    NOTE: Your data are assumed to be organized as follows:
         - Java source files in ./src
         - all necessary libraries in ./lib They MUST be JAR archives, no directories
-        
+	  	- Checkstyle configuration files in ./cfg
+
         This script provides these options:
-        - clean     : delete directories ./bin and ./doc
+        - clean   : delete directories ./bin and ./doc with all subdirectories
         - build (default)    : compile the source files and place the class files into ./bin
-        - gendoc  : generate documentation without compiling the sources and place the result into ./doc
-        - all          : compile the sources and generate documentation
+        - gendoc  : generate documentation without compiling the sources and place the result into ./doc/javadoc
+	  	- check   : generate checkstyle report into ./doc/checkstyle
+        - all     : compile the sources and generate documentation
 -->
 
 <project basedir="." default="build" name="GUI">
@@ -24,38 +26,71 @@
 	<property name="bin" value="${basedir}/bin"/>
 	<property name="doc" value="${basedir}/doc"/>
 	<property name="lib" value="${basedir}/lib"/>
- 
+	<property name="cfg" value="${basedir}/cfg"/>
+	<property name="javadoc" value="${doc}/javadoc"/>
+	<property name="checkstyle" value="${doc}/checkstyle"/>
+
     <path id="classpath">
     	<fileset dir="${lib}">
     	   <include name="*.jar"/>
     	</fileset>
-     </path>   
-	
+	 	<pathelement path="${bin}"/>
+     </path>
+
 	<target name="clean">
 		<delete dir="${bin}"/>
 		<delete dir="${doc}"/>
 	</target>
-	
-    <target name="gendoc">
-	<mkdir dir="${doc}"/>  
-        <javadoc sourcepath="${src}" destdir="${doc}" packagenames="gui.*">
-            <classpath refid="classpath"/>   
+
+    <target name="gendoc" depends="clean">
+	<mkdir dir="${javadoc}"/>
+        <javadoc sourcepath="${src}" destdir="${javadoc}" packagenames="gui.*">
+            <classpath refid="classpath"/>
             <packageset dir="${src}">
                 <include name="*"/>
-            </packageset>   
+            </packageset>
         </javadoc>
-    </target>   
-    
+    </target>
+
 	<target name="build" depends="clean">
 		<mkdir dir="${bin}"/>
 		<javac srcdir="${src}" destdir="${bin}" debug="${compile.debug}">
 			<classpath refid="classpath"/>
 		</javac>
         <copy todir="${bin}/gui/resources">
-          <fileset dir="${src}/gui/resources"/>         
+          <fileset dir="${src}/gui/resources"/>
         </copy>
 	</target>
- 
-    <target name="all" depends="build,gendoc"/>   
+
+	<target name="checkstyle" depends="clean">
+		<mkdir dir="${checkstyle}"/>
+		<taskdef resource="checkstyletask.properties"
+			   classpath="${lib}/checkstyle-all-4.0-beta4.jar"/>
+		<checkstyle config="${cfg}/checks.xml"
+				classpathref="classpath"
+			    	failOnViolation="false">
+		    <fileset dir="${src}" includes="**/*.java"/>
+		    <formatter type="xml" toFile="${checkstyle}/report.xml"/>
+  		</checkstyle>
+  		<style in="${checkstyle}/report.xml"
+  		       out="${checkstyle}/report.html"
+  		       style="${cfg}/checkstyle-noframes-sorted.xsl"/>
+	</target>
+
+
+	<!-- NOTE: You must provide a scenario file with following command line option:
+		-Dfile=/path/to/your/scenario/file.xml
+	-->
+	<target name="guitest">
+		<java classname="gui.Tester" fork="true">
+			<classpath refid="classpath"/>
+			<arg value="${file}"/>
+		</java>
+		<java classname="gui.Gui" fork="true">
+			<classpath refid="classpath"/>
+		</java>
+	</target>
+
+    <target name="all" depends="build,gendoc,checkstyle"/>
 
 </project>
