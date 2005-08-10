@@ -27,7 +27,7 @@ class ExeThread {
 
     private Object result = null;
     
-    private int pause = 60000;
+    private int pause = 5000;
     
     private XmlRpcClientLite client = null;
     
