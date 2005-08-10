@@ -18,10 +18,10 @@ import org.xml.sax.SAXException;
 
 /**
  * This class can execute complex scenarios specified in XML to test the GUI.
- * 
+ *
  * @author Anton Huttenlocher
  * @author Oleksiy Reznikov
- *  
+ *
  */
 public class Tester {
 
@@ -39,19 +39,13 @@ public class Tester {
 
     XmlRpcClientLite client;
 
-    static final int GUI_PORT = 8888;
-
-    static final int CORE_PORT = 7777;
-
-    static final String HOST = "192.168.0.1";
-    
     boolean suspend = true;
 
     public Tester() {
 
         try {
-            client = new XmlRpcClientLite(InetAddress.getByName(HOST)
-                    .getHostName(), GUI_PORT);
+            client = new XmlRpcClientLite(InetAddress.getByName(Utils.GUIHOST)
+                    .getHostName(), Utils.GUIPORT);
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (UnknownHostException e) {
@@ -64,7 +58,7 @@ public class Tester {
 
         if (type == Node.ELEMENT_NODE) {
             if (node.getNodeName().equalsIgnoreCase("print")) {
-                // use System.err just to show this info 
+                // use System.err just to show this info
                 // in different color in Eclipse console
                 System.err.println("[ "+node.getFirstChild().getNodeValue()+" ]");
             } else if (node.getNodeName().equalsIgnoreCase("sleep")) {
@@ -101,9 +95,9 @@ public class Tester {
                 setExpected(node);
 
                 while (suspend) {
-                    
+
                 }
-                
+
                 if (expfct.equalsIgnoreCase(gotfct)) {
                     if (parameterMatch()) {
                         System.out.println("------- OK: Expected " + expfct
@@ -156,11 +150,11 @@ public class Tester {
         } else
             return s;
     }
-    
+
     /**
      * Set expected parameters. Note, that they are set only with their
      * String representation, not converted to a proper type.
-     * 
+     *
      * @param node
      */
     private void setExpected(Node node) {
@@ -179,13 +173,13 @@ public class Tester {
     private void setParameters(Node node, Vector par) {
         par.clear();
         NodeList c = node.getChildNodes();
-        
+
         int k = 0;
         if (c != null) {
             for (int i = 0; i < c.getLength(); i++) {
                 if (c.item(i).getNodeType() == Node.ELEMENT_NODE) {
                     String s = c.item(i).getFirstChild().getNodeValue();
-                    
+
                     if (sendfct.equalsIgnoreCase("changeRegStatus")) {
                         if (k == 0)
                             par.add(k, new Integer(s));
@@ -378,33 +372,33 @@ public class Tester {
 
                 DOMParser parser = new DOMParser();
                 Tester tester = new Tester();
-                
+
                 // validate scenario against DTD
                 parser.setFeature("http://xml.org/sax/features/validation", true);
-                
+
                 parser.parse(args[0]);
                 Document document = parser.getDocument();
-                
+
                 System.out.println("> SCENARIO: "+parser.getDocument().getDocumentElement().getAttribute("name"));
 
                 //  XmlRpc.setDebug(true);
-                WebServer server = new WebServer(CORE_PORT, InetAddress
-                        .getByName(HOST));
+                WebServer server = new WebServer(Utils.COREPORT, InetAddress
+                        .getByName(Utils.COREHOST));
                 server.start();
                 server.addHandler("core", tester);
-              
+
                 tester.traverse(document);
 
                 System.out.println("> SCENARIO COMPLETED.");
                 System.exit(0);
-                
+
             } catch (UnknownHostException e) {
                 e.printStackTrace();
             } catch (SAXException e) {
                 System.out.println("> Your XML file seems to be invalid.");
             } catch (IOException e) {
                 System.out.println("> No XML file found. Check your path.");
-            } 
+            }
         }
     }
 }
