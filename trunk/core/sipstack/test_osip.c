@@ -20,6 +20,8 @@ START_TEST(test_sipstack_ifapt) {
     i = sipstack_unregister(regId);
     fail_unless(i == 0, "Unregistering failed. (result = %2d)", i);
 
+    i = sipstack_quit();
+
     /*
      * start call and quit it
      */
