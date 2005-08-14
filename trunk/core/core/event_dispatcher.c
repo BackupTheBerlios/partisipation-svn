@@ -5,18 +5,11 @@
 
 #include <../util/thread_management.h>
 #include <events.h>
-#include <queue/queue.h>
+#include <statemachine.h>
 #include <event_dispatcher.h>
 
 int const MAX_CALLS = 32;
 int const MAX_EVENTS = 16;
-
-typedef struct {
-    Queue eventPool;
-    pthread_mutex_t poolLock;
-    pthread_cond_t wakeUp;
-    pthread_mutex_t wakeUpLock;
-} sm_data;
 
 sm_data **queues;
 pthread_mutex_t queuesLock;
@@ -26,8 +19,7 @@ ed_init() {
     int rc;
 
     rc = pthread_mutex_init(&queuesLock, NULL);
-    if (rc != 0) {
-        // ERROR
+    if (rc != 0) {              // ERROR
         return 0;
     }
 
@@ -53,9 +45,10 @@ ed_destroy() {
 
 int
 create_queue(int *pos) {
-    int i,
-      rc;
+    int i,                      // counter
+      rc;                       // return code
 
+    // lock write access to the queues array
     pthread_mutex_lock(&queuesLock);
 
     i = 0;
@@ -64,7 +57,7 @@ create_queue(int *pos) {
         i++;
 
         if (i == MAX_CALLS) {
-            // ERROR
+            // ERROR: too many simultanous calls
             // unlock:
             pthread_mutex_unlock(&queuesLock);
             return 0;
@@ -75,46 +68,56 @@ create_queue(int *pos) {
 
     sm_data *data;
 
+    // reserve memory for statemachine-specific data
     data = (sm_data *) malloc(sizeof(sm_data));
     queues[i] = data;
+
+    // now the position is marked as used and cannot be overwritten:
+    // we can unlock
     pthread_mutex_unlock(&queuesLock);
+
+    // initialize event queue for specific statemachine:
     queues[i]->eventPool = CreateQueue(MAX_EVENTS);
 
+    // initialize wakeup-condition-variable for specific statemachine:
     rc = pthread_cond_init(&queues[i]->wakeUp, NULL);
     if (rc != 0) {
         // ERROR
         return 0;
     }
-
+    // condition-variable always comes with a mutex lock:
     rc = pthread_mutex_init(&queues[i]->wakeUpLock, NULL);
     if (rc != 0) {
         // ERROR
         return 0;
     }
-
+    // initialize mutex lock for event pool:
     rc = pthread_mutex_init(&queues[i]->poolLock, NULL);
     if (rc != 0) {
         // ERROR
         return 0;
     }
-
+    // set the given parameter to the found position
     *pos = i;
 
+    // return true for success:
     return 1;
 }
 
 int
 destroy_queue(int pos) {
-    int rc;
+    int rc;                     // return code
 
+    // release queue (event pool):
     DisposeQueue(queues[pos]->eventPool);
 
+    // release condition variable:
     rc = pthread_cond_destroy(&queues[pos]->wakeUp);
     if (rc != 0) {
         // ERROR
         return 0;
     }
-
+    // release mutex locks:
     rc = pthread_mutex_destroy(&queues[pos]->wakeUpLock);
     if (rc != 0) {
         // ERROR
@@ -126,9 +129,11 @@ destroy_queue(int pos) {
         // ERROR
         return 0;
     }
-
+    // release array element and remove reference:
     free(queues[pos]);
     queues[pos] = 0;
+
+    // return true for success:
     return 1;
 }
 
@@ -139,11 +144,12 @@ dispatch(void *args) {
 
     param = (ElementType *) args;
 
-    int res;
-    int pos;
+    int res,
+      pos;
 
     switch (param->trigger) {
         case GUI_MAKE_CALL:
+        case SIPLISTENER_INCOMING_CALL:
             res = create_queue(&pos);
             if (res == 0) {
                 // ERROR
@@ -157,6 +163,9 @@ dispatch(void *args) {
 
             Enqueue(*param, queues[pos]->eventPool);
 
+            start_thread(sm_start, (void *) pos);
+
+            // <TEST>
             sleep(4);
 
             res = destroy_queue(pos);
@@ -169,6 +178,11 @@ dispatch(void *args) {
                 thread_terminated(pthread_self());
                 pthread_exit(NULL);
             }
+            // </TEST>
+            break;
+        case INVALID_EVENT:
+            break;
+        default:
             break;
     }
 

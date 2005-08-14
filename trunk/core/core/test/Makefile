@@ -3,7 +3,7 @@ STYLEDOCDIR_LOCAL = $(STYLEDOCDIR)/test
 compile:
 	find ./ -maxdepth 1 | grep \\.c$$ | grep -v docs/ | xargs $(COMPILE.c) -I../
 
-	$(LINK.c) -o test_dispatcher test_dispatcher.o ../event_dispatcher.o ../../util/thread_management.o ../queue/queue.o ../queue/queue_datatype.o -lpthread
+	$(LINK.c) -o test_dispatcher test_dispatcher.o ../event_dispatcher.o ../statemachine.o ../../util/thread_management.o ../queue/queue.o ../queue/queue_datatype.o -lpthread
 
 clean:
 	find ./ -maxdepth 1 | grep \\.o$$ | xargs rm -f

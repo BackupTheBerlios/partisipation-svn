@@ -1,5 +1,5 @@
 #ifndef HQUEUE_DATATYPE_USED
-#    define HQUEUE_DATATAPE_USED
+#    define HQUEUE_DATATYPE_USED
 
 #    include <events.h>
 
