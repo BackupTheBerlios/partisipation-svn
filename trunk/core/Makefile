@@ -20,6 +20,8 @@ export LINK.c
 INDENT_PROFILE = $(CURDIR)/indent.pro
 export INDENT_PROFILE
 
+default: compile
+
 all: indent compile style doxygen #check
 
 style:
