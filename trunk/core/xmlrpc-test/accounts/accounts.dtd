@@ -1,0 +1,16 @@
+<?xml encoding="ISO-8859-1"?>
+
+<!ELEMENT list (account)*>
+
+<!ELEMENT account EMPTY>
+
+<!ATTLIST account id CDATA #REQUIRED>
+<!ATTLIST account name CDATA #IMPLIED>
+<!ATTLIST account username CDATA #IMPLIED>
+<!ATTLIST account domain CDATA #IMPLIED>
+<!ATTLIST account authusername CDATA #IMPLIED>
+<!ATTLIST account password CDATA #IMPLIED>
+<!ATTLIST account displayname CDATA #IMPLIED>
+<!ATTLIST account outboundproxy CDATA #IMPLIED>
+<!ATTLIST account registrar CDATA #IMPLIED>
+<!ATTLIST account autoregister (0 | 1) #REQUIRED>
