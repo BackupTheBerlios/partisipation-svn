@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE list SYSTEM "./accounts.dtd">
+
+<list>
+	<account
+		id="1"
+		name="NAME #1"
+		username="USERNAME #1"
+		domain="DOMAIN #1"
+		authusername="AUTHUSERNAME #1"
+		password="PASSWORD #1"
+		displayname="DISPLAYNAME #1"
+		outboundproxy="OUTBOUNDPROXY #1"
+		registrar="REGISTRAR #1"
+		autoregister="0"
+	/>
+	<account
+		id="2"
+		name="NAME #2"
+		username="USERNAME #2"
+		domain="DOMAIN #2"
+		authusername="AUTHUSERNAME #2"
+		password="PASSWORD #2"
+		displayname="DISPLAYNAME #2"
+		outboundproxy=""
+		registrar=""
+		autoregister="0"
+	/>		
+</list>
