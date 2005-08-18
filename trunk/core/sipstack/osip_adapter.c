@@ -426,9 +426,10 @@ sipstack_send_reinvite(int dialogId) {
     And there is no need to wait for a 200 OK because the hole call termination process is
     done by this method.
 
-    @param int callId call id
-    @param int dialogId dialog id
-    @return int method result code
+    @private
+    @param callId call id
+    @param dialogId dialog id
+    @return method result code
 */
 int
 sipstack_terminate_call(int callId, int dialogId) {
