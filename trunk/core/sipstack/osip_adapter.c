@@ -7,9 +7,6 @@
 #include <osipparser2/osip_parser.h>
 #include "sip_stack_interface.h"
 
-/**
-    Init sip stack. This method is supposed to be called before using the sip stack.
-*/
 int
 sipstack_init() {
     int i;
@@ -28,13 +25,10 @@ sipstack_init() {
         fprintf(stderr, "could not initialize transport layer\n");
         return -1;
     }
+    return 0;
 }
 
-/**
-    Shut down sip stack. This method is supposed to be called if the sip stack is no more needed.
-    This includes the case that an error occures.
-*/
-int
+void
 sipstack_quit() {
     /*
      * shut down eXosip
@@ -42,14 +36,6 @@ sipstack_quit() {
     eXosip_quit();
 }
 
-/**
-    Receive the response of a request. An event of following structure is returned:
-    int event->status_code  the status code of the response
-    char* event->message    the message the response contains
-
-    @param int timeout time to wait for response in seconds
-    @return sipstack_event response event
-*/
 sipstack_event
 sipstack_receive_response(int timeout) {
     /*
@@ -69,7 +55,8 @@ sipstack_receive_response(int timeout) {
     /*
      * initiate some automatic actions (e.g. react on 3xx, 401/407)
      */
-    eXosip_automatic_action();
+
+    //eXosip_automatic_action();
 
     if (je == NULL) {
         /*
@@ -91,41 +78,33 @@ sipstack_receive_response(int timeout) {
          /*DEBUG*/
             /*
              * fprintf(stdout, "[listener] Event '%s' received..\n", je->textinfo);
+             */
+            /*
              * fprintf(stdout, "[listener] response = '%i'\n", je->response->status_code);
              */
     }
     /*
-     * get response status code 
+     * get response status code
      */
     sse.status_code = je->response->status_code;
     /*
-     * get response message 
+     * get response message
      */
     sse.message = je->textinfo;
     /*
-     * get dialog id 
+     * get dialog id
      */
     sse.dialogId = je->did;
     /*
-     * get transaction id 
+     * get transaction id
      */
     sse.transactionId = je->tid;
     /*
-     * return event 
+     * return event
      */
     return sse;
 }
 
-/**
-    Send initial register to start a registration.
-    After sending the REGISTER this method waits for a response.
-    If no response is received in 5 seconds or an error is received this methode returns -1.
-
-    @param char* identity identity of user (e.g. abc@domain.org)
-    @param char* registrar server where to register
-    @param int expire time to live of registration in seconds
-    @return int registration id which can be used to update the registration or to unregister
-*/
 int
 sipstack_send_register(char *const identity, char *const registrar, int expire) {
 
@@ -212,14 +191,6 @@ sipstack_send_register(char *const identity, char *const registrar, int expire) 
         return id;
 }
 
-/**
-    Deletes a registration. Therefore the expiration time is set to 0.
-    After sending the REGISTER this method waits for a response.
-    If no response is received in 5 seconds or an error is received this methode returns -1.
-
-    @param int id registration id returned by sipstack_send_register()
-    @return int result code
-*/
 int
 sipstack_send_unregister(int id) {
     osip_message_t *reg = NULL;
@@ -291,15 +262,6 @@ sipstack_send_unregister(int id) {
         return 0;
 }
 
-/**
-    Updates a registration and sets its expiration time to a given value.
-    After sending the REGISTER this method waits for a response.
-    If no response is received in 5 seconds or an error is received this methode returns -1.
-
-    @param int id registration id returned by sipstack_send_register()
-    @param int expire new expiration time
-    @return int result code
-*/
 int
 sipstack_send_update_register(int id, int expire) {
     osip_message_t *reg = NULL;
@@ -371,9 +333,6 @@ sipstack_send_update_register(int id, int expire) {
         return 0;
 }
 
-/**
-    start a new call
-*/
 int
 sipstack_send_invite(char *to, char *from, char *subject) {
     osip_message_t *invite;
@@ -399,7 +358,7 @@ sipstack_send_invite(char *to, char *from, char *subject) {
 
          /*DEBUG*/
             /*
-             * fprintf(stdout, "[send invite] guess local ip: %s\n", localip); 
+             * fprintf(stdout, "[send invite] guess local ip: %s\n", localip);
              */
             snprintf(tmp, 4096,
                      "v=0\r\n"
@@ -460,33 +419,37 @@ sipstack_send_reinvite(int dialogId) {
 }
 
 /**
-    cancel a call
+    Terminate a call.
+    This method is called by sipstack_bye(), sipstack_cancel() and sipstack_decline()
+    because eXosip2 handles call termination by it self.
+    So a BYE, 603 DECLINE or CANCEL is send depending on the situation.
+    And there is no need to wait for a 200 OK because the hole call termination process is
+    done by this method.
+
+    @param int callId call id
+    @param int dialogId dialog id
+    @return int method result code
 */
 int
-sipstack_send_cancel(int callId, int dialogId) {
+sipstack_terminate_call(int callId, int dialogId) {
     int i = eXosip_call_terminate(callId, dialogId);
 
     return i;
 }
 
-/**
-    quit a call
-*/
 int
-sipstack_send_bye(int callId, int dialogId) {
-    int i = eXosip_call_terminate(callId, dialogId);
-
-    return i;
+sipstack_bye(int callId, int dialogId) {
+    return sipstack_terminate_call(callId, dialogId);
 }
 
-/**
-    decline an incoming call
-*/
 int
-sipstack_send_decline(int callId, int dialogId) {
-    int i = eXosip_call_terminate(callId, dialogId);
+sipstack_cancel(int callId, int dialogId) {
+    return sipstack_terminate_call(callId, dialogId);
+}
 
-    return i;
+int
+sipstack_decline(int callId, int dialogId) {
+    return sipstack_terminate_call(callId, dialogId);
 }
 
 int
@@ -511,9 +474,6 @@ sipstack_send_ok(int transactionId, int dialogId) {
     return i;
 }
 
-/**
-    Build and send a default ACK for a 200ok received.
- */
 int
 sipstack_send_acknowledgment(int dialogId) {
     osip_message_t *ack = NULL;
@@ -539,9 +499,6 @@ sipstack_send_status_code(int transactionId, int status_code) {
     return i;
 }
 
-/**
-    set sip stack listener (deprecated)
-*/
 int
 sipstack_set_listener(int listener) {
     return 0;
