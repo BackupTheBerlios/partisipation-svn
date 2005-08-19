@@ -33,7 +33,7 @@ style:
 	$(MAKE) -C core style
 
 doxygen:
-	mkdir -p $(STYLEDOCDIR)
+	mkdir -p $(DOCDIR)
 	$(DOXYGEN)
 
 #check:
