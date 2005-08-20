@@ -175,8 +175,9 @@ wake_machine(int pos) {
 
 int
 enqueue_and_wake(int callId, ElementType * param) {
-    int res, pos;
-    
+    int res,
+      pos;
+
     res = find_pos_by_call_id(callId);
     if (res == -1) {
         // ERROR

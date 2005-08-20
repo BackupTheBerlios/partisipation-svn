@@ -1,3 +1,4 @@
+
 /**
  * @file sip_stack_interface.h
  * Sip Stack Adapter
@@ -27,10 +28,10 @@
 #    define HSIPSTACK_INTERFACE_USED
 
 typedef struct {
-	int status_code;
-	char *message;
-	int dialogId;
-	int transactionId;
+    int status_code;
+    char *message;
+    int dialogId;
+    int transactionId;
 } sipstack_event;
 
 /**
@@ -180,4 +181,3 @@ int sipstack_set_listener(int listener);
 /** @} */
 
 #endif
-
