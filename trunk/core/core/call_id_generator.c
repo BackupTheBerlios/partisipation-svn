@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <limits.h>
 
 #include <../util/thread_management.h>
 #include <call_id_generator.h>
@@ -13,8 +14,9 @@ int
 cig_init() {
     int rc;                     // return code
 
-    rc = pthread_mutex_init(&idLock, NULL);
+    callId = 0;
 
+    rc = pthread_mutex_init(&idLock, NULL);
     if (rc != 0) {
         // ERROR
         return 0;
@@ -28,7 +30,11 @@ cig_generate_call_id() {
 
     pthread_mutex_lock(&idLock);
 
-    callId++;
+    if (callId < INT_MAX) {
+        callId++;
+    } else {
+        callId = 1;
+    }
     result = callId;
 
     pthread_mutex_unlock(&idLock);
