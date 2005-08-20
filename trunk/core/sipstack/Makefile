@@ -6,6 +6,7 @@ compile:
 
 clean:
 	find ./ -maxdepth 1 | grep \\.o$$ | xargs rm -f
+	rm -f check_osip_adapter
 
 check: compile
 
