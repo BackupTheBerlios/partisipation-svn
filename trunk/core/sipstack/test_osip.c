@@ -11,7 +11,7 @@ START_TEST(test_sipstack_register) {
      */
 
     sipstack_event result;
-    int i = sipstack_init();
+    int i = sipstack_init(5065);
 
     /*send initial REGISTER*/
     int regId =
@@ -46,7 +46,7 @@ START_TEST(test_sipstack_call) {
      */
 
     sipstack_event result;
-    int i = sipstack_init();
+    int i = sipstack_init(5065);
 
     /*send initial INVITE*/
     int callId =
