@@ -3,10 +3,9 @@
 
 #include <registration/registration_management.h>
 
-char *
-register_gui(char *const address, int const port) {
+char *register_gui(char *const address, int const port) {
 
-    // do something
+	// do something
 
-    return "OK";
+	return "OK";
 }

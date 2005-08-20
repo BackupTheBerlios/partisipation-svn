@@ -15,6 +15,7 @@
 #define FatalError(Str)   fprintf(stderr, "%s\n", Str), exit(1)
 
 #ifndef _Queue_h
+#define _Queue_h
 
 struct QueueRecord;
 typedef struct QueueRecord *Queue;
@@ -29,4 +30,4 @@ ElementType Front(Queue Q);
 void Dequeue(Queue Q);
 ElementType FrontAndDequeue(Queue Q);
 
-#endif                          /* _Queue_h */
+#endif							/* _Queue_h */

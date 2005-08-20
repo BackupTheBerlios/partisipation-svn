@@ -1,6 +1,7 @@
 void account_get_all(int *accountIds, int *length);
 
-int account_set(int const accountId, char *const attribute, char *const value);
+int account_set(int const accountId, char *const attribute,
+				char *const value);
 
 char *account_get(int const accountId, char *const attribute);
 

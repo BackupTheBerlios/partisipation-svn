@@ -3,38 +3,34 @@
 
 #include <volume/volume_management.h>
 
-int
-set_speaker_volume(double const level) {
+int set_speaker_volume(double const level) {
 
-    // do something
+	// do something
 
-    printf("level: %f\n", level);
+	printf("level: %f\n", level);
 
-    return 1;
+	return 1;
 }
 
-double
-get_speaker_volume() {
+double get_speaker_volume() {
 
-    // do something
+	// do something
 
-    return 0.5;
+	return 0.5;
 }
 
-int
-set_micro_volume(double const level) {
+int set_micro_volume(double const level) {
 
-    // do something
+	// do something
 
-    printf("level: %f\n", level);
+	printf("level: %f\n", level);
 
-    return 1;
+	return 1;
 }
 
-double
-get_micro_volume() {
+double get_micro_volume() {
 
-    // do something
+	// do something
 
-    return 0.75;
+	return 0.75;
 }

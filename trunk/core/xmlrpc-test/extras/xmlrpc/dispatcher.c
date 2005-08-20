@@ -5,22 +5,22 @@
 #include <extras/xmlrpc/dispatcher.h>
 #include <extras/extras_management.h>
 
-xmlrpc_value *
-send_dtmf_RP(xmlrpc_env * const env,
-             xmlrpc_value * const param_array, void *const server_context) {
+xmlrpc_value *send_dtmf_RP(xmlrpc_env * const env,
+						   xmlrpc_value * const param_array,
+						   void *const server_context) {
 
-    printf("entering sendDtmf...\n");
+	printf("entering sendDtmf...\n");
 
-    char *character;
-    xmlrpc_int32 callId;
-    int result;
+	char *character;
+	xmlrpc_int32 callId;
+	int result;
 
-    xmlrpc_decompose_value(env, param_array, "(si)", &character, &callId);
-    if (env->fault_occurred) {
-        return NULL;
-    }
+	xmlrpc_decompose_value(env, param_array, "(si)", &character, &callId);
+	if (env->fault_occurred) {
+		return NULL;
+	}
 
-    result = send_dtmf(character, callId);
+	result = send_dtmf(character, callId);
 
-    return xmlrpc_build_value(env, "b", result);
+	return xmlrpc_build_value(env, "b", result);
 }

@@ -5,8 +5,7 @@
 #include <events.h>
 #include <queue/queue_datatype.h>
 
-ElementType const
-get_null_element() {
-    ElementType const elemNull = { INVALID_EVENT, NULL };
-    return elemNull;
+ElementType const get_null_element() {
+	ElementType const elemNull = { INVALID_EVENT, NULL };
+	return elemNull;
 }

@@ -3,7 +3,7 @@
  * @file thread_management.h
  * A thread launcher that keeps track of running threads.
  *   
- * This utility file tries to ease the use of threads. Thread referenced are
+ * This utility file tries to ease the use of threads. Thread references are
  * save for future use like cancelling all threads. Additionally, it abstracts
  * from the used thread library as much as possible.
  *

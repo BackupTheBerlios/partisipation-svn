@@ -3,13 +3,12 @@
 
 #include <extras/extras_management.h>
 
-int
-send_dtmf(char *const character, int const callId) {
+int send_dtmf(char *const character, int const callId) {
 
-    // do something
+	// do something
 
-    printf("char: %s\n", character);
-    printf("callId: %d\n", callId);
+	printf("char: %s\n", character);
+	printf("callId: %d\n", callId);
 
-    return 1;
+	return 1;
 }

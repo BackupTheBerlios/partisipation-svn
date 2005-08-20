@@ -1,23 +1,23 @@
 #ifndef LIST_H
-#    define LIST_H
+#define LIST_H
 
 typedef struct account {
-    int id;
-    char *name;
-    char *username;
-    char *domain;
-    char *authusername;
-    char *password;
-    char *displayname;
-    char *outboundproxy;
-    char *registrar;
-    int autoregister;
+	int id;
+	char *name;
+	char *username;
+	char *domain;
+	char *authusername;
+	char *password;
+	char *displayname;
+	char *outboundproxy;
+	char *registrar;
+	int autoregister;
 } typeaccount;
 
 typedef struct node {
-    struct account *acc;
-    struct node *next;
-    struct node *prev;
+	struct account *acc;
+	struct node *next;
+	struct node *prev;
 } typenode;
 
 void add_node(struct account *);

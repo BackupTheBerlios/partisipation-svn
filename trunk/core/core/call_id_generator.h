@@ -1,5 +1,5 @@
 #ifndef HCALL_ID_GENERATOR_USED
-#    define HCALL_ID_GENERATOR_USED
+#define HCALL_ID_GENERATOR_USED
 
 int cig_init();
 

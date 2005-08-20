@@ -25,13 +25,13 @@
  */
 
 #ifndef HSIPSTACK_INTERFACE_USED
-#    define HSIPSTACK_INTERFACE_USED
+#define HSIPSTACK_INTERFACE_USED
 
 typedef struct {
-    int status_code;
-    char *message;
-    int dialogId;
-    int transactionId;
+	int status_code;
+	char *message;
+	int dialogId;
+	int transactionId;
 } sipstack_event;
 
 /**
@@ -68,7 +68,7 @@ sipstack_event sipstack_receive_response(int timeout);
  * @return registration id which can be used to update the registration or to unregister
  */
 int sipstack_send_register(char *const identity, char *const registrar,
-                           int expire);
+						   int expire);
 
 /**
  * Updates a registration and sets its expiration time to a given value.

@@ -3,7 +3,7 @@
  * @file thread_management.c
  * A thread launcher that keeps track of running threads.
  *   
- * This utility file tries to ease the use of threads. Thread referenced are
+ * This utility file tries to ease the use of threads. Thread references are
  * save for future use like cancelling all threads. Additionally, it abstracts
  * from the used thread library as much as possible.
  *
@@ -48,57 +48,55 @@ int peak;
  * arguments of the thread that has to be started
  * @return nothing so far
  */
-void *
-add_thread(void *args) {
-    int i,
-      rc;
-    thread_data *td;
+void *add_thread(void *args) {
+	int i, rc;
+	thread_data *td;
 
-    td = (thread_data *) args;
+	td = (thread_data *) args;
 
-    // enter lock to prevent concurring access to thread references
-    pthread_mutex_lock(&thrManLock);
+	// enter lock to prevent concurring access to thread references
+	pthread_mutex_lock(&thrManLock);
 
-    i = 0;
-    // find free position in array:
-    while (threads[i] != 0) {
-        i++;
+	i = 0;
+	// find free position in array:
+	while (threads[i] != 0) {
+		i++;
 
-        if (i == MAXTHREADS) {
-            // ERROR
-            printf("no free position found!\n");
+		if (i == MAXTHREADS) {
+			// ERROR
+			printf("no free position found!\n");
 
-            // unlock:
-            pthread_mutex_unlock(&thrManLock);
+			// unlock:
+			pthread_mutex_unlock(&thrManLock);
 
-            free(td);
+			free(td);
 
-            // we're done
-            pthread_exit(NULL);
-        }
-    }
+			// we're done
+			pthread_exit(NULL);
+		}
+	}
 
-    printf("found free pos: %d\n", i);
+	printf("found free pos: %d\n", i);
 
-    // create desired thread:
-    rc = pthread_create(&threads[i], NULL, td->start_routine, td->args);
-    if (rc != 0) {
-        printf("ERROR; return code from pthread_create() is %d\n", rc);
-    }
+	// create desired thread:
+	rc = pthread_create(&threads[i], NULL, td->start_routine, td->args);
+	if (rc != 0) {
+		printf("ERROR; return code from pthread_create() is %d\n", rc);
+	}
 
-    printf("created thread\n");
+	printf("created thread\n");
 
-    activeThreads++;
-    if (activeThreads > peak) {
-        peak = activeThreads;
-    }
-    // unlock:
-    pthread_mutex_unlock(&thrManLock);
+	activeThreads++;
+	if (activeThreads > peak) {
+		peak = activeThreads;
+	}
+	// unlock:
+	pthread_mutex_unlock(&thrManLock);
 
-    free(td);
+	free(td);
 
-    // we're done
-    pthread_exit(NULL);
+	// we're done
+	pthread_exit(NULL);
 }
 
 /**
@@ -107,49 +105,48 @@ add_thread(void *args) {
  * @param args the thread id of the thread that will be removed
  * @return nothing so far
  */
-void *
-remove_thread(void *args) {
+void *remove_thread(void *args) {
 
-    pthread_t *tid;
+	pthread_t *tid;
 
-    tid = (pthread_t *) args;
+	tid = (pthread_t *) args;
 
-    // enter lock to prevent concurring access to thread references
-    pthread_mutex_lock(&thrManLock);
+	// enter lock to prevent concurring access to thread references
+	pthread_mutex_lock(&thrManLock);
 
-    int i = 0;
+	int i = 0;
 
-    // find position of given thread in array:
-    while (threads[i] != *tid) {
-        i++;
-        if (i == MAXTHREADS) {
-            printf("thread not found.\n");
-            // unlock:
-            pthread_mutex_unlock(&thrManLock);
+	// find position of given thread in array:
+	while (threads[i] != *tid) {
+		i++;
+		if (i == MAXTHREADS) {
+			printf("thread not found.\n");
+			// unlock:
+			pthread_mutex_unlock(&thrManLock);
 
-            free(tid);
+			free(tid);
 
-            // we're done
-            pthread_exit(NULL);
-        }
-    }
+			// we're done
+			pthread_exit(NULL);
+		}
+	}
 
-    printf("found thread nr. %d at position %d\n", (int) *tid, i);
+	printf("found thread nr. %d at position %d\n", (int) *tid, i);
 
-    // remove reference:
-    threads[i] = 0;
+	// remove reference:
+	threads[i] = 0;
 
-    activeThreads--;
+	activeThreads--;
 
-    printf("thread removed\n");
+	printf("thread removed\n");
 
-    // unlock:
-    pthread_mutex_unlock(&thrManLock);
+	// unlock:
+	pthread_mutex_unlock(&thrManLock);
 
-    free(tid);
+	free(tid);
 
-    // we're done
-    pthread_exit(NULL);
+	// we're done
+	pthread_exit(NULL);
 }
 
 /**
@@ -162,21 +159,20 @@ remove_thread(void *args) {
  * @param args the arguments of the start routine - a type-free pointer
  * @return whether starting the thread was successfull (boolean)
  */
-int
-start_thread(void *(*start_routine) (void *), void *args) {
-    int rc;
-    pthread_t t;
-    thread_data *td;
+int start_thread(void *(*start_routine) (void *), void *args) {
+	int rc;
+	pthread_t t;
+	thread_data *td;
 
-    td = (thread_data *) malloc(sizeof(thread_data));
-    td->start_routine = start_routine;
-    td->args = args;
-    rc = pthread_create(&t, NULL, add_thread, (void *) td);
-    if (rc != 0) {
-        printf("ERROR; return code from pthread_create() is %d\n", rc);
-        return 0;
-    }
-    return 1;
+	td = (thread_data *) malloc(sizeof(thread_data));
+	td->start_routine = start_routine;
+	td->args = args;
+	rc = pthread_create(&t, NULL, add_thread, (void *) td);
+	if (rc != 0) {
+		printf("ERROR; return code from pthread_create() is %d\n", rc);
+		return 0;
+	}
+	return 1;
 }
 
 /**
@@ -186,20 +182,19 @@ start_thread(void *(*start_routine) (void *), void *args) {
  * @param tid the (own) thread id - usually obtained by calling pthread_self()
  * @return whether removing thread reference was successful (boolean)
  */
-int
-thread_terminated(pthread_t tid) {
-    int rc;
-    pthread_t t;
-    pthread_t *param;
+int thread_terminated(pthread_t tid) {
+	int rc;
+	pthread_t t;
+	pthread_t *param;
 
-    param = (pthread_t *) malloc(sizeof(pthread_t));
-    *param = tid;
-    rc = pthread_create(&t, NULL, remove_thread, (void *) param);
-    if (rc != 0) {
-        printf("ERROR; return code from pthread_create() is %d\n", rc);
-        return 0;
-    }
-    return 1;
+	param = (pthread_t *) malloc(sizeof(pthread_t));
+	*param = tid;
+	rc = pthread_create(&t, NULL, remove_thread, (void *) param);
+	if (rc != 0) {
+		printf("ERROR; return code from pthread_create() is %d\n", rc);
+		return 0;
+	}
+	return 1;
 }
 
 /**
@@ -207,24 +202,23 @@ thread_terminated(pthread_t tid) {
  * before calling any other function of thread management.
  * @return if initialization was successfull (boolean)
  */
-int
-tm_init() {
+int tm_init() {
 
-    // create lock:
-    int rc;
+	// create lock:
+	int rc;
 
-    rc = pthread_mutex_init(&thrManLock, NULL);
-    if (rc != 0) {
-        // ERROR
-        return 0;
-    }
+	rc = pthread_mutex_init(&thrManLock, NULL);
+	if (rc != 0) {
+		// ERROR
+		return 0;
+	}
 
-    activeThreads = 0;
-    peak = 0;
+	activeThreads = 0;
+	peak = 0;
 
-    // reserve memory for thread references:
-    threads = (pthread_t *) calloc(MAXTHREADS, sizeof(pthread_t));
-    return 1;
+	// reserve memory for thread references:
+	threads = (pthread_t *) calloc(MAXTHREADS, sizeof(pthread_t));
+	return 1;
 }
 
 /**
@@ -232,22 +226,21 @@ tm_init() {
  * thread management.
  * @return if releasing thread management was successfull (boolean)
  */
-int
-tm_destroy() {
+int tm_destroy() {
 
-    // release lock:
-    int rc;
+	// release lock:
+	int rc;
 
-    rc = pthread_mutex_destroy(&thrManLock);
-    if (rc != 0) {
-        // ERROR
-        return 0;
-    }
+	rc = pthread_mutex_destroy(&thrManLock);
+	if (rc != 0) {
+		// ERROR
+		return 0;
+	}
 
-    printf("activeThreads: %d\n", activeThreads);
-    printf("peak was: %d\n", peak);
+	printf("activeThreads: %d\n", activeThreads);
+	printf("peak was: %d\n", peak);
 
-    // free memory for thread references
-    free(threads);
-    return 1;
+	// free memory for thread references
+	free(threads);
+	return 1;
 }
