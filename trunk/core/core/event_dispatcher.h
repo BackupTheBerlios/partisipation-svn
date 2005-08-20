@@ -11,12 +11,13 @@ typedef struct {
     pthread_mutex_t poolLock;
     pthread_cond_t wakeUp;
     pthread_mutex_t wakeUpLock;
+    int callId;
 } sm_data;
 
 int ed_init();
 
 int ed_destroy();
 
-void event_dispatch(event evt, void **params);
+int event_dispatch(event evt, void **params);
 
 #endif
