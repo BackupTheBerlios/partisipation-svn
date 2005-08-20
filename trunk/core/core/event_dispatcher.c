@@ -264,49 +264,49 @@ dispatch(void *args) {
             break;
         case GUI_END_CALL:
             callId = (int) param->params[0];
-            res = enqueue_and_dispatch(callId, param);
+            res = enqueue_and_wake(callId, param);
             if (!res) {
                 // ERROR
             }
             break;
         case GUI_ACCEPT_CALL:
             callId = (int) param->params[0];
-            res = enqueue_and_dispatch(callId, param);
+            res = enqueue_and_wake(callId, param);
             if (!res) {
                 // ERROR
             }
             break;
         case SIPLISTENER_CANCEL_CALL:
             callId = (int) param->params[0];
-            res = enqueue_and_dispatch(callId, param);
+            res = enqueue_and_wake(callId, param);
             if (!res) {
                 // ERROR
             }
             break;
         case SIPLISTENER_QUIT_CALL:
             callId = (int) param->params[0];
-            res = enqueue_and_dispatch(callId, param);
+            res = enqueue_and_wake(callId, param);
             if (!res) {
                 // ERROR
             }
             break;
         case SIPLISTENER_DECLINE_CALL:
             callId = (int) param->params[0];
-            res = enqueue_and_dispatch(callId, param);
+            res = enqueue_and_wake(callId, param);
             if (!res) {
                 // ERROR
             }
             break;
         case SIPLISTENER_THROW:
             callId = (int) param->params[0];
-            res = enqueue_and_dispatch(callId, param);
+            res = enqueue_and_wake(callId, param);
             if (!res) {
                 // ERROR
             }
             break;
         case SIPLISTENER_CONNECT_CALL:
             callId = (int) param->params[0];
-            res = enqueue_and_dispatch(callId, param);
+            res = enqueue_and_wake(callId, param);
             if (!res) {
                 // ERROR
             }
