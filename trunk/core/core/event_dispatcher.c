@@ -44,7 +44,7 @@ int ed_destroy() {
 }
 
 int create_queue(int *pos, int callId) {
-	int i						// counter
+	int i;						// counter
 	int rc;						// return code
 
 	// lock write access to the queues array
