@@ -9,7 +9,6 @@ struct node *head = NULL;
 struct node *tail = NULL;
 
 void add_node(struct account *a) {
-
 	struct node *new_node = (struct node *) malloc(sizeof(struct node));
 
 	new_node->acc = a;
@@ -18,6 +17,8 @@ void add_node(struct account *a) {
 
 	if (head == NULL)
 		head = new_node;
+	if (tail != NULL)
+		tail->next = new_node;
 	tail = new_node;
 }
 
@@ -45,7 +46,7 @@ void free_memory(struct account *a) {
 	free(a->password);
 	free(a->displayname);
 	free(a->outboundproxy);
-	free(a->registrar);;
+	free(a->registrar);
 	free(a);
 }
 
@@ -54,7 +55,6 @@ void del_node(int n) {
 	struct node *dn = get_node(n);
 
 	if (dn != NULL) {
-
 		if (dn == head) {
 			head = dn->next;
 			head->prev = NULL;
@@ -65,7 +65,33 @@ void del_node(int n) {
 			dn->prev->next = dn->next;
 			dn->next->prev = dn->prev;
 		}
+
 		free_memory(dn->acc);
 		free(dn);
 	}
+}
+
+int get_length() {
+	int len = 0;
+
+	struct node *tmp = head;
+
+	while (tmp != NULL) {
+		len++;
+		tmp = tmp->next;
+	}
+
+	return len;
+}
+
+void print_list() {
+	int i = 0;
+	struct node *tmp = head;
+
+	while (tmp) {
+		i++;
+		printf("#%d: [id = %d] -> ", i, tmp->acc->id);
+		tmp = tmp->next;
+	}
+	printf("X\n");
 }
