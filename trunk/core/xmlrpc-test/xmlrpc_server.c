@@ -13,6 +13,7 @@
 #include <extras/xmlrpc/dispatcher.h>
 #include <callback/gui_callback.h>
 #include <callback/callback_util.h>
+#include <accounts/account_management.h>
 
 const int SERVER_PORT = 7777;
 const char *REGISTER_PREFIX = "core";
@@ -42,10 +43,11 @@ int main(int const argc, const char **const argv) {
 
 	xmlrpc_env_init(&env);
 
+	account_management_init();
+
 	registryP = xmlrpc_registry_new(&env);
 
 	// registration management:
-
 	generate_method_name("registerGui", name);
 	xmlrpc_registry_add_method(&env, registryP, NULL, name,
 							   &register_gui_RP, NULL);
