@@ -25,12 +25,12 @@
 
 #ifndef QUEUE_DATATYPE
 #include "queue_datatype_int.h"
-#endif	/*
- */
+#endif							/*
+								 */
 #ifdef QUEUE_DATATYPE
 #include QUEUE_DATATYPE_H
-#endif	/*
- */
+#endif							/*
+								 */
 
 #define Error(Str)        FatalError(Str)
 #define FatalError(Str)   fprintf(stderr, "%s\n", Str), exit(1)
@@ -41,7 +41,6 @@
 struct QueueRecord;
 
 typedef struct QueueRecord *Queue;
-
 
 int IsEmpty(Queue Q);
 
@@ -63,8 +62,7 @@ ElementType FrontAndDequeue(Queue Q);
 
 int IsElement(ElementType X, Queue Q);
 
-
-#endif	/* _Queue_h */
+#endif							/* _Queue_h */
 
 /**
  * @}

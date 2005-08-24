@@ -31,7 +31,7 @@ int get_call_index_by_call_id(int callId) {
 			return i;
 		}
 	}
-	/* no call with this call id*/
+	/* no call with this call id */
 	fprintf(stderr, "No call with this call id (call id = %i)\n", callId);
 	return -1;
 }
@@ -142,16 +142,15 @@ sipstack_event sipstack_map_event(int callId, eXosip_event_t * event) {
 		/* get call with this call id */
 		int callIndex = get_call_index_by_call_id(callId);
 
-		/*DEBUG*/
-		/*
-		fprintf(stdout, "pre: call id: %i, sip call id: %i, sip dialog id: %i\n",
-			callId, calls[callIndex].sipCallId, calls[callIndex].sipDialogId);
-		fprintf(stdout, "event: call id: %i, sip call id: %i, sip dialog id: %i\n",
-			callId, event->cid, event->did);
-		*/
-
-		/* set sip call id if not set */
-		if (calls[callIndex].sipCallId < 1) {
+		 /*DEBUG*/
+			/*
+			   fprintf(stdout, "pre: call id: %i, sip call id: %i, sip dialog id: %i\n",
+			   callId, calls[callIndex].sipCallId, calls[callIndex].sipDialogId);
+			   fprintf(stdout, "event: call id: %i, sip call id: %i, sip dialog id: %i\n",
+			   callId, event->cid, event->did);
+			 */
+			/* set sip call id if not set */
+			if (calls[callIndex].sipCallId < 1) {
 			calls[callIndex].sipCallId = event->cid;
 		}
 		/* set sip dialog id if not set */
@@ -165,17 +164,16 @@ sipstack_event sipstack_map_event(int callId, eXosip_event_t * event) {
 		}
 
 		/*DEBUG*/
-		/*
-		fprintf(stdout, "post: call id: %i, sip call id: %i, sip dialog id: %i\n\n",
-			callId, calls[callIndex].sipCallId, calls[callIndex].sipDialogId);
-		*/
-
+			/*
+			   fprintf(stdout, "post: call id: %i, sip call id: %i, sip dialog id: %i\n\n",
+			   callId, calls[callIndex].sipCallId, calls[callIndex].sipDialogId);
+			 */
 	} else {
 		/* build new call */
 		Queue transactionIds = CreateQueue(MAX_TRANSACTIONS);
 		Enqueue(event->tid, transactionIds);
 		call = build_sipstack_call(callId, event->cid, event->did,
-								transactionIds);
+								   transactionIds);
 		calls[callCounter] = call;
 		callCounter++;
 	}
@@ -256,23 +254,23 @@ sipstack_event sipstack_receive_event(int timeout) {
 		return sse;
 	} else {
 		/* if event is not part of a registration */
-		if(je->rid == 0) {
+		if (je->rid == 0) {
 			/* get call id for mapping */
 			int callId;
 			/* check if event has a sip call or dialog id */
-			if(je->cid > 0) {
+			if (je->cid > 0) {
 				callId = get_call_id_from_sip_call_id(je->cid);
-				if(callId < 1) {
+				if (callId < 1) {
 					fprintf(stderr,
-						"No call id for sip call id of received event.(dialog id = %i)\n",
-						je->cid);
+							"No call id for sip call id of received event.(dialog id = %i)\n",
+							je->cid);
 				}
-			} else if(je->did > 0) {
+			} else if (je->did > 0) {
 				callId = get_call_id_from_sip_dialog_id(je->did);
-				if(callId < 1) {
+				if (callId < 1) {
 					fprintf(stderr,
-						"No call id for sip dialog id of received event.(dialog id = %i)\n",
-						je->did);
+							"No call id for sip dialog id of received event.(dialog id = %i)\n",
+							je->did);
 				}
 			}
 			/* add/edit call and get sip stack event */
@@ -636,7 +634,8 @@ int sipstack_send_acknowledgment(int callId) {
 	int dialogId = get_sip_dialog_id_from_call_id(callId);
 	if (dialogId < 1) {
 		/* call has no active dialog */
-		fprintf(stderr, "Call has no active dialog (call id = %i)\n" ,callId);
+		fprintf(stderr, "Call has no active dialog (call id = %i)\n",
+				callId);
 		return -1;
 	}
 
