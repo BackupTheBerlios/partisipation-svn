@@ -64,6 +64,10 @@ void sipstack_quit();
  * int event->status_code  the status code of the response
  * char* event->message    the message the response contains
  *
+ * @todo Implement transaction termination to support transactions. Transactions shall be
+ *			dequeued if their end is reached. Therefore it must be differed between INVITE and
+ *			non-INVITE transactions. An INVITE transaction ends with an ACK and a non-INVITE
+ 			transaction with the OK.
  * @param timeout time to wait for response in seconds
  * @return response event
  */
@@ -139,7 +143,6 @@ int sipstack_bye(int callId);
  * done by this method.
  *
  * @param callId call id
- * @param dialogId dialog id
  * @return method result code
  */
 int sipstack_cancel(int callId);
@@ -150,7 +153,6 @@ int sipstack_cancel(int callId);
  * done by this method.
  *
  * @param callId call id
- * @param dialogId dialog id
  * @return method result code
  */
 int sipstack_decline(int callId);

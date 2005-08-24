@@ -53,7 +53,7 @@ START_TEST(test_sipstack_call) {
 
 	sipstack_event result;
 
-	int callId = 1;
+	int callId = 2;
 
 	int i = sipstack_init(5065);
 
@@ -65,7 +65,7 @@ START_TEST(test_sipstack_call) {
 	while (result.status_code < 200) {
 		result = sipstack_receive_event(5);
 		 /*DEBUG*/
-			/*fprintf(stdout, "[test call][INVITE] %i received\n", result.status_code); */
+		 /*fprintf(stdout, "[test call][INVITE] %i received\n", result.status_code); */
 	}
 	fail_unless(result.status_code == 200,
 				"[test call][INVITE]No 200 response for INVITE received. (result = %i)\n",
@@ -90,7 +90,7 @@ START_TEST(test_sipstack_call) {
 // *INDENT-ON*
 
 Suite *sipstack_suite(void) {
-	Suite *s = suite_create("sipstack");
+	Suite *s = suite_create("sipstack\n\n");
 	TCase *tc_apt = tcase_create("Adapter");
 	TCase *tc_call = tcase_create("Call");
 
@@ -111,7 +111,6 @@ int main(void) {
 	int nf;
 	Suite *s = sipstack_suite();
 	SRunner *sr = srunner_create(s);
-
 	srunner_run_all(sr, CK_NORMAL);
 	nf = srunner_ntests_failed(sr);
 	srunner_free(sr);

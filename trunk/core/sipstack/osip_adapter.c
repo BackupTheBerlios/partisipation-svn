@@ -7,13 +7,38 @@
 #include <osipparser2/osip_parser.h>
 #include "sip_stack_interface.h"
 
-sipstack_call *calls;
-
 int const MAX_TRANSACTIONS = 100;
+
+/* maximum calls handled by this adpater is 100 */
+sipstack_call calls[100];
+
+int callCounter = 0;
+
+int call_exists(int callId) {
+	int i;
+	for (i = 0; i < callCounter; i++) {
+		if (calls[i].callId == callId) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
+int get_call_index_by_call_id(int callId) {
+	int i;
+	for (i = 0; i < callCounter; i++) {
+		if (calls[i].callId == callId) {
+			return i;
+		}
+	}
+	/* no call with this call id*/
+	fprintf(stderr, "No call with this call id (call id = %i)\n", callId);
+	return -1;
+}
 
 int get_call_id_from_sip_dialog_id(int sipDialogId) {
 	int i;
-	for (i = 0; i < sizeof(calls); i++) {
+	for (i = 0; i < callCounter; i++) {
 		if (calls[i].sipDialogId == sipDialogId) {
 			return calls[i].callId;
 		}
@@ -23,7 +48,7 @@ int get_call_id_from_sip_dialog_id(int sipDialogId) {
 
 int get_call_id_from_sip_transaction_id(int sipTransactionId) {
 	int i;
-	for (i = 0; i < sizeof(calls); i++) {
+	for (i = 0; i < callCounter; i++) {
 		if (IsElement(sipTransactionId, calls[i].sipTransactionIds)) {
 			return calls[i].callId;
 		}
@@ -33,7 +58,7 @@ int get_call_id_from_sip_transaction_id(int sipTransactionId) {
 
 int get_call_id_from_sip_call_id(int sipCallId) {
 	int i;
-	for (i = 0; i < sizeof(calls); i++) {
+	for (i = 0; i < callCounter; i++) {
 		if (calls[i].sipCallId == sipCallId) {
 			return calls[i].callId;
 		}
@@ -43,7 +68,7 @@ int get_call_id_from_sip_call_id(int sipCallId) {
 
 int get_sip_dialog_id_from_call_id(int callId) {
 	int i;
-	for (i = 0; i < sizeof(calls); i++) {
+	for (i = 0; i < callCounter; i++) {
 		if (calls[i].callId == callId) {
 			return calls[i].sipDialogId;
 		}
@@ -53,7 +78,7 @@ int get_sip_dialog_id_from_call_id(int callId) {
 
 int get_sip_transaction_id_from_call_id(int callId) {
 	int i;
-	for (i = 0; i < sizeof(calls); i++) {
+	for (i = 0; i < callCounter; i++) {
 		if (calls[i].callId == callId) {
 			if (!IsEmpty(calls[i].sipTransactionIds)) {
 				return Front(calls[i].sipTransactionIds);
@@ -66,7 +91,7 @@ int get_sip_transaction_id_from_call_id(int callId) {
 
 int get_sip_call_id_from_call_id(int callId) {
 	int i;
-	for (i = 0; i < sizeof(calls); i++) {
+	for (i = 0; i < callCounter; i++) {
 		if (calls[i].callId == callId) {
 			return calls[i].sipCallId;
 		}
@@ -75,9 +100,10 @@ int get_sip_call_id_from_call_id(int callId) {
 }
 
 int terminate_current_transaction(int callId) {
-	if (callId < sizeof(calls)) {
-		if (!IsEmpty(calls[callId].sipTransactionIds)) {
-			Dequeue(calls[callId].sipTransactionIds);
+	if (call_exists(callId)) {
+		int callIndex = get_call_index_by_call_id(callId);
+		if (!IsEmpty(calls[callIndex].sipTransactionIds)) {
+			Dequeue(calls[callIndex].sipTransactionIds);
 			return 0;
 		}
 	}
@@ -112,27 +138,46 @@ sipstack_event sipstack_map_event(int callId, eXosip_event_t * event) {
 	sipstack_call call;
 
 	/* check whether a call with this call id already exists */
-	if (callId < sizeof(calls)) {
+	if (callId > 0 && call_exists(callId)) {
+		/* get call with this call id */
+		int callIndex = get_call_index_by_call_id(callId);
+
+		/*DEBUG*/
+		/*
+		fprintf(stdout, "pre: call id: %i, sip call id: %i, sip dialog id: %i\n",
+			callId, calls[callIndex].sipCallId, calls[callIndex].sipDialogId);
+		fprintf(stdout, "event: call id: %i, sip call id: %i, sip dialog id: %i\n",
+			callId, event->cid, event->did);
+		*/
+
 		/* set sip call id if not set */
-		if (calls[callId].sipCallId < 1) {
-			calls[callId].sipCallId = event->cid;
+		if (calls[callIndex].sipCallId < 1) {
+			calls[callIndex].sipCallId = event->cid;
 		}
 		/* set sip dialog id if not set */
-		if (calls[callId].sipDialogId < 1) {
-			calls[callId].sipDialogId = event->did;
+		if (calls[callIndex].sipDialogId < 1) {
+			calls[callIndex].sipDialogId = event->did;
 		}
 		/* add transaction id if not in queue */
-		if (!IsElement(event->tid, calls[callId].sipTransactionIds)) {
+		if (!IsElement(event->tid, calls[callIndex].sipTransactionIds)) {
 			/* transaction id is not in queue, so enqueue it */
-			Enqueue(event->tid, calls[callId].sipTransactionIds);
+			Enqueue(event->tid, calls[callIndex].sipTransactionIds);
 		}
+
+		/*DEBUG*/
+		/*
+		fprintf(stdout, "post: call id: %i, sip call id: %i, sip dialog id: %i\n\n",
+			callId, calls[callIndex].sipCallId, calls[callIndex].sipDialogId);
+		*/
+
 	} else {
 		/* build new call */
 		Queue transactionIds = CreateQueue(MAX_TRANSACTIONS);
 		Enqueue(event->tid, transactionIds);
-		call =
-			build_sipstack_call(callId, event->cid, event->did,
+		call = build_sipstack_call(callId, event->cid, event->did,
 								transactionIds);
+		calls[callCounter] = call;
+		callCounter++;
 	}
 	/* get response status code */
 	sse.status_code = event->response->status_code;
@@ -166,7 +211,7 @@ int sipstack_init(int port) {
 	if (i != 0) {
 		/* initialization of eXosip failed */
 		/* print error message */
-		fprintf(stderr, "\ncould not initialize eXosip\n");
+		fprintf(stderr, "Could not initialize eXosip.\n");
 		/* return error code */
 		return -1;
 	}
@@ -177,7 +222,7 @@ int sipstack_init(int port) {
 		/* shutdown sip stack */
 		eXosip_quit();
 		/* print error message */
-		fprintf(stderr, "could not initialize transport layer\n");
+		fprintf(stderr, "Could not initialize transport layer.\n");
 		/* return error code */
 		return -1;
 	}
@@ -210,10 +255,34 @@ sipstack_event sipstack_receive_event(int timeout) {
 		sse.status_code = -1;
 		return sse;
 	} else {
-		/* get call id for mapping */
-		int callId = get_call_id_from_sip_dialog_id(je->did);
-		/* add or edit call and get sip stack event */
-		sse = sipstack_map_event(callId, je);
+		/* if event is not part of a registration */
+		if(je->rid == 0) {
+			/* get call id for mapping */
+			int callId;
+			/* check if event has a sip call or dialog id */
+			if(je->cid > 0) {
+				callId = get_call_id_from_sip_call_id(je->cid);
+				if(callId < 1) {
+					fprintf(stderr,
+						"No call id for sip call id of received event.(dialog id = %i)\n",
+						je->cid);
+				}
+			} else if(je->did > 0) {
+				callId = get_call_id_from_sip_dialog_id(je->did);
+				if(callId < 1) {
+					fprintf(stderr,
+						"No call id for sip dialog id of received event.(dialog id = %i)\n",
+						je->did);
+				}
+			}
+			/* add/edit call and get sip stack event */
+			sse = sipstack_map_event(callId, je);
+		} else {
+			/* handle registration events */
+
+			/* do not add call to call list but get sip stack event */
+			sse = sipstack_map_event(0, je);
+		}
 		/* return sip stack event */
 		return sse;
 	}
@@ -382,21 +451,23 @@ int sipstack_send_invite(int callId, char *to, char *from, char *subject) {
 	eXosip_lock();
 
 	/* send initial INVITE message */
-	int dialogId = eXosip_call_send_initial_invite(invite);
-	if (dialogId > 0) {
+	int sipCallId = eXosip_call_send_initial_invite(invite);
+	if (sipCallId > 0) {
 		void *reference;
-		eXosip_call_set_reference(dialogId, reference);
+		eXosip_call_set_reference(sipCallId, reference);
 	}
 	/* unlock sip stack for further use */
 	eXosip_unlock();
 
 	/* store call data */
-	Queue transactionIds;
-	call = build_sipstack_call(callId, 0, dialogId, transactionIds);
-	calls[sizeof(calls)] = call;
+	Queue transactionIds = CreateQueue(MAX_TRANSACTIONS);
+	call = build_sipstack_call(callId, sipCallId, 0, transactionIds);
+	/* add call */
+	calls[callCounter] = call;
+	callCounter++;
 
 	/* return return status code */
-	if (dialogId >= 0) {
+	if (sipCallId >= 0) {
 		/* sending INVITE succeeded */
 		return 0;
 	} else {
@@ -516,14 +587,14 @@ int sipstack_send_ok(int callId) {
 
 	/* get dialog id of the call */
 	int dialogId = get_sip_dialog_id_from_call_id(callId);
-	if (dialogId == -1) {
+	if (dialogId < 1) {
 		/* call has no active dialog */
 		return -1;
 	}
 
 	/* get current transaction id of the call */
 	int transactionId = get_sip_transaction_id_from_call_id(callId);
-	if (transactionId == -1) {
+	if (transactionId < 1) {
 		/* call has no active transaction */
 		return -1;
 	}
@@ -563,8 +634,9 @@ int sipstack_send_acknowledgment(int callId) {
 
 	/* get dialog id of the call */
 	int dialogId = get_sip_dialog_id_from_call_id(callId);
-	if (dialogId == -1) {
+	if (dialogId < 1) {
 		/* call has no active dialog */
+		fprintf(stderr, "Call has no active dialog (call id = %i)\n" ,callId);
 		return -1;
 	}
 
