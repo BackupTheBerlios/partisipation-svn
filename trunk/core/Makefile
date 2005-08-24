@@ -27,8 +27,8 @@ all: indent compile style doxygen #check
 style:
 	$(MAKE) -C $(TOOLSDIR)colour-audit -f Makefile.gen
 	mkdir -p $(STYLEDOCDIR)
-	$(MAKE) -C sipstack style
 	$(MAKE) -C util style
+	$(MAKE) -C sipstack style
 	$(MAKE) -C xmlrpc-test style
 	$(MAKE) -C core style
 
@@ -40,20 +40,20 @@ doxygen:
 #	find ./ | grep check_ | grep -v docs/ | xargs bash -c
 
 compile:
-	$(MAKE) -C sipstack
 	$(MAKE) -C util
+	$(MAKE) -C sipstack
 	$(MAKE) -C xmlrpc-test
 	$(MAKE) -C core
 
 clean:
 	-rm $(DOCDIR) -r
-	$(MAKE) -C sipstack clean
 	$(MAKE) -C util clean
+	$(MAKE) -C sipstack clean
 	$(MAKE) -C xmlrpc-test clean
 	$(MAKE) -C core clean
 
 indent:
-	$(MAKE) -C sipstack indent
 	$(MAKE) -C util indent
+	$(MAKE) -C sipstack indent
 	$(MAKE) -C xmlrpc-test indent
 	$(MAKE) -C core indent
