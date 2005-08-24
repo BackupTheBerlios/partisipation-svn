@@ -9,12 +9,20 @@
 #include <constants.h>
 #include <accounts/list.h>
 
-#define XMLFILE "accounts/accounts.xml"
 #define BUFFSIZE 1000
 
-int id = 1;
-char *cur_elem;
+char *XMLFILE = "accounts/accounts.xml";
+int id = 0;
 struct account *cur_acc;
+
+/**
+	This function changes the path to XML file with the account list. Default 
+	path is "account.xml" in the same directory, where account_management.c 
+	is located. 
+*/
+void set_xml_source(char *file) {
+	XMLFILE = file;
+}
 
 /**
 	This function is called by the eXpat parser, if an XML element opening tag 
@@ -28,69 +36,65 @@ struct account *cur_acc;
   	@param char** attr Array of attributes of the XML element
 */
 void elem_start(void *data, const char *name, const char **attr) {
-	cur_elem = (char *) realloc(cur_elem, strlen(name));
-	if (cur_elem) {
-		strcpy(cur_elem, name);
-		if (strcmp(cur_elem, "account") == 0) {
-			cur_acc = (struct account *) malloc(sizeof(struct account));
-			int i;
-			char *val;
+	printf("elem_start - enter\n");
+	if (strcmp(name, "account") == 0) {
+		cur_acc = (struct account *) malloc(sizeof(struct account));
+		int i;
+		char *val;
 
-			for (i = 0; i < 20; i += 2) {
+		for (i = 0; i < 20; i += 2) {
 
-				int len = strlen(attr[i + 1]);
-				const char *s = attr[i + 1];
+			int len = strlen(attr[i + 1]);
+			const char *s = attr[i + 1];
 
-				int empty = 1;
-				int j;
+			int empty = 1;
+			int j;
 
-				for (j = 0; j < len; j++) {
-					if (isgraph(s[j])) {
-						empty = 0;
-						break;
-					}
-				}
-
-				if (empty)
-					val = NULL;
-				else {
-					val = (char *) malloc(len);
-					strcpy(val, s);
-				}
-
-				if (strcmp(attr[i], "name") == 0) {
-					cur_acc->name = val;
-				} else if (strcmp(attr[i], "username") == 0) {
-					cur_acc->username = val;
-				} else if (strcmp(attr[i], "domain") == 0) {
-					cur_acc->domain = val;
-				} else if (strcmp(attr[i], "authusername") == 0) {
-					cur_acc->authusername = val;
-				} else if (strcmp(attr[i], "password") == 0) {
-					cur_acc->password = val;
-				} else if (strcmp(attr[i], "displayname") == 0) {
-					cur_acc->displayname = val;
-				} else if (strcmp(attr[i], "outboundproxy") == 0) {
-					cur_acc->outboundproxy = val;
-				} else if (strcmp(attr[i], "registrar") == 0) {
-					cur_acc->registrar = val;
-				} else if (strcmp(attr[i], "autoregister") == 0) {
-					cur_acc->autoregister = atoi(val);
-					free(val);
-				} else if (strcmp(attr[i], "id") == 0) {
-					int cur_id = atoi(val);
-
-					cur_acc->id = cur_id;
-					// set ID counter to the highest value
-					if (cur_id > id)
-						id = cur_id;
-					free(val);
+			for (j = 0; j < len; j++) {
+				if (isgraph(s[j])) {
+					empty = 0;
+					break;
 				}
 			}
+
+			if (empty || strcmp(s, "(null)") == 0) {
+				val = NULL;
+			} else {
+				val = (char *) malloc(len);
+				strcpy(val, s);
+			}
+
+			if (strcmp(attr[i], "name") == 0) {
+				cur_acc->name = val;
+			} else if (strcmp(attr[i], "username") == 0) {
+				cur_acc->username = val;
+			} else if (strcmp(attr[i], "domain") == 0) {
+				cur_acc->domain = val;
+			} else if (strcmp(attr[i], "authusername") == 0) {
+				cur_acc->authusername = val;
+			} else if (strcmp(attr[i], "password") == 0) {
+				cur_acc->password = val;
+			} else if (strcmp(attr[i], "displayname") == 0) {
+				cur_acc->displayname = val;
+			} else if (strcmp(attr[i], "outboundproxy") == 0) {
+				cur_acc->outboundproxy = val;
+			} else if (strcmp(attr[i], "registrar") == 0) {
+				cur_acc->registrar = val;
+			} else if (strcmp(attr[i], "autoregister") == 0) {
+				cur_acc->autoregister = atoi(val);
+				free(val);
+			} else if (strcmp(attr[i], "id") == 0) {
+				int cur_id = atoi(val);
+
+				cur_acc->id = cur_id;
+				// set ID counter to the highest value
+				if (cur_id > id)
+					id = cur_id;
+				free(val);
+			}
 		}
-	} else {
-		printf("Error reallocating memory.\n");
 	}
+	printf("elem_start - exit\n");
 }
 
 /**
@@ -101,11 +105,11 @@ void elem_start(void *data, const char *name, const char **attr) {
     @param char* name Name of the XML element
 */
 void elem_end(void *data, const char *name) {
-	// add account to the list
-	if (strcmp(cur_elem, "account") == 0) {
+	printf("elem_end - start\n");
+	if (strcmp(name, "account") == 0) {
 		add_node(cur_acc);
 	}
-	free(cur_elem);
+	printf("elem_end - exit\n");
 }
 
 /**
@@ -127,11 +131,12 @@ void account_management_init() {
 			// if memory could not be allocated
 			printf("Buffer allocation failed.\n");
 		}
+
 		bytes_read = read(xmlfile, buf, BUFFSIZE);
 
 		if (bytes_read < 0) {
 			// if file could not be read
-			printf("File reading error.\n");
+			printf("No file found or file reading error.\n");
 		}
 
 		if (!XML_ParseBuffer(parser, bytes_read, bytes_read == 0)) {
@@ -148,6 +153,8 @@ void account_management_init() {
 	XML_ParserFree(parser);
 	close(xmlfile);
 
+	print_list();
+
 	printf("account_management.c - account_management_init() - exit\n");
 }
 
@@ -159,9 +166,10 @@ void account_list_save() {
 	FILE *xmlfile = fopen(XMLFILE, "w");
 
 	if (xmlfile) {
-		// write the XML declaration as wide-character string
+		// write the XML declaration
 		fprintf(xmlfile,
 				"<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n");
+		fprintf(xmlfile, "<!DOCTYPE list SYSTEM \"./accounts.dtd\">\n");
 		// open document root element
 		fprintf(xmlfile, "<list>\n");
 
@@ -203,12 +211,14 @@ void account_list_save() {
 /**
 	This function delivers the IDs of all known accounts.
 	
-	@param int* accountIds Array of account IDs to be filled
-	@param int* length ???
+	@param int* accountIds Pointer to array to be filled with account IDs
+	@param int* length Pointer to an integer to store length of this array
 */
 void account_get_all(int *accountIds, int *length) {
 
 	printf("account_management.c - account_get_all() - enter\n");
+
+	*length = get_length();
 
 	if (*length < MAX_ACCOUNTID_AMOUNT) {
 		int i = 0;
@@ -220,7 +230,8 @@ void account_get_all(int *accountIds, int *length) {
 			i++;
 		}
 	} else {
-		printf("Error: ???");
+		*length = 0;
+		printf("Error: More accounts than memory reserved.");
 	}
 	printf("account_management.c - account_get_all() - exit\n");
 }
@@ -231,7 +242,7 @@ void account_get_all(int *accountIds, int *length) {
 	@param int accountId ID of the account whose attribute is to be set
 	@param char* attribute Name of the attribute to be set
 	@param char* value Value of the attribute to be set
-	@return int ???
+	@return int 1 if OK, 0 if error
 */
 int
 account_set(int const accountId, char *const attribute,
@@ -241,6 +252,8 @@ account_set(int const accountId, char *const attribute,
 
 	struct account *acc = get_node(accountId)->acc;
 	char *new_val = (char *) malloc(strlen(value));
+
+	strcpy(new_val, value);
 
 	if (strcmp(attribute, "id") == 0) {
 		acc->id = atoi(value);
@@ -277,6 +290,8 @@ account_set(int const accountId, char *const attribute,
 		return 0;
 	}
 
+	account_list_save();
+
 	printf("account_management.c - account_set() - exit\n");
 
 	return 1;
@@ -285,45 +300,43 @@ account_set(int const accountId, char *const attribute,
 /**
 	This function delivers certain attribute value for the specified account.
 	
+	Note that only as much characters are read as defined by MAX_VALUE_LENGTH
+	from <constants.h>. Anything else is cut away, but this length ought be
+	enough for any convenient value. 
+	
 	@param int accountId ID of the account whose attribute is to be read
 	@param char attribute Name of the attribute to be read
-	@return char* Value of the specified attribute
+	@param char* result Char-pointer to store the value of the attribute in
 */
-char *account_get(int const accountId, char *const attribute) {
+void account_get(int const accountId, char *const attribute, char *result) {
 
 	printf("account_management.c - account_get() - enter\n");
 
 	struct account *acc = get_node(accountId)->acc;
 
 	if (strcmp(attribute, "id") == 0) {
-		char buf[10];
-
-		snprintf(buf, sizeof(buf), "%d", acc->id);
-		return buf;
+		snprintf(result, 10, "%d", acc->id);
 	} else if (strcmp(attribute, "name") == 0) {
-		return acc->name;
+		strncpy(result, acc->name, MAX_VALUE_LENGTH);
 	} else if (strcmp(attribute, "username") == 0) {
-		return acc->username;
+		strncpy(result, acc->username, MAX_VALUE_LENGTH);
 	} else if (strcmp(attribute, "domain") == 0) {
-		return acc->domain;
+		strncpy(result, acc->domain, MAX_VALUE_LENGTH);
 	} else if (strcmp(attribute, "authusername") == 0) {
-		return acc->authusername;
+		strncpy(result, acc->authusername, MAX_VALUE_LENGTH);
 	} else if (strcmp(attribute, "password") == 0) {
-		return acc->password;
+		strncpy(result, acc->password, MAX_VALUE_LENGTH);
 	} else if (strcmp(attribute, "displayname") == 0) {
-		return acc->displayname;
+		strncpy(result, acc->displayname, MAX_VALUE_LENGTH);
 	} else if (strcmp(attribute, "outboundproxy") == 0) {
-		return acc->outboundproxy;
+		strncpy(result, acc->outboundproxy, MAX_VALUE_LENGTH);
 	} else if (strcmp(attribute, "registrar") == 0) {
-		return acc->registrar;
+		strncpy(result, acc->registrar, MAX_VALUE_LENGTH);
 	} else if (strcmp(attribute, "autoregister") == 0) {
-		char buf[10];
-
-		snprintf(buf, sizeof(buf), "%d", acc->autoregister);
-		return buf;
-	} else {
-		return NULL;
+		snprintf(result, 10, "%d", acc->autoregister);
 	}
+
+	printf("account_management.c - account_get() - exit\n");
 }
 
 /**
@@ -333,14 +346,26 @@ char *account_get(int const accountId, char *const attribute) {
 */
 int account_create() {
 
+	printf("account_management.c - account_create() - enter\n");
+
 	struct account *a = (struct account *) malloc(sizeof(struct account));
 
 	id++;
 
 	a->id = id;
 	a->autoregister = 0;
+	a->name = NULL;
+	a->username = NULL;
+	a->domain = NULL;
+	a->authusername = NULL;
+	a->password = NULL;
+	a->displayname = NULL;
+	a->outboundproxy = NULL;
+	a->registrar = NULL;
 
 	add_node(a);
+
+	printf("account_management.c - account_create() - exit\n");
 
 	return id;
 }
@@ -349,11 +374,17 @@ int account_create() {
 	This function deletes account with the specified ID.
 	
 	@param int accountId ID of the account to be deleted
-	@return int ???
+	@return int Always 1
 */
 int account_delete(int const accountId) {
 
+	printf("account_management.c - account_delete() - enter\n");
+
 	del_node(accountId);
+
+	account_list_save();
+
+	printf("account_management.c - account_delete() - exit\n");
 
 	return 1;
 }
