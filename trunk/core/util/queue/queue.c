@@ -127,8 +127,8 @@ ElementType FrontAndDequeue(Queue Q) {
 
 int IsElement(ElementType X, Queue Q) {
 	int i;
-	for(i = 0; i < Q->Size; i++) {
-		if(Q->Array[i] == X) {
+	for (i = 0; i < Q->Size; i++) {
+		if (Q->Array[i] == X) {
 			return 1;
 		}
 	}
