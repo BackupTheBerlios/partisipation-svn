@@ -128,7 +128,7 @@ macro timeformat [
 ]
 
 project sipoks05 "PartiSIPation - A Sip User Agent" "1.0" 2005-04-11 2005-09-30 {
-    now 2005-07-27
+    now 2005-08-24
     timeformat "%Y-%m-%d"
 
     currency "EUR"
@@ -542,7 +542,7 @@ task Core "Core" {
                 effort 6h
                 depends !!!testing.sipstack_ifapt, !!!concept.interfaces.sipstack
                 allocate enrico
-                actual:complete 25
+                actual:complete 75
             }
         }
 
