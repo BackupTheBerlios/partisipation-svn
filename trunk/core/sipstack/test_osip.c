@@ -20,7 +20,7 @@ START_TEST(test_sipstack_register) {
 	fail_unless(regId > -1, "Sending REGISTER failed. (result = %2d)",
 				regId);
 	/*receive response */
-	result = sipstack_receive_response(5);
+	result = sipstack_receive_event(5);
 	fail_unless(result.status_code == 200,
 				"No 200 response received. (result = %i)",
 				result.status_code);
@@ -29,7 +29,7 @@ START_TEST(test_sipstack_register) {
 	i = sipstack_send_update_register(regId, 1800);
 	fail_unless(i == 0, "Updating REGISTER failed. (result = %2d)", i);
 	/*receive response */
-	result = sipstack_receive_response(5);
+	result = sipstack_receive_event(5);
 	fail_unless(result.status_code == 200,
 				"No 200 response received. (result = %i)",
 				result.status_code);
@@ -38,13 +38,13 @@ START_TEST(test_sipstack_register) {
 	i = sipstack_send_unregister(regId);
 	fail_unless(i == 0, "Unregistering failed. (result = %2d)", i);
 	/*receive response */
-	result = sipstack_receive_response(5);
+	result = sipstack_receive_event(5);
 	fail_unless(result.status_code == 200,
 				"No 200 response received. (result = %i)",
 				result.status_code);
 
 	sipstack_quit();
-} END_TEST 
+} END_TEST
 
 START_TEST(test_sipstack_call) {
 	/*
@@ -52,19 +52,18 @@ START_TEST(test_sipstack_call) {
 	 */
 
 	sipstack_event result;
+
+	int callId = 1;
+
 	int i = sipstack_init(5065);
 
 	/*send initial INVITE */
-	int callId =
-		sipstack_send_invite("sip:321@192.168.0.2", "sip:123@192.168.0.2",
-							 "Sip Stack Test");
-	fail_unless(callId > -1,
-				"[test call][INVITE]Sending INVITE failed. (result = %2d)",
-				callId);
+	i = sipstack_send_invite(callId, "sip:321@192.168.0.2", "sip:123@192.168.0.2", "Sip Stack Test");
+	fail_unless(i == 0, "[test call][INVITE]Sending INVITE failed. (result = %2d)", i);
 	/*receive response */
 	result.status_code = 0;
 	while (result.status_code < 200) {
-		result = sipstack_receive_response(5);
+		result = sipstack_receive_event(5);
 		 /*DEBUG*/
 			/*fprintf(stdout, "[test call][INVITE] %i received\n", result.status_code); */
 	}
@@ -73,20 +72,20 @@ START_TEST(test_sipstack_call) {
 				result.status_code);
 
 	/*send ACK for OK */
-	i = sipstack_send_acknowledgment(result.dialogId);
+	i = sipstack_send_acknowledgment(callId);
 	fail_unless(i == 0,
 				"[test call][INVITE]Sending ACK failed. (result = %2d)",
 				i);
 	/*receive response */
-	sipstack_event res = sipstack_receive_response(1);
+	sipstack_event res = sipstack_receive_event(1);
 
 	/*send BYE */
-	i = sipstack_bye(callId, result.dialogId);
+	i = sipstack_bye(callId);
 	fail_unless(i == 0,
 				"[test call][BYE]Sending BYE failed. (result = %2d)", i);
 
 	sipstack_quit();
-} END_TEST 
+} END_TEST
 
 // *INDENT-ON*
 
