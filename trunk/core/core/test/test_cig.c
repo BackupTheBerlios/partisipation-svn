@@ -17,38 +17,38 @@ pthread_mutex_t idsLock;
 
 void setup(void) {
 	int rc;
-	
+
 	rc = cig_init();
 	fail_if(rc == 0, "call id generator could not be initialized");
 }
 
 void teardown(void) {
 	int rc;
-	
+
 	rc = cig_destroy();
 	fail_if(rc == 0, "call id generator could not be released");
 }
 
 void setup_with_tm(void) {
 	int rc;
-	
+
 	rc = tm_init();
 	fail_if(rc == 0, "thread management could not be initialized");
-	
+
 	rc = pthread_mutex_init(&idsLock, NULL);
 	fail_unless(rc == 0, "mutex could not be initialized");
-	
+
 	setup();
 }
 
 void teardown_with_tm(void) {
 	int rc;
-	
+
 	teardown();
-	
+
 	rc = pthread_mutex_destroy(&idsLock);
 	fail_unless(rc == 0, "mutex could not be released");
-	
+
 	rc = tm_destroy();
 	fail_if(rc == 0, "thread management could not be released");
 	pthread_exit(NULL);
@@ -61,18 +61,19 @@ void *thrd_request_id(void *args) {
 	 * sleep up to 15 seconds 
 	 */
 	sleep((int) args);
-	
+
 	id = cig_generate_call_id();
-	
+
 	pthread_mutex_lock(&idsLock);
 	testIds[testIdsSize] = id;
 	testIdsSize++;
 	pthread_mutex_unlock(&idsLock);
-	
+
 	thread_terminated(pthread_self());
 	pthread_exit(NULL);
 }
 
+// *INDENT-OFF*
 
 START_TEST(test_plain) {
 	int i, j;
@@ -81,19 +82,20 @@ START_TEST(test_plain) {
 	for (i = 0; i < MAX_IDS_PLAIN; i++) {
 		ids[i] = cig_generate_call_id();
 	}
-	
+
 	for (i = 0; i < MAX_IDS_PLAIN - 1; i++) {
 		for (j = i + 1; j < MAX_IDS_PLAIN; j++) {
-			fail_if(ids[i] == ids[j], "Identical IDs found - should never occur");
+			fail_if(ids[i] == ids[j],
+					"Identical IDs found - should never occur");
 		}
 	}
-} END_TEST
+} END_TEST 
 
 START_TEST(test_threaded) {
 	int i, j, r;
-	
+
 	testIdsSize = 0;
-	
+
 	/*
 	 * initialize random generator 
 	 */
@@ -104,14 +106,17 @@ START_TEST(test_threaded) {
 		start_thread(thrd_request_id, (void *) r);
 	}
 	sleep(20);
-	
+
 	for (i = 0; i < MAX_IDS_THREADED - 1; i++) {
 		for (j = i + 1; j < MAX_IDS_THREADED; j++) {
-			fail_if(testIds[i] == testIds[j], "Identical IDs found - should never occur");
+			fail_if(testIds[i] == testIds[j],
+					"Identical IDs found - should never occur");
 		}
 	}
-	
-} END_TEST
+
+} END_TEST 
+
+// *INDENT-ON*
 
 Suite *tm_suite(void) {
 	Suite *s = suite_create("call id generation\n\n");
@@ -126,8 +131,8 @@ Suite *tm_suite(void) {
 
 	tcase_add_test(tc_threaded, test_threaded);
 	tcase_set_timeout(tc_threaded, 30);
-	tcase_add_checked_fixture(tc_threaded, setup_with_tm, teardown_with_tm);
-
+	tcase_add_checked_fixture(tc_threaded, setup_with_tm,
+							  teardown_with_tm);
 
 	return s;
 }
