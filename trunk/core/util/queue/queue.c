@@ -1,134 +1,125 @@
-
-/*
- *  FILE   : queue.c
- *  AUTHOR : Jeffrey Hunter
- *  WEB    : http://www.iDevelopment.info
- *  NOTES  : Implement all functions required
- *           for a Queue data structure.
- */
-
 #include "queue.h"
 #include <stdlib.h>
 
-#define MinQueueSize (5)
+#define MIN_QUEUE_SIZE (5)
 
-struct QueueRecord {
-	int Capacity;
-	int Front;
-	int Rear;
-	int Size;
-	ElementType *Array;
+struct queue_record {
+	int capacity;
+	int front;
+	int rear;
+	int size;
+	void **array;
 };
 
-int IsEmpty(Queue Q) {
-	return Q->Size == 0;
+int queue_is_empty(queue queue) {
+	return queue->size == 0;
 }
 
-int IsFull(Queue Q) {
-	return Q->Size == Q->Capacity;
+int queue_is_full(queue queue) {
+	return queue->size == queue->capacity;
 }
 
-Queue CreateQueue(int MaxElements) {
-	Queue Q;
+queue queue_create_queue(int maxElements) {
+	queue queue;
 
-	if (MaxElements < MinQueueSize) {
+	if (maxElements < MIN_QUEUE_SIZE) {
 		Error("CreateQueue Error: Queue size is too small.");
 	}
 
-	Q = malloc(sizeof(struct QueueRecord));
-	if (Q == NULL) {
+	queue = malloc(sizeof(struct queue_record));
+	if (queue == NULL) {
 		FatalError("CreateQueue Error: Unable to allocate more memory.");
 	}
 
-	Q->Array = malloc(sizeof(ElementType) * MaxElements);
-	if (Q->Array == NULL) {
+	queue->array = malloc(sizeof(void *) * maxElements);
+	if (queue->array == NULL) {
 		FatalError("CreateQueue Error: Unable to allocate more memory.");
 	}
 
-	Q->Capacity = MaxElements;
-	MakeEmpty(Q);
+	queue->capacity = maxElements;
+	queue_make_empty(queue);
 
-	return Q;
+	return queue;
 }
 
-void MakeEmpty(Queue Q) {
+void queue_make_empty(queue queue) {
 
-	Q->Size = 0;
-	Q->Front = 1;
-	Q->Rear = 0;
+	queue->size = 0;
+	queue->front = 1;
+	queue->rear = 0;
 
 }
 
-void DisposeQueue(Queue Q) {
-	if (Q != NULL) {
-		free(Q->Array);
-		free(Q);
+void queue_dispose_queue(queue queue) {
+	if (queue != NULL) {
+		free(queue->array);
+		free(queue);
 	}
 }
 
-static int Succ(int Value, Queue Q) {
-	if (++Value == Q->Capacity) {
-		Value = 0;
+static int queue_succ(int value, queue queue) {
+	if (++value == queue->capacity) {
+		value = 0;
 	}
-	return Value;
+	return value;
 }
 
-void Enqueue(ElementType X, Queue Q) {
+void queue_enqueue(void *element, queue queue) {
 
-	if (IsFull(Q)) {
+	if (queue_is_full(queue)) {
 		Error("Enqueue Error: The queue is full.");
 	} else {
-		Q->Size++;
-		Q->Rear = Succ(Q->Rear, Q);
-		Q->Array[Q->Rear] = X;
+		queue->size++;
+		queue->rear = queue_succ(queue->rear, queue);
+		queue->array[queue->rear] = element;
 	}
 
 }
 
-ElementType Front(Queue Q) {
+void *queue_front(queue queue) {
 
-	if (!IsEmpty(Q)) {
-		return Q->Array[Q->Front];
+	if (!queue_is_empty(queue)) {
+		return queue->array[queue->front];
 	}
 	Error("Front Error: The queue is empty.");
 
 	/*
-	 * Return value to avoid warnings from the compiler 
+	 * Return value to avoid warnings from the compiler
 	 */
-	return get_null_element();
+	return NULL;
 
 }
 
-void Dequeue(Queue Q) {
+void queue_dequeue(queue queue) {
 
-	if (IsEmpty(Q)) {
+	if (queue_is_empty(queue)) {
 		Error("Dequeue Error: The queue is empty.");
 	} else {
-		Q->Size--;
-		Q->Front = Succ(Q->Front, Q);
+		queue->size--;
+		queue->front = queue_succ(queue->front, queue);
 	}
 
 }
 
-ElementType FrontAndDequeue(Queue Q) {
+void *queue_front_and_dequeue(queue queue) {
 
-	ElementType X = get_null_element();
+	void *element = NULL;
 
-	if (IsEmpty(Q)) {
-		Error("FrontAndDequeue Error: The queue is empty.");
+	if (queue_is_empty(queue)) {
+		Error("Front and Dequeue Error: The queue is empty.");
 	} else {
-		Q->Size--;
-		X = Q->Array[Q->Front];
-		Q->Front = Succ(Q->Front, Q);
+		queue->size--;
+		element = queue->array[queue->front];
+		queue->front = queue_succ(queue->front, queue);
 	}
-	return X;
+	return element;
 
 }
 
-int IsElement(ElementType X, Queue Q) {
+int queue_is_element(void *element, queue queue) {
 	int i;
-	for (i = 0; i < Q->Size; i++) {
-		if (Q->Array[i] == X) {
+	for (i = 0; i < queue->size; i++) {
+		if (queue->array[i] == element) {
 			return 1;
 		}
 	}

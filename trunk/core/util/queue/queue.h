@@ -23,46 +23,93 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifndef QUEUE_DATATYPE
-#include "queue_datatype_int.h"
-#endif							/*
-								 */
-#ifdef QUEUE_DATATYPE
-#include QUEUE_DATATYPE_H
-#endif							/*
-								 */
-
 #define Error(Str)        FatalError(Str)
 #define FatalError(Str)   fprintf(stderr, "%s\n", Str), exit(1)
 
-#ifndef _Queue_h
-#define _Queue_h
+#ifndef QUEUE_H
+#define QUEUE_H
 
-struct QueueRecord;
+struct queue_record;
 
-typedef struct QueueRecord *Queue;
+typedef struct queue_record *queue;
 
-int IsEmpty(Queue Q);
+/**
+ * Check whether a queue is empty.
+ *
+ * @param queue a queue
+ */
+int queue_is_empty(queue queue);
 
-int IsFull(Queue Q);
+/**
+ * Check whether a queue is full.
+ *
+ * @param queue a queue
+ */
+int queue_is_full(queue queue);
 
-Queue CreateQueue(int MaxElements);
+/**
+ * Create a new queue. The length of the queue has a maximum which is set
+ * by the parameter of this method.
+ *
+ * @param maxElements maximum count of elements which can be included into the queue
+ */
+queue queue_create_queue(int maxElements);
 
-void DisposeQueue(Queue Q);
+/**
+ * Dispose a queue.
+ *
+ * @param queue a queue
+ */
+void queue_dispose_queue(queue queue);
 
-void MakeEmpty(Queue Q);
+/**
+ * Empty a queue. All elements are deleted.
+ *
+ * @param queue a queue
+ */
+void queue_make_empty(queue queue);
 
-void Enqueue(ElementType X, Queue Q);
+/**
+ * Insert a new element into a queue.
+ *
+ * @param element the element to insert
+ * @param queue a queue
+ */
+void queue_enqueue(void *element, queue queue);
 
-ElementType Front(Queue Q);
+/**
+ * Returns the first element of the queue.
+ *
+ * @param queue a queue
+ * @return first element
+ */
+void *queue_front(queue queue);
 
-void Dequeue(Queue Q);
+/**
+ * Remove the first element of the queue.
+ *
+ * @param queue a queue
+ */
+void queue_dequeue(queue queue);
 
-ElementType FrontAndDequeue(Queue Q);
+/**
+ * Return the first element of the queue and remove it.
+ *
+ * @param queue a queue
+ * @return first element
+ */
+void *queue_front_and_dequeue(queue queue);
 
-int IsElement(ElementType X, Queue Q);
+/**
+ * Check whether an element is part of a queue.
+ *
+ * @param element an queue element
+ * @param queue a queue
+ * @return
+ */
+int queue_is_element(void *element, queue queue);
 
-#endif							/* _Queue_h */
+#endif							/* QUEUE_H */
 
 /**
  * @}
