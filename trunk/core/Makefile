@@ -22,7 +22,7 @@ export INDENT_PROFILE
 
 default: compile
 
-all: indent compile style doxygen #check
+all: compile style doxygen #check
 
 style:
 	$(MAKE) -C $(TOOLSDIR)colour-audit -f Makefile.gen
@@ -39,7 +39,7 @@ doxygen:
 #check:
 #	find ./ | grep check_ | grep -v docs/ | xargs bash -c
 
-compile:
+compile: indent
 	$(MAKE) -C util
 	$(MAKE) -C sipstack
 	$(MAKE) -C xmlrpc-test
