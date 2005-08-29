@@ -87,20 +87,86 @@ START_TEST(test_sipstack_call) {
 	sipstack_quit();
 } END_TEST
 
+START_TEST(test_sipstack_transaction) {
+	/*
+	 * unit test code
+	 */
+
+	sipstack_event result;
+
+	int callId = 2;
+
+	int i = sipstack_init(5065);
+
+	/*send initial INVITE */
+	i = sipstack_send_invite(callId, "sip:321@192.168.0.2", "sip:123@192.168.0.2", "Sip Stack Test");
+
+	fail_unless(i == 0, "[test transaction]Sending INVITE failed. (result = %2d)", i);
+
+	/*
+		wait for provisional answer (e.g. 100)
+		because eXosip can only cancel an inituial INVITE after receiving a provisional answer
+	*/
+	result.status_code = 0;
+	while (result.status_code < 99) {
+		result = sipstack_receive_event(5);
+		/*DEBUG*/
+		if(result.status_code > 0) {
+			fprintf(stdout, "[test transaction][INVITE] %i received\n", result.status_code);
+		}
+	}
+
+	/*send CANCEL */
+	i = sipstack_cancel(callId);
+	fail_unless(i == 0, "[test transaction]Sending CANCEL failed. (result = %2d)", i);
+
+	/*receive response for INVITE*/
+	result.status_code = 0;
+	while (result.status_code < 487) {
+		result = sipstack_receive_event(5);
+		/*DEBUG*/
+		if(result.status_code > 0) {
+			fprintf(stdout, "[test transaction][INVITE] %i received\n", result.status_code);
+		}
+	}
+	fail_unless(result.status_code == 487,
+				"[test call][CANCEL]No 487 response for INVITE received. (result = %i)\n",
+				result.status_code);
+
+	/*receive response for CANCEL*/
+	result.status_code = 0;
+	while (result.status_code < 200) {
+		result = sipstack_receive_event(5);
+		/*DEBUG*/
+		if(result.status_code > 0) {
+			fprintf(stdout, "[test transaction][CANCEL] %i received\n", result.status_code);
+		}
+	}
+	fail_unless(result.status_code == 200,
+				"[test call][INVITE]No 200 response for CANCEL received. (result = %i)\n",
+				result.status_code);
+
+} END_TEST
+
 // *INDENT-ON*
 
 Suite *sipstack_suite(void) {
 	Suite *s = suite_create("sipstack\n\n");
 	TCase *tc_apt = tcase_create("Adapter");
 	TCase *tc_call = tcase_create("Call");
+	TCase *tc_transaction = tcase_create("Transaction");
 
 	suite_add_tcase(s, tc_apt);
 	suite_add_tcase(s, tc_call);
+	suite_add_tcase(s, tc_transaction);
 
-	tcase_add_test(tc_apt, test_sipstack_register);
+//  tcase_add_test(tc_apt, test_sipstack_register);
+
+//  tcase_set_timeout(tc_call, 30);
+//  tcase_add_test(tc_call, test_sipstack_call);
 
 	tcase_set_timeout(tc_call, 30);
-	tcase_add_test(tc_call, test_sipstack_call);
+	tcase_add_test(tc_call, test_sipstack_transaction);
 
 	//tcase_add_checked_fixture (tc_apt, setup, teardown);
 
