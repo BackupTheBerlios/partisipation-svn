@@ -28,8 +28,7 @@
 #ifndef HSIPSTACK_INTERFACE_USED
 #define HSIPSTACK_INTERFACE_USED
 
-#include <../util/queue/queue_datatype_int.h>
-#include <../util/queue/queue_int.h>
+#include <../util/queue/queue.h>
 
 typedef struct {
 	int status_code;
@@ -39,11 +38,17 @@ typedef struct {
 	int ack;
 } sipstack_event;
 
+typedef enum {
+	INVITE,
+	NON_INVITE
+} sipstack_transaction_type;
+
 typedef struct {
 	int callId;
 	int sipCallId;
 	int sipDialogId;
-	Queue sipTransactionIds;
+	queue sipTransactionIds;
+	sipstack_transaction_type type;
 } sipstack_call;
 
 /**
