@@ -2,7 +2,7 @@ STYLEDOCDIR_LOCAL = $(STYLEDOCDIR)/sipstack
 
 compile:
 	find ./ | grep \\.c$$ | grep -v tests/ | xargs $(COMPILE.c) -I./
-	$(LINK.c) -o check_osip_adapter test_osip.o osip_adapter.o ../util/queue/queue.o ../util/queue/queue_datatype_event.o -L/usr/local/lib -lcheck -leXosip2 -losip2 -losipparser2
+	$(LINK.c) -o check_osip_adapter test_osip.o osip_adapter.o ../util/queue/queue.o -L/usr/local/lib -lcheck -leXosip2 -losip2 -losipparser2
 
 clean:
 	find ./ -maxdepth 1 | grep \\.o$$ | xargs rm -f
