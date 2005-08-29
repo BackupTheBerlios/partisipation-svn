@@ -109,6 +109,14 @@ void *queue_front_and_dequeue(queue queue);
  */
 int queue_is_element(void *element, queue queue);
 
+/**
+ * Return size of a queue.
+ *
+ * @param queue a queue
+ * @return size of queue
+ */
+int queue_get_size(queue queue);
+
 #endif							/* QUEUE_H */
 
 /**

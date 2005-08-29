@@ -125,3 +125,7 @@ int queue_is_element(void *element, queue queue) {
 	}
 	return 0;
 }
+
+int queue_get_size(queue queue) {
+	return queue->size;
+}
