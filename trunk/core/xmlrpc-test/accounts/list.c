@@ -53,17 +53,24 @@ void free_memory(struct account *a) {
 void del_node(int n) {
 
 	struct node *dn = get_node(n);
+	int num = get_length();
 
 	if (dn != NULL) {
-		if (dn == head) {
-			head = dn->next;
-			head->prev = NULL;
-		} else if (dn == tail) {
-			tail = dn->prev;
-			tail->next = NULL;
+		if (num == 1) {
+			// last remaining element is deleted, head and tail will be set to NULL, list is empty
+			head = NULL;
+			tail = NULL;
 		} else {
-			dn->prev->next = dn->next;
-			dn->next->prev = dn->prev;
+			if (dn == head) {
+				head = dn->next;
+				head->prev = NULL;
+			} else if (dn == tail) {
+				tail = dn->prev;
+				tail->next = NULL;
+			} else {
+				dn->prev->next = dn->next;
+				dn->next->prev = dn->prev;
+			}
 		}
 
 		free_memory(dn->acc);
