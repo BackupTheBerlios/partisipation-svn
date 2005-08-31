@@ -99,7 +99,7 @@ public class Gui extends JFrame {
             params.addElement(Utils.GUIHOST);
             params.addElement(new Integer(Utils.GUIPORT));
 
-            Object o = execute("core.registerGui", params, 0);
+            Object o = execute("core.registerGui", params, 3000);
             if (o == null) {
                 // --- something
             } else if (((String) o).equalsIgnoreCase("OK")) {
@@ -1301,9 +1301,9 @@ public class Gui extends JFrame {
         params.add(accId);
         params.add("autoregister");
         if (jCheckBox1.isSelected()) {
-            params.add("true");
+            params.add("1");
         } else {
-            params.add("false");
+            params.add("0");
         }
         execute("core.accountSet", params);
     }
@@ -1493,7 +1493,7 @@ public class Gui extends JFrame {
             params.add(accId);
             params.add("autoregister");
             String s = (String) execute("core.accountGet", params);
-            if (s.equalsIgnoreCase("true")) {
+            if (s.equalsIgnoreCase("1")) {
                 jCheckBox1.setSelected(true);
             } else {
                 jCheckBox1.setSelected(false);
