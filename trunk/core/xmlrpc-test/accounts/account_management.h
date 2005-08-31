@@ -16,3 +16,5 @@ int account_delete(int const accountId);
 int account_register(int const accountId);
 
 int account_unregister(int const accountId);
+
+int account_save();
