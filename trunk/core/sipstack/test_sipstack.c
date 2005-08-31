@@ -64,8 +64,6 @@ START_TEST(test_sipstack_call) {
 	result.status_code = 0;
 	while (result.status_code < 200) {
 		result = sipstack_receive_event(5);
-		 /*DEBUG*/
-		 /*fprintf(stdout, "[test call][INVITE] %i received\n", result.status_code); */
 	}
 	fail_unless(result.status_code == 200,
 				"[test call][INVITE]No 200 response for INVITE received. (result = %i)\n",
@@ -87,7 +85,7 @@ START_TEST(test_sipstack_call) {
 	sipstack_quit();
 } END_TEST
 
-START_TEST(test_sipstack_transaction) {
+START_TEST(test_sipstack_cancel) {
 	/*
 	 * unit test code
 	 */
@@ -110,10 +108,6 @@ START_TEST(test_sipstack_transaction) {
 	result.status_code = 0;
 	while (result.status_code < 99) {
 		result = sipstack_receive_event(5);
-		/*DEBUG*/
-		if(result.status_code > 0) {
-			fprintf(stdout, "[test transaction][INVITE] %i received\n", result.status_code);
-		}
 	}
 
 	/*send CANCEL */
@@ -124,26 +118,9 @@ START_TEST(test_sipstack_transaction) {
 	result.status_code = 0;
 	while (result.status_code < 487) {
 		result = sipstack_receive_event(5);
-		/*DEBUG*/
-		if(result.status_code > 0) {
-			fprintf(stdout, "[test transaction][INVITE] %i received\n", result.status_code);
-		}
 	}
 	fail_unless(result.status_code == 487,
 				"[test call][CANCEL]No 487 response for INVITE received. (result = %i)\n",
-				result.status_code);
-
-	/*receive response for CANCEL*/
-	result.status_code = 0;
-	while (result.status_code < 200) {
-		result = sipstack_receive_event(5);
-		/*DEBUG*/
-		if(result.status_code > 0) {
-			fprintf(stdout, "[test transaction][CANCEL] %i received\n", result.status_code);
-		}
-	}
-	fail_unless(result.status_code == 200,
-				"[test call][INVITE]No 200 response for CANCEL received. (result = %i)\n",
 				result.status_code);
 
 } END_TEST
@@ -151,22 +128,22 @@ START_TEST(test_sipstack_transaction) {
 // *INDENT-ON*
 
 Suite *sipstack_suite(void) {
-	Suite *s = suite_create("sipstack\n\n");
-	TCase *tc_apt = tcase_create("Adapter");
+	Suite *s = suite_create("Sipstack (register, call, cancel call)");
+	TCase *tc_register = tcase_create("Register");
 	TCase *tc_call = tcase_create("Call");
-	TCase *tc_transaction = tcase_create("Transaction");
+	TCase *tc_cancel = tcase_create("Cancel");
 
-	suite_add_tcase(s, tc_apt);
+	suite_add_tcase(s, tc_register);
 	suite_add_tcase(s, tc_call);
-	suite_add_tcase(s, tc_transaction);
+	suite_add_tcase(s, tc_cancel);
 
-//  tcase_add_test(tc_apt, test_sipstack_register);
-
-//  tcase_set_timeout(tc_call, 30);
-//  tcase_add_test(tc_call, test_sipstack_call);
+	tcase_add_test(tc_register, test_sipstack_register);
 
 	tcase_set_timeout(tc_call, 30);
-	tcase_add_test(tc_call, test_sipstack_transaction);
+	tcase_add_test(tc_call, test_sipstack_call);
+
+	tcase_set_timeout(tc_cancel, 30);
+	tcase_add_test(tc_cancel, test_sipstack_cancel);
 
 	//tcase_add_checked_fixture (tc_apt, setup, teardown);
 
