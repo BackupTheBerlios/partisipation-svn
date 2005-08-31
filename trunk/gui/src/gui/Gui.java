@@ -1,5 +1,9 @@
 package gui;
 
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.UnknownHostException;
@@ -26,11 +30,16 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
+import org.apache.xerces.parsers.SAXParser;
 import org.apache.xmlrpc.WebServer;
 import org.apache.xmlrpc.XmlRpc;
 import org.apache.xmlrpc.XmlRpcClientLite;
 import org.netbeans.lib.awtextra.AbsoluteConstraints;
 import org.netbeans.lib.awtextra.AbsoluteLayout;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
+
 import java.util.Enumeration;
 
 /**
@@ -42,6 +51,8 @@ import java.util.Enumeration;
 public class Gui extends JFrame {
 
     private int slidervalue = 50;
+
+    private String accfile = "";
 
     // client part - sends calls to core
     private XmlRpcClientLite client;
@@ -55,6 +66,12 @@ public class Gui extends JFrame {
     // stores the list of the phone numbers
     private Vector phonebook = new Vector();
 
+    // account to use for current call
+    private Account actacc = null;
+
+    // current callee's display name
+    private String dname = "";
+
     /**
      * This method creates the GUI window and the XML-RPC part.
      */
@@ -63,11 +80,14 @@ public class Gui extends JFrame {
 
         try {
 
+            accfile = System.getProperty("user.home", ".") + "/phonebook.xml";
+
             client = new XmlRpcClientLite(InetAddress.getByName(Utils.COREHOST)
                     .getHostName(), Utils.COREPORT);
 
             //XmlRpc.setDebug(true);
-            server = new WebServer(Utils.GUIPORT, InetAddress.getByName(Utils.GUIHOST));
+            server = new WebServer(Utils.GUIPORT, InetAddress
+                    .getByName(Utils.GUIHOST));
 
             GuiStub guiStub = new GuiStub(this);
 
@@ -96,7 +116,8 @@ public class Gui extends JFrame {
                         Integer n = (Integer) e.nextElement();
                         list1.addElement("#" + n.toString()
                                 + ": not registered");
-                        accounts.add(n);
+                        Account acc = new Account(n.intValue(), false);
+                        accounts.add(acc);
                         a++;
                     }
                     print("Got " + a + " accounts.");
@@ -104,6 +125,14 @@ public class Gui extends JFrame {
             } else {
                 print("ERROR: GUI not registered.");
             }
+
+            readPhonebook();
+            Enumeration enum = phonebook.elements();
+            while (enum.hasMoreElements()) {
+                Contact con = (Contact) enum.nextElement();
+                list3.addElement(con.name);
+            }
+
         } catch (MalformedURLException e1) {
             e1.printStackTrace();
         } catch (UnknownHostException e1) {
@@ -273,6 +302,10 @@ public class Gui extends JFrame {
         jList2
                 .setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jList2.setValueIsAdjusting(true);
+        CallListCellRenderer cscr = new CallListCellRenderer();
+
+        jList2.setCellRenderer(cscr);
+
         jScrollPane3.setViewportView(jList2);
 
         jPanel1.add(jScrollPane3, new AbsoluteConstraints(170, 40, 410, 170));
@@ -334,30 +367,32 @@ public class Gui extends JFrame {
 
         jPanel3.add(jTextField7, new AbsoluteConstraints(350, 230, 200, -1));
 
+        jButton1.setEnabled(false);
+        jButton3.setEnabled(false);
+        jButton4.setEnabled(false);
+
         jLabel25.setText("Auto-Register:");
         jPanel3.add(jLabel25, new AbsoluteConstraints(210, 260, -1, -1));
 
         jPanel3.add(jCheckBox1, new AbsoluteConstraints(350, 260, -1, -1));
 
-        jButton1.setText("Register");
-        jPanel3.add(jButton1, new AbsoluteConstraints(336, 300, 100, -1));
+        jButton1.setText("(Un)Register");
+        jPanel3.add(jButton1, new AbsoluteConstraints(330, 300, 110, -1));
 
-        jButton2.setText("Unregister");
-        jPanel3.add(jButton2, new AbsoluteConstraints(446, 300, 100, -1));
+        jButton2.setText("Save");
+        jPanel3.add(jButton4, new AbsoluteConstraints(440, 300, 110, -1));
 
         jButton3.setText("Set Values");
-        jPanel3.add(jButton3, new AbsoluteConstraints(556, 300, 100, -1));
+        jPanel3.add(jButton3, new AbsoluteConstraints(550, 300, 110, -1));
 
         jButton4.setText("Delete");
-        jPanel3.add(jButton4, new AbsoluteConstraints(226, 300, 100, -1));
+        jPanel3.add(jButton2, new AbsoluteConstraints(230, 300, 100, -1));
 
         jButton5.setText("Create");
-        jPanel3.add(jButton5, new AbsoluteConstraints(119, 300, 100, -1));
+        jPanel3.add(jButton5, new AbsoluteConstraints(120, 300, 110, -1));
 
         jButton6.setText("Clear");
-        jPanel3.add(jButton6, new AbsoluteConstraints(10, 300, 100, -1));
-
-
+        jPanel3.add(jButton6, new AbsoluteConstraints(10, 300, 110, -1));
 
         jPanel3.add(jScrollPane1, new AbsoluteConstraints(10, 10, 190, 260));
 
@@ -401,12 +436,12 @@ public class Gui extends JFrame {
         jLabel29.setText("Display name:");
         jPanel5.add(jLabel29, new AbsoluteConstraints(10, 20, -1, -1));
 
-        jPanel5.add(jTextField9, new AbsoluteConstraints(110, 20, 170, -1));
+        jPanel5.add(jTextField9, new AbsoluteConstraints(115, 20, 165, -1));
 
         jLabel30.setText("Phone / SIP URL:");
         jPanel5.add(jLabel30, new AbsoluteConstraints(10, 50, -1, -1));
 
-        jPanel5.add(jTextField10, new AbsoluteConstraints(110, 50, 170, -1));
+        jPanel5.add(jTextField10, new AbsoluteConstraints(115, 50, 165, -1));
 
         jList3
                 .setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
@@ -468,13 +503,13 @@ public class Gui extends JFrame {
                     }
                 });
 
-  /*      jList3
-        .addListSelectionListener(new javax.swing.event.ListSelectionListener() {
-            public void valueChanged(
-                    javax.swing.event.ListSelectionEvent evt) {
-                jList3ValueChanged(evt);
-            }
-        }); */
+        jList3
+                .addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+                    public void valueChanged(
+                            javax.swing.event.ListSelectionEvent evt) {
+                        jList3ValueChanged(evt);
+                    }
+                });
 
         jLabel1.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mousePressed(java.awt.event.MouseEvent evt) {
@@ -764,9 +799,11 @@ public class Gui extends JFrame {
     }
 
     /**
-     * Main method. It calls methods to create the GUI window and to
-     * make it visible to the user.
-     * @param args Console arguments. They all will be ignored.
+     * Main method. It calls methods to create the GUI window and to make it
+     * visible to the user.
+     *
+     * @param args
+     *            Console arguments. They all will be ignored.
      */
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(new Runnable() {
@@ -1098,17 +1135,42 @@ public class Gui extends JFrame {
 
         String sipurl = jTextField1.getText();
 
-        Vector v = new Vector();
-        v.add(new Integer(1));
-        v.add(sipurl);
-        Object o = execute("core.makeCall", v);
-        if (o != null) {
-            int id = ((Integer) o).intValue();
-            Call c = new Call(id, 1, sipurl, ""); // SET proper name and
-                                                  // ACCOUNT_ID !!!
-            calls.add(c);
-            list2.addElement("[" + id + "] : <TRY> : " + jTextField1.getText());
-            print("Trying to call " + sipurl + " (call # " + id + ").");
+        if (!sipurl.trim().equalsIgnoreCase("")) {
+            if (actacc != null) {
+                if (actacc.registered) {
+
+                    Vector v = new Vector();
+                    v.add(new Integer(actacc.id));
+                    v.add(sipurl);
+                    Object o = execute("core.makeCall", v);
+                    if (o != null) {
+                        int id = ((Integer) o).intValue();
+                        Call c = new Call(id, actacc.id, sipurl, dname);
+                        dname = "";
+                        calls.add(c);
+                        ImageIcon img = new ImageIcon(cl
+                                .getResource("gui/resources/gray.gif"));
+                        if (c.name.trim().equalsIgnoreCase("")) {
+                            img.setDescription(sipurl);
+                        } else {
+                            img.setDescription(sipurl + " (" + c.name + ")");
+                        }
+                        list2.addElement(img);
+                        print("Trying to call " + sipurl + " (call # " + id
+                                + ").");
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(this, "Account #" + actacc.id
+                            + " not registered.", "ERROR",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "No account selected.",
+                        "ERROR", JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Enter a SIP URL to call.",
+                    "ERROR", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -1127,7 +1189,10 @@ public class Gui extends JFrame {
             params.add(new Integer(c.id));
             execute("core.endCall", params);
             list2.removeElementAt(i);
-            list2.insertElementAt("[" + c.id + "] : <TER> : " + c.sipurl, i);
+            ImageIcon img = new ImageIcon(cl
+                    .getResource("gui/resources/red.gif"));
+            img.setDescription(c.sipurl);
+            list2.insertElementAt(img, i);
             print("Terminating call # " + c.id + " ...");
             jLabel14.setIcon(new ImageIcon(cl
                     .getResource("gui/resources/phone_down.gif")));
@@ -1142,48 +1207,42 @@ public class Gui extends JFrame {
     public void jLabel15MouseReleased(java.awt.event.MouseEvent evt) {
         jLabel15.setIcon(new ImageIcon(cl
                 .getResource("gui/resources/addressbook.gif")));
-         addressBook.setVisible(true);
+        addressBook.setVisible(true);
     }
 
     /* "Register" button clicked */
     public void jButton1MouseClicked(java.awt.event.MouseEvent evt) {
         int i = jList1.getSelectedIndex();
         if (i > -1) {
-//            Integer accId = (Integer) accounts.elementAt(i);
 
-            params.clear();
-            params.add(accounts.elementAt(i));
-            //  if (((Boolean) execute("core.register", params)).booleanValue())
-            // {
-            list1.set(i, "#" + accounts.elementAt(i) + ": registering ...");
-            // }
+            Account acc = (Account) accounts.elementAt(i);
+            Integer accId = new Integer(acc.id);
+
+            if (acc.registered) {
+                params.clear();
+                params.add(accId);
+                list1.set(i, "#" + accId.intValue() + ": unregistering ...");
+                execute("core.unregister", params);
+            } else {
+                params.clear();
+                params.add(accId);
+                list1.set(i, "#" + accId.intValue() + ": registering ...");
+                execute("core.register", params);
+            }
+
         }
     }
 
     /* "Unregister" button clicked */
     public void jButton2MouseClicked(java.awt.event.MouseEvent evt) {
-        int i = jList1.getSelectedIndex();
-        if (i > -1) {
-//            Integer accId = (Integer) accounts.elementAt(i);
-
-            params.clear();
-            params.add(accounts.elementAt(i));
-            // if (((Boolean) execute("core.unregister",
-            // params)).booleanValue()) {
-            list1.set(i, "#" + accounts.elementAt(i).toString()
-                    + ": unregistering ...");
-            // jTextArea1.append(Utils.getTimestamp()+": Account with ID "+
-            // accId+ " unregistered.\n");
-            // }
-        }
+        execute("core.accountSave", params);
     }
 
     /* "Set Values" button clicked */
     public void jButton3MouseClicked(java.awt.event.MouseEvent evt) {
         int i = jList1.getSelectedIndex();
         if (i > -1) {
-            //Integer accId = new Integer(i+1);
-            Integer accId = (Integer) accounts.elementAt(i);
+            Integer accId = new Integer(((Account) accounts.elementAt(i)).id);
             setValues(accId);
         }
     }
@@ -1253,10 +1312,10 @@ public class Gui extends JFrame {
     public void jButton4MouseClicked(java.awt.event.MouseEvent evt) {
         int i = jList1.getSelectedIndex();
         if (i > -1) {
-            Integer accId = (Integer) accounts.elementAt(i);
+            Integer accId = new Integer(((Account) accounts.elementAt(i)).id);
 
             params.clear();
-            params.add(accounts.elementAt(i));
+            params.add(accId);
             if (((Boolean) execute("core.accountDelete", params))
                     .booleanValue()) {
                 list1.remove(i);
@@ -1271,7 +1330,7 @@ public class Gui extends JFrame {
                 jPasswordField1.setText("");
                 jCheckBox1.setSelected(false);
                 jTextArea1.append(Utils.getTimestamp() + ": Account with ID "
-                        + accId + " removed.\n");
+                        + accId.intValue() + " removed.\n");
             }
         }
     }
@@ -1282,7 +1341,8 @@ public class Gui extends JFrame {
         Integer accId = (Integer) execute("core.accountCreate", params);
         if (accId != null) {
             setValues(accId);
-            accounts.add(accId);
+            Account acc = new Account(accId.intValue(), false);
+            accounts.add(acc);
             list1.addElement("#" + accId.toString() + ": not registered");
         }
     }
@@ -1306,6 +1366,7 @@ public class Gui extends JFrame {
         if (i > -1) {
             Contact c = (Contact) phonebook.elementAt(i);
             jTextField1.setText(c.sipurl);
+            dname = c.name;
             addressBook.setVisible(false);
         }
     }
@@ -1315,14 +1376,17 @@ public class Gui extends JFrame {
         String name = jTextField9.getText();
         String phone = jTextField10.getText();
         if (name.equalsIgnoreCase("") || phone.equalsIgnoreCase("")) {
-            JOptionPane.showMessageDialog(addressBook, "Please fill both fields!",
-                    "ERROR", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(addressBook,
+                    "Please fill both fields!", "ERROR",
+                    JOptionPane.ERROR_MESSAGE);
         } else {
             Contact c = new Contact(name, phone);
             phonebook.addElement(c);
             list3.addElement(name);
             jTextField9.setText("");
             jTextField10.setText("");
+
+            savePhonebook();
         }
     }
 
@@ -1334,6 +1398,8 @@ public class Gui extends JFrame {
             list3.removeElementAt(i);
             jTextField9.setText("");
             jTextField10.setText("");
+
+            savePhonebook();
         }
     }
 
@@ -1374,8 +1440,21 @@ public class Gui extends JFrame {
     private void jList1ValueChanged(javax.swing.event.ListSelectionEvent evt) {
         int i = jList1.getSelectedIndex();
         if (i > -1) {
-            //Integer accId = (Integer) accounts.elementAt(i);
-            Integer accId = new Integer(i + 1);
+
+            Account acc = (Account) accounts.elementAt(i);
+            actacc = acc;
+            Integer accId = new Integer(acc.id);
+
+            if (acc.registered) {
+                jButton1.setText("Unregister");
+            } else {
+                jButton1.setText("Register");
+            }
+
+            jButton1.setEnabled(true);
+            jButton2.setEnabled(true);
+            jButton3.setEnabled(true);
+            jButton4.setEnabled(true);
 
             params.clear();
             params.add(accId);
@@ -1419,6 +1498,11 @@ public class Gui extends JFrame {
             } else {
                 jCheckBox1.setSelected(false);
             }
+        } else {
+            jButton1.setEnabled(false);
+            jButton3.setEnabled(false);
+            jButton4.setEnabled(false);
+            actacc = null;
         }
     }
 
@@ -1433,9 +1517,14 @@ public class Gui extends JFrame {
         }
     }
 
-  /*  private void jList3ValueChanged(javax.swing.event.ListSelectionEvent evt) {
-        //
-    } */
+    private void jList3ValueChanged(javax.swing.event.ListSelectionEvent evt) {
+        int i = jList3.getSelectedIndex();
+        if (i > -1) {
+            Contact c = (Contact) phonebook.elementAt(i);
+            jTextField9.setText(c.name);
+            jTextField10.setText(c.sipurl);
+        }
+    }
 
     private void print(String s) {
         jTextArea1.append(Utils.getTimestamp() + ": " + s + "\n");
@@ -1468,6 +1557,78 @@ public class Gui extends JFrame {
     }
 
     private final void readPhonebook() {
+        try {
 
+            SAXParser parser = new SAXParser();
+
+            PhonebookParser pp = new PhonebookParser(phonebook);
+
+            parser.setContentHandler(pp);
+
+            parser.parse(accfile);
+
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        } catch (SAXException e) {
+            System.out.println("> Your XML file seems to be invalid.");
+        } catch (IOException e) {
+            System.out.println("> No phonebook found.");
+        }
+    }
+
+    private final void savePhonebook() {
+        try {
+            FileOutputStream fis = new FileOutputStream(accfile);
+            OutputStreamWriter out = new OutputStreamWriter(fis, "UTF8");
+            BufferedWriter bw = new BufferedWriter(out);
+
+            bw.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+            bw.write("<phonebook>\n");
+
+            Enumeration e = phonebook.elements();
+            while (e.hasMoreElements()) {
+                Contact con = (Contact) e.nextElement();
+                bw.write("\t<entry name=\"" + con.name + "\" number=\""
+                        + con.sipurl + "\"/>\n");
+            }
+
+            bw.write("</phonebook>\n");
+            bw.flush();
+            bw.close();
+            out.close();
+            fis.close();
+
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+}
+
+class PhonebookParser extends DefaultHandler {
+
+    private Vector phonebook;
+
+    public PhonebookParser(Vector p) {
+        phonebook = p;
+    }
+
+    public void startElement(String uri, String local, String qName,
+            Attributes atts) {
+        if (local.equalsIgnoreCase("entry")) {
+
+            String name = "";
+            String sip = "";
+
+            for (int i = 0; i < atts.getLength(); i++) {
+                String attname = atts.getLocalName(i);
+                if (attname.equalsIgnoreCase("name")) {
+                    name = atts.getValue(attname);
+                } else if (attname.equalsIgnoreCase("number")) {
+                    sip = atts.getValue(attname);
+                }
+            }
+            Contact c = new Contact(name, sip);
+            phonebook.add(c);
+        }
     }
 }
