@@ -156,3 +156,17 @@ xmlrpc_value *account_unregister_RP(xmlrpc_env * const env,
 	printf("leaving unregister\n");
 	return xmlrpc_build_value(env, "b", result);
 }
+
+xmlrpc_value *account_save_RP(xmlrpc_env * const env,
+							  xmlrpc_value * const param_array,
+							  void *const server_context) {
+
+	printf("entering accountSave...\n");
+
+	int result;
+
+	result = account_save();
+
+	printf("leaving accountSave\n");
+	return xmlrpc_build_value(env, "i", result);
+}
