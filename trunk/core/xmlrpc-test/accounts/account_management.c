@@ -47,22 +47,8 @@ void elem_start(void *data, const char *name, const char **attr) {
 			int len = strlen(attr[i + 1]);
 			const char *s = attr[i + 1];
 
-			int empty = 1;
-			int j;
-
-			for (j = 0; j < len; j++) {
-				if (isgraph(s[j])) {
-					empty = 0;
-					break;
-				}
-			}
-
-			if (empty || strcmp(s, "(null)") == 0) {
-				val = NULL;
-			} else {
-				val = (char *) malloc(len);
-				strcpy(val, s);
-			}
+			val = (char *) malloc(len);
+			strcpy(val, s);
 
 			if (strcmp(attr[i], "name") == 0) {
 				cur_acc->name = val;
@@ -245,8 +231,8 @@ void account_get_all(int *accountIds, int *length) {
 	@return int 1 if OK, 0 if error
 */
 int
-account_set(int const accountId, char *const attribute,
-			char *const value) {
+account_set(int const accountId, char *const attribute, char *const value) 
+{
 
 	printf("account_management.c - account_set() - enter\n");
 
@@ -290,8 +276,6 @@ account_set(int const accountId, char *const attribute,
 		return 0;
 	}
 
-	account_list_save();
-
 	printf("account_management.c - account_set() - exit\n");
 
 	return 1;
@@ -311,6 +295,9 @@ account_set(int const accountId, char *const attribute,
 void account_get(int const accountId, char *const attribute, char *result) {
 
 	printf("account_management.c - account_get() - enter\n");
+
+	printf("id: %d, att: %s\n", accountId, attribute);
+	print_list();
 
 	struct account *acc = get_node(accountId)->acc;
 
@@ -382,8 +369,6 @@ int account_delete(int const accountId) {
 
 	del_node(accountId);
 
-	account_list_save();
-
 	printf("account_management.c - account_delete() - exit\n");
 
 	return 1;
@@ -402,5 +387,14 @@ int account_unregister(int const accountId) {
 	// do something
 	printf("accountId: %d\n", accountId);
 
+	return 1;
+}
+
+int account_save() {
+	printf("account_management.c - account_save() - enter\n");
+
+	account_list_save();
+
+	printf("account_management.c - account_save() - exit\n");
 	return 1;
 }
