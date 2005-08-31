@@ -87,6 +87,10 @@ int main(int const argc, const char **const argv) {
 	xmlrpc_registry_add_method(&env, registryP, NULL, name,
 							   &account_delete_RP, NULL);
 
+	generate_method_name("accountSave", name);
+	xmlrpc_registry_add_method(&env, registryP, NULL, name,
+							   &account_save_RP, NULL);
+
 	generate_method_name("register", name);
 	xmlrpc_registry_add_method(&env, registryP, NULL, name,
 							   &account_register_RP, NULL);
