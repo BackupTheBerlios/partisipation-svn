@@ -36,7 +36,8 @@ int call_exists(int callId) {
 
 /**
  * Return list index of call with this call id.
- *
+ *sipstack_quit();
+
  * @param callId call id
  */
 int get_call_index_by_call_id(int callId) {
@@ -98,11 +99,6 @@ int get_sip_dialog_id_by_call_id(int callId) {
 	if (index < 0) {
 		return -1;
 	}
-	/*DEBUG*/
-		fprintf(stdout,
-				"[GET DIALOG ID]sip call id: %i, sip dialog id: %i, index: %i\n",
-				calls[index].sipCallId, calls[index].sipDialogId, index);
-
 	return calls[index].sipDialogId;
 
 }
@@ -123,28 +119,14 @@ int get_sip_call_id_by_call_id(int callId) {
 	if (index < 0) {
 		return -1;
 	}
-	/*DEBUG*/
-		fprintf(stdout,
-				"[GET CALL ID]sip call id: %i, sip dialog id: %i, index: %i\n",
-				calls[index].sipCallId, calls[index].sipDialogId, index);
-
 	return calls[index].sipCallId;
 }
 
 int terminate_current_transaction(int callId) {
 	if (call_exists(callId)) {
 		int callIndex = get_call_index_by_call_id(callId);
-		 /*DEBUG*/
-			fprintf(stdout,
-					"[TERMINATE TRANSACTION 1]active transactions: %i\n",
-					queue_get_size(calls[callIndex].sipTransactionIds));
 		if (!queue_is_empty(calls[callIndex].sipTransactionIds)) {
 			queue_dequeue(calls[callIndex].sipTransactionIds);
-			 /*DEBUG*/
-				fprintf(stdout,
-						"[TERMINATE TRANSACTION 2]active transactions: %i\n",
-						queue_get_size(calls[callIndex].
-									   sipTransactionIds));
 			return 0;
 		}
 	}
@@ -184,22 +166,8 @@ sipstack_event sipstack_map_event(int callId, eXosip_event_t * event) {
 	if (callId > 0 && call_exists(callId)) {
 		/* get call with this call id */
 		int callIndex = get_call_index_by_call_id(callId);
-		 /*DEBUG*/
-			fprintf(stdout,
-					"[MAP1]sip call id: %i, sip dialog id: %i, callIndex: %i, active transactions:%i\n",
-					calls[callIndex].sipCallId,
-					calls[callIndex].sipDialogId, callIndex),
-			queue_get_size(calls[callIndex].sipTransactionIds);
-
-		 /*DEBUG*/
-			/*
-			   fprintf(stdout, "pre: call id: %i, sip call id: %i, sip dialog id: %i\n",
-			   callId, calls[callIndex].sipCallId, calls[callIndex].sipDialogId);
-			   fprintf(stdout, "event: call id: %i, sip call id: %i, sip dialog id: %i\n",
-			   callId, event->cid, event->did);
-			 */
-			/* set sip call id if not set */
-			if (calls[callIndex].sipCallId < 1) {
+		/* set sip call id if not set */
+		if (calls[callIndex].sipCallId < 1) {
 			calls[callIndex].sipCallId = event->cid;
 		}
 		/* set sip dialog id if not set */
@@ -213,13 +181,6 @@ sipstack_event sipstack_map_event(int callId, eXosip_event_t * event) {
 			queue_enqueue((void *) event->tid,
 						  calls[callIndex].sipTransactionIds);
 		}
-		/*DEBUG*/
-			fprintf(stdout,
-					"[MAP2]sip call id: %i, sip dialog id: %i, callIndex: %i, active transactions:%i\n",
-					calls[callIndex].sipCallId,
-					calls[callIndex].sipDialogId, callIndex),
-			queue_get_size(calls[callIndex].sipTransactionIds);
-
 	} else {
 		/* build new call */
 		queue transactionIds = queue_create_queue(MAX_TRANSACTIONS);
@@ -227,7 +188,7 @@ sipstack_event sipstack_map_event(int callId, eXosip_event_t * event) {
 		/* set transaction type (invite or non-invite) */
 		sipstack_transaction_type type = NON_INVITE;
 		if (event->type == EXOSIP_CALL_INVITE) {
-			sipstack_transaction_type type = INVITE;
+			type = INVITE;
 		}
 		call = build_sipstack_call(callId, event->cid, event->did,
 								   transactionIds, type);
@@ -241,7 +202,7 @@ sipstack_event sipstack_map_event(int callId, eXosip_event_t * event) {
 	/* get dialog id */
 	sse.callId = callId;
 	/* is event an acknowledgment */
-	if (event->ack == 1) {
+	if (event->ack != NULL) {
 		sse.ack = 1;
 	} else {
 		sse.ack = 0;
@@ -338,13 +299,8 @@ sipstack_event sipstack_receive_event(int timeout) {
 
 			/* terminate transaction if neccessary */
 			if (call.type == INVITE && sse.ack) {
-				 /*DEBUG*/
-					fprintf(stdout,
-							"[RECEIVE_EVENT]terminate transaction on ACK\n");
 				terminate_current_transaction(callId);
 			} else if (call.type == NON_INVITE && sse.status_code == 200) {
-				fprintf(stdout,
-						"[RECEIVE_EVENT]terminate transaction on 200\n");
 				terminate_current_transaction(callId);
 			}
 		} else {
@@ -540,11 +496,6 @@ int sipstack_send_invite(int callId, char *to, char *from, char *subject) {
 	calls[callCounter] = call;
 	callCounter++;
 
-	 /*DEBUG*/
-		fprintf(stdout, "[INVITE]sip call id: %i, sip dialog id: %i\n",
-				calls[callCounter - 1].sipCallId,
-				calls[callCounter - 1].sipDialogId);
-
 	/* return return status code */
 	if (sipCallId >= 0) {
 		/* sending INVITE succeeded */
@@ -605,9 +556,6 @@ int sipstack_terminate_call(int sipCallId, int sipDialogId) {
 
 	/* lock sip stack to avoid conflicts */
 	eXosip_lock();
-	 /*DEBUG*/
-		fprintf(stdout, "[TERMINATE]sip call id: %i, sip dialog id: %i\n",
-				sipCallId, sipDialogId);
 	/* terminate call: */
 	/* send BYE or CANCEL or 603 DECLINE depending on the situation */
 	int i = eXosip_call_terminate(sipCallId, sipDialogId);
@@ -637,9 +585,6 @@ int sipstack_cancel(int callId) {
 	int sipCallId = get_sip_call_id_by_call_id(callId);
 	/* get sip dialog id of the call */
 	int sipDialogId = get_sip_dialog_id_by_call_id(callId);
-	 /*DEBUG*/
-		fprintf(stdout, "[CANCEL]sip call id: %i, sip dialog id: %i\n",
-				sipCallId, sipDialogId);
 	/* return return code of termination */
 	return sipstack_terminate_call(sipCallId, sipDialogId);
 }
@@ -707,8 +652,11 @@ int sipstack_send_ok(int callId) {
 	int callIndex = get_call_index_by_call_id(callId);
 	if (calls[callIndex].type == NON_INVITE) {
 		int j = terminate_current_transaction(callId);
+		if (j != 0) {
+			fprintf(stderr, "Transaction termination failed.");
+			return -1;
+		}
 	}
-
 	/* return return code of message sending */
 	return i;
 }
@@ -749,6 +697,10 @@ int sipstack_send_acknowledgment(int callId) {
 	   because an acknowledgement always indicates the end of a transaction
 	 */
 	int j = terminate_current_transaction(callId);
+	if (j != 0) {
+		fprintf(stderr, "Transaction termination failed.");
+		return -1;
+	}
 
 	/* return return code of message sending */
 	return i;
