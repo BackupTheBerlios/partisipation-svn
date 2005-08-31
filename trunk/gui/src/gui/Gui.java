@@ -1340,10 +1340,10 @@ public class Gui extends JFrame {
         params.clear();
         Integer accId = (Integer) execute("core.accountCreate", params);
         if (accId != null) {
-            setValues(accId);
             Account acc = new Account(accId.intValue(), false);
             accounts.add(acc);
             list1.addElement("#" + accId.toString() + ": not registered");
+            setValues(accId);
         }
     }
 
