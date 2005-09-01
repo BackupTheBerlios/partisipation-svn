@@ -2,17 +2,22 @@
 #define HEVENT_DISPATCHER_USED
 
 #include <events.h>
-#include <queue/queue.h>
+#include <../util/queue/queue.h>
 
 //int const MAX_CALLS = 32;
 
 typedef struct {
-	Queue eventPool;
+	queue eventPool;
 	pthread_mutex_t poolLock;
 	pthread_cond_t wakeUp;
 	pthread_mutex_t wakeUpLock;
 	int callId;
 } sm_data;
+
+typedef struct {
+	event trigger;
+	void **params;
+} call_trigger;
 
 int ed_init();
 

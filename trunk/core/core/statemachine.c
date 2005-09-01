@@ -105,17 +105,18 @@ int sm_terminating_state(sm_state * curState, event trigger, void **params) {
 
 void *sm_start(void *args) {
 
-	int queueID, rc, callID;
+	int queueID, rc;
 	sm_state curState, lastState;
 
 	queueID = (int) args;
 	curState = INITIAL;
 
 	while (1) {
-		Queue eventPool = queues[queueID]->eventPool;
+		queue eventPool = queues[queueID]->eventPool;
 
-		while (!IsEmpty(eventPool)) {
-			ElementType elem = FrontAndDequeue(eventPool);
+		while (!queue_is_empty(eventPool)) {
+			call_trigger elem =
+				*(call_trigger *) queue_front_and_dequeue(eventPool);
 
 			lastState = curState;
 			switch (curState) {

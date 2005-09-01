@@ -78,7 +78,7 @@ int create_queue(int *pos, int callId) {
 	queues[i]->callId = callId;
 
 	// initialize event queue for specific statemachine:
-	queues[i]->eventPool = CreateQueue(MAX_EVENTS);
+	queues[i]->eventPool = queue_create_queue(MAX_EVENTS);
 
 	// initialize wakeup-condition-variable for specific statemachine:
 	rc = pthread_cond_init(&queues[i]->wakeUp, NULL);
@@ -109,7 +109,7 @@ int destroy_queue(int pos) {
 	int rc;						// return code
 
 	// release queue (event pool):
-	DisposeQueue(queues[pos]->eventPool);
+	queue_dispose_queue(queues[pos]->eventPool);
 
 	// release condition variable:
 	rc = pthread_cond_destroy(&queues[pos]->wakeUp);
@@ -152,9 +152,9 @@ int find_pos_by_call_id(int callId) {
 	return -1;
 }
 
-int enqueue_event(int pos, ElementType * param) {
+int enqueue_event(int pos, call_trigger * param) {
 	pthread_mutex_lock(&queues[pos]->poolLock);
-	Enqueue(*param, queues[pos]->eventPool);
+	queue_enqueue((void *) param, queues[pos]->eventPool);
 	pthread_mutex_unlock(&queues[pos]->poolLock);
 	return 1;
 }
@@ -166,7 +166,7 @@ int wake_machine(int pos) {
 	return 1;
 }
 
-int enqueue_and_wake(int callId, ElementType * param) {
+int enqueue_and_wake(int callId, call_trigger * param) {
 	int res, pos;
 
 	res = find_pos_by_call_id(callId);
@@ -192,9 +192,9 @@ int enqueue_and_wake(int callId, ElementType * param) {
 
 void *dispatch(void *args) {
 
-	ElementType *param;
+	call_trigger *param;
 
-	param = (ElementType *) args;
+	param = (call_trigger *) args;
 
 	int res, pos, callId;
 
@@ -212,7 +212,7 @@ void *dispatch(void *args) {
 				pthread_exit(NULL);
 			}
 
-			Enqueue(*param, queues[pos]->eventPool);
+			queue_enqueue((void *) param, queues[pos]->eventPool);
 
 			start_thread(sm_start, (void *) pos);
 
@@ -230,7 +230,7 @@ void *dispatch(void *args) {
 				pthread_exit(NULL);
 			}
 
-			Enqueue(*param, queues[pos]->eventPool);
+			queue_enqueue((void *) param, queues[pos]->eventPool);
 
 			start_thread(sm_start, (void *) pos);
 
@@ -316,10 +316,10 @@ void *dispatch(void *args) {
 
 int event_dispatch(event evt, void **params) {
 
-	ElementType *threadParam;
+	call_trigger *threadParam;
 	int result;
 
-	threadParam = (ElementType *) malloc(sizeof(ElementType));
+	threadParam = (call_trigger *) malloc(sizeof(call_trigger));
 	result = -1;
 
 	if (evt == GUI_MAKE_CALL) {
