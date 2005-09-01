@@ -12,6 +12,7 @@ const int MAX_LOG_MSG_LEN = 2048;
 int logToFile;
 int logToConsole;
 int logWithTime;
+int logVerbose;
 loglevel logLevelFile;
 loglevel logLevelConsole;
 char *logFileName;
@@ -24,10 +25,11 @@ int logger_init() {
 	logToFile = 1;
 	logToConsole = 1;
 	logWithTime = 1;
+	logVerbose = 1;
 	logLevelFile = LOG_DEBUG;
 	logLevelConsole = LOG_MESSAGE;
 	logFileName = (char *) malloc(256 * sizeof(char));
-	strcpy(logFileName, "test.log");
+	strcpy(logFileName, "/tmp/sipoks05core.log");
 
 	rc = pthread_mutex_init(&logFileLock, NULL);
 	if (rc != 0) {
@@ -110,6 +112,32 @@ void log_message(loglevel lvl, const char *fmt, ...) {
 			strftime(timebuf, 100, "%d.%m.%Y - %H:%M:%S : ",
 					 localtime(&t));
 			fprintf(f, "%s", timebuf);
+		}
+
+		if (logVerbose) {
+			switch (lvl) {
+				case LOG_DEBUG:
+					fprintf(f, "%s", "[DBG] : ");
+					break;
+				case LOG_INFO:
+					fprintf(f, "%s", "[INF] : ");
+					break;
+				case LOG_MESSAGE:
+					fprintf(f, "%s", "[MSG] : ");
+					break;
+				case LOG_WARNING:
+					fprintf(f, "%s", "[WRN] : ");
+					break;
+				case LOG_ERROR:
+					fprintf(f, "%s", "[ERR] : ");
+					break;
+				case LOG_FAILURE:
+					fprintf(f, "%s", "[FLR] : ");
+					break;
+				default:
+					fprintf(f, "%s", "[N/A] : ");
+					break;
+			}
 		}
 
 		fprintf(f, "%s", strtmp);

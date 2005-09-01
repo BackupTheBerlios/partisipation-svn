@@ -15,6 +15,7 @@
 #include <unistd.h>
 
 #include <storage.h>
+#include <../util/logging/logger.h>
 
 /**
  * Amount of threads that can run simultaneously.
@@ -64,7 +65,7 @@ void *add_thread(void *args) {
 
 		if (i == MAXTHREADS) {
 			// ERROR
-			printf("no free position found!\n");
+			log_message(LOG_ERROR, "no free position found!\n");
 
 			// unlock:
 			pthread_mutex_unlock(&thrManLock);
@@ -76,15 +77,17 @@ void *add_thread(void *args) {
 		}
 	}
 
-	printf("found free pos: %d\n", i);
+	log_message(LOG_INFO, "found free pos: %d\n", i);
 
 	// create desired thread:
 	rc = pthread_create(&threads[i], NULL, td->start_routine, td->args);
 	if (rc != 0) {
-		printf("ERROR; return code from pthread_create() is %d\n", rc);
+		log_message(LOG_INFO,
+					"ERROR; return code from pthread_create() is %d\n",
+					rc);
 	}
 
-	printf("created thread\n");
+	log_message(LOG_INFO, "created thread\n");
 
 	activeThreads++;
 	if (activeThreads > peak) {
@@ -120,7 +123,7 @@ void *remove_thread(void *args) {
 	while (threads[i] != *tid) {
 		i++;
 		if (i == MAXTHREADS) {
-			printf("thread not found.\n");
+			log_message(LOG_ERROR, "thread not found.\n");
 			// unlock:
 			pthread_mutex_unlock(&thrManLock);
 
@@ -131,14 +134,15 @@ void *remove_thread(void *args) {
 		}
 	}
 
-	printf("found thread nr. %d at position %d\n", (int) *tid, i);
+	log_message(LOG_INFO, "found thread nr. %d at position %d\n",
+				(int) *tid, i);
 
 	// remove reference:
 	threads[i] = 0;
 
 	activeThreads--;
 
-	printf("thread removed\n");
+	log_message(LOG_INFO, "thread removed\n");
 
 	// unlock:
 	pthread_mutex_unlock(&thrManLock);
@@ -169,7 +173,9 @@ int start_thread(void *(*start_routine) (void *), void *args) {
 	td->args = args;
 	rc = pthread_create(&t, NULL, add_thread, (void *) td);
 	if (rc != 0) {
-		printf("ERROR; return code from pthread_create() is %d\n", rc);
+		log_message(LOG_ERROR,
+					"ERROR; return code from pthread_create() is %d\n",
+					rc);
 		return 0;
 	}
 	return 1;
@@ -191,7 +197,9 @@ int thread_terminated(pthread_t tid) {
 	*param = tid;
 	rc = pthread_create(&t, NULL, remove_thread, (void *) param);
 	if (rc != 0) {
-		printf("ERROR; return code from pthread_create() is %d\n", rc);
+		log_message(LOG_ERROR,
+					"ERROR; return code from pthread_create() is %d\n",
+					rc);
 		return 0;
 	}
 	return 1;
@@ -237,8 +245,8 @@ int tm_destroy() {
 		return 0;
 	}
 
-	printf("activeThreads: %d\n", activeThreads);
-	printf("peak was: %d\n", peak);
+	log_message(LOG_INFO, "activeThreads: %d\n", activeThreads);
+	log_message(LOG_INFO, "peak was: %d\n", peak);
 
 	// free memory for thread references
 	free(threads);

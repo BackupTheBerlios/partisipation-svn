@@ -5,9 +5,12 @@
 #include <check.h>
 
 #include <thread_management.h>
+#include <../util/logging/logger.h>
 
 void setup(void) {
 	int rc;
+	rc = logger_init();
+	fail_if(rc == 0, "logging could not be initialized");
 	rc = tm_init();
 	fail_if(rc == 0, "thread management could not be initialized");
 }
@@ -16,6 +19,8 @@ void teardown(void) {
 	int rc;
 	rc = tm_destroy();
 	fail_if(rc == 0, "thread management could not be released");
+	rc = logger_destroy();
+	fail_if(rc == 0, "logging could not be released");
 	pthread_exit(NULL);
 }
 

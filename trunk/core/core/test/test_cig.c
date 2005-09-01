@@ -5,6 +5,7 @@
 #include <check.h>
 
 #include <../util/thread_management.h>
+#include <../util/logging/logger.h>
 #include <call_id_generator.h>
 #include <time.h>
 
@@ -32,6 +33,9 @@ void teardown(void) {
 void setup_with_tm(void) {
 	int rc;
 
+	rc = logger_init();
+	fail_if(rc == 0, "logging could not be initialized");
+
 	rc = tm_init();
 	fail_if(rc == 0, "thread management could not be initialized");
 
@@ -51,6 +55,10 @@ void teardown_with_tm(void) {
 
 	rc = tm_destroy();
 	fail_if(rc == 0, "thread management could not be released");
+
+	rc = logger_destroy();
+	fail_if(rc == 0, "logging could not be released");
+
 	pthread_exit(NULL);
 }
 
