@@ -19,6 +19,8 @@ import org.xml.sax.SAXException;
 /**
  * This class can execute complex scenarios specified in XML to test the GUI.
  *
+ * You can use "*" to indicate an unspecified function or parameter value.
+ *
  * @author Anton Huttenlocher
  * @author Oleksiy Reznikov
  *
@@ -60,11 +62,12 @@ public class Tester {
             if (node.getNodeName().equalsIgnoreCase("print")) {
                 // use System.err just to show this info
                 // in different color in Eclipse console
-                System.err.println("[ "+node.getFirstChild().getNodeValue()+" ]");
+                System.err.println("[ " + node.getFirstChild().getNodeValue()
+                        + " ]");
             } else if (node.getNodeName().equalsIgnoreCase("sleep")) {
                 int pause = Integer.parseInt(node.getFirstChild()
                         .getNodeValue());
-                System.out.println("> Sleeping for "+pause+" ms.");
+                System.out.println("> Sleeping for " + pause + " ms.");
                 try {
                     Thread.sleep(pause);
                 } catch (InterruptedException e) {
@@ -77,8 +80,8 @@ public class Tester {
                 setParameters(node, sendpar);
 
                 try {
-                    System.out.println("> Calling GUI method " + sendfct
-                            + "[" + printParameters(sendpar) + "]");
+                    System.out.println("> Calling GUI method " + sendfct + "["
+                            + printParameters(sendpar) + "]");
 
                     client.execute("gui." + sendfct, sendpar);
 
@@ -88,6 +91,10 @@ public class Tester {
                     e.printStackTrace();
                 }
 
+            } else if (node.getNodeName().equalsIgnoreCase("*")) {
+                System.out.println("------- OK: Expected arbitrary "
+                        + " function. -------");
+                suspend = true;
             } else if (node.getNodeName().equalsIgnoreCase("expect")) {
 
                 expfct = node.getAttributes().getNamedItem("method")
@@ -100,19 +107,23 @@ public class Tester {
 
                 if (expfct.equalsIgnoreCase(gotfct)) {
                     if (parameterMatch()) {
-                        System.out.println("------- OK: Expected " + expfct
-                                + " and got it with proper parameter values. -------");
+                        System.out
+                                .println("------- OK: Expected "
+                                        + expfct
+                                        + " and got it with proper parameter values. -------");
                         suspend = true;
                     } else {
-                        System.out.println("------- TEST FAILED: Expected " + expfct
-                                + "[" + printParameters(expar) + "], but got "
-                                + gotfct + "[" + printParameters(gotpar)
+                        System.out.println("------- TEST FAILED: Expected "
+                                + expfct + "[" + printParameters(expar)
+                                + "], but got " + gotfct + "["
+                                + printParameters(gotpar)
                                 + "]. Stop test. -------");
                         System.exit(0);
                     }
                 } else {
-                    System.out.println("------- TEST FAILED: Expected " + expfct
-                            + ", but got " + gotfct + ". Stop test. -------");
+                    System.out.println("------- TEST FAILED: Expected "
+                            + expfct + ", but got " + gotfct
+                            + ". Stop test. -------");
                     System.exit(0);
                 }
             }
@@ -131,8 +142,13 @@ public class Tester {
             Enumeration e = expar.elements();
             Enumeration f = gotpar.elements();
             while (e.hasMoreElements() && ok) {
-                ok = e.nextElement().toString().equalsIgnoreCase(
-                        f.nextElement().toString());
+                String strexp = e.nextElement().toString();
+                String strgot = f.nextElement().toString();
+                if (strexp.equalsIgnoreCase("*")) {
+                    ok = true;
+                } else {
+                    ok = strexp.equalsIgnoreCase(strgot.toString());
+                }
             }
             return ok;
         } else
@@ -152,8 +168,8 @@ public class Tester {
     }
 
     /**
-     * Set expected parameters. Note, that they are set only with their
-     * String representation, not converted to a proper type.
+     * Set expected parameters. Note, that they are set only with their String
+     * representation, not converted to a proper type.
      *
      * @param node
      */
@@ -163,8 +179,8 @@ public class Tester {
         if (c != null) {
             for (int i = 0; i < c.getLength(); i++) {
                 if (c.item(i).getNodeType() == Node.ELEMENT_NODE) {
-                String s = c.item(i).getFirstChild().getNodeValue();
-                expar.add(s);
+                    String s = c.item(i).getFirstChild().getNodeValue();
+                    expar.add(s);
                 }
             }
         }
@@ -374,12 +390,15 @@ public class Tester {
                 Tester tester = new Tester();
 
                 // validate scenario against DTD
-                parser.setFeature("http://xml.org/sax/features/validation", true);
+                parser.setFeature("http://xml.org/sax/features/validation",
+                        true);
 
                 parser.parse(args[0]);
                 Document document = parser.getDocument();
 
-                System.out.println("> SCENARIO: "+parser.getDocument().getDocumentElement().getAttribute("name"));
+                System.out.println("> SCENARIO: "
+                        + parser.getDocument().getDocumentElement()
+                                .getAttribute("name"));
 
                 //  XmlRpc.setDebug(true);
                 WebServer server = new WebServer(Utils.COREPORT, InetAddress
