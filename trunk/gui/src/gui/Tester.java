@@ -329,7 +329,7 @@ public class Tester {
         } else if (attr.equalsIgnoreCase("REGISTRAR")) {
             return "registrar.org";
         } else if (attr.equalsIgnoreCase("AUTOREGISTER")) {
-            return "yes";
+            return "1";
         } else
             return "";
     }
