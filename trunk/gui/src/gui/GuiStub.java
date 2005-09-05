@@ -36,10 +36,18 @@ public class GuiStub {
             if (n == accountId) {
                 if (registered) {
                     acc.setRegistered(true);
-                    gui.list1.set(i, "#" + accountId + ": registered");
+                    ImageIcon img = new ImageIcon(cl
+                            .getResource("gui/resources/green.gif"));
+                    img.setDescription(""+accountId);
+                    gui.list1.set(i, img);
+                    //gui.list1.set(i, "#" + accountId + ": registered");
                 } else {
                     acc.setRegistered(false);
-                    gui.list1.set(i, "#" + accountId + ": not registered");
+                    ImageIcon img = new ImageIcon(cl
+                            .getResource("gui/resources/red.gif"));
+                    img.setDescription(""+accountId);
+                    gui.list1.set(i, img);
+                    //gui.list1.set(i, "#" + accountId + ": not registered");
                 }
                 break;
             }
