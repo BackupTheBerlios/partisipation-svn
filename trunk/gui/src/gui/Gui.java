@@ -1,5 +1,9 @@
 package gui;
 
+import java.awt.Color;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -19,10 +23,11 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-//import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JSlider;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
@@ -44,15 +49,25 @@ import java.util.Enumeration;
 
 /**
  * This is the graphical user interface designed with Java Swing.
- *
+ * 
  * @author Anton Huttenlocher
  * @author Oleksiy Reznikov
  */
 public class Gui extends JFrame {
 
+    private Color BGCOLOR = Color.YELLOW;
+
     private int slidervalue = 50;
 
     private String accfile = "";
+
+    private boolean modified = false;
+
+    private boolean justSelect = false;
+
+    private String oldValue = "";
+
+    private int oldIndex = -1;
 
     // client part - sends calls to core
     private XmlRpcClientLite client;
@@ -114,8 +129,12 @@ public class Gui extends JFrame {
                     Enumeration e = v.elements();
                     while (e.hasMoreElements()) {
                         Integer n = (Integer) e.nextElement();
-                        list1.addElement("#" + n.toString()
-                                + ": not registered");
+                        ImageIcon img = new ImageIcon(cl
+                                .getResource("gui/resources/red.gif"));
+                        img.setDescription(n.toString());
+                        list1.addElement(img);
+                        //     list1.addElement("#" + n.toString()
+                        //             + ": not registered");
                         Account acc = new Account(n.intValue(), false);
                         accounts.add(acc);
                         a++;
@@ -174,6 +193,8 @@ public class Gui extends JFrame {
         aboutMenuItem = new JMenuItem();
         jMenuItem1 = new JMenuItem();
         jMenuItem2 = new JMenuItem();
+        popup_register = new JMenuItem("Register");
+        popup_delete = new JMenuItem("Delete");
         jScrollPane1 = new JScrollPane();
         jScrollPane2 = new JScrollPane();
         jScrollPane3 = new JScrollPane();
@@ -209,10 +230,7 @@ public class Gui extends JFrame {
         jLabel25 = new JLabel();
         jLabel26 = new JLabel();
         jCheckBox1 = new JCheckBox();
-        jButton1 = new JButton();
-        jButton2 = new JButton();
         jButton3 = new JButton();
-        jButton4 = new JButton();
         jButton5 = new JButton();
         jButton6 = new JButton();
         jButton7 = new JButton();
@@ -222,6 +240,7 @@ public class Gui extends JFrame {
         addressBook = new JFrame();
         accounts = new Vector();
         calls = new Vector();
+        popup = new JPopupMenu();
 
         getContentPane().setLayout(new AbsoluteLayout());
 
@@ -322,6 +341,14 @@ public class Gui extends JFrame {
         jList1
                 .setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jList1.setValueIsAdjusting(true);
+        jList1.setCellRenderer(cscr);
+
+        MouseListener popupListener = new PopupListener(this);
+        jList1.addMouseListener(popupListener);
+        popup.add(popup_register);
+        popup.add(new JSeparator());
+        popup.add(popup_delete);
+
         jScrollPane1.setViewportView(jList1);
 
         jPanel3.add(jTextField8, new AbsoluteConstraints(350, 20, 200, -1));
@@ -367,32 +394,20 @@ public class Gui extends JFrame {
 
         jPanel3.add(jTextField7, new AbsoluteConstraints(350, 230, 200, -1));
 
-        jButton1.setEnabled(false);
-        jButton3.setEnabled(false);
-        jButton4.setEnabled(false);
-
         jLabel25.setText("Auto-Register:");
         jPanel3.add(jLabel25, new AbsoluteConstraints(210, 260, -1, -1));
 
         jPanel3.add(jCheckBox1, new AbsoluteConstraints(350, 260, -1, -1));
 
-        jButton1.setText("(Un)Register");
-        jPanel3.add(jButton1, new AbsoluteConstraints(330, 300, 110, -1));
+        jButton3.setText("Save account data");
+        jButton3.setEnabled(false);
+        jPanel3.add(jButton3, new AbsoluteConstraints(455, 300, 200, -1));
 
-        jButton2.setText("Save");
-        jPanel3.add(jButton4, new AbsoluteConstraints(440, 300, 110, -1));
+        jButton5.setText("Create account");
+        jPanel3.add(jButton5, new AbsoluteConstraints(230, 300, 205, -1));
 
-        jButton3.setText("Set Values");
-        jPanel3.add(jButton3, new AbsoluteConstraints(550, 300, 110, -1));
-
-        jButton4.setText("Delete");
-        jPanel3.add(jButton2, new AbsoluteConstraints(230, 300, 100, -1));
-
-        jButton5.setText("Create");
-        jPanel3.add(jButton5, new AbsoluteConstraints(120, 300, 110, -1));
-
-        jButton6.setText("Clear");
-        jPanel3.add(jButton6, new AbsoluteConstraints(10, 300, 110, -1));
+        jButton6.setText("Clear fields");
+        jPanel3.add(jButton6, new AbsoluteConstraints(10, 300, 200, -1));
 
         jPanel3.add(jScrollPane1, new AbsoluteConstraints(10, 10, 190, 260));
 
@@ -468,6 +483,18 @@ public class Gui extends JFrame {
         helpMenu.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 helpMenuActionPerformed(evt);
+            }
+        });
+
+        popup_delete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                popupDeleteActionPerformed(evt);
+            }
+        });
+
+        popup_register.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                popupRegisterActionPerformed(evt);
             }
         });
 
@@ -701,27 +728,9 @@ public class Gui extends JFrame {
             }
         });
 
-        jButton1.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButton1MouseClicked(evt);
-            }
-        });
-
-        jButton2.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButton2MouseClicked(evt);
-            }
-        });
-
         jButton3.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 jButton3MouseClicked(evt);
-            }
-        });
-
-        jButton4.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButton4MouseClicked(evt);
             }
         });
 
@@ -785,25 +794,154 @@ public class Gui extends JFrame {
             }
         });
 
+        jTextField2.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                jTextField2KeyPressed(evt);
+            }
+
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextField2KeyReleased(evt);
+            }
+        });
+
+        jTextField3.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                jTextField3KeyPressed(evt);
+            }
+
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextField3KeyReleased(evt);
+            }
+        });
+
+        jTextField4.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                jTextField4KeyPressed(evt);
+            }
+
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextField4KeyReleased(evt);
+            }
+        });
+
+        jTextField5.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                jTextField5KeyPressed(evt);
+            }
+
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextField5KeyReleased(evt);
+            }
+        });
+
+        jTextField6.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                jTextField6KeyPressed(evt);
+            }
+
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextField6KeyReleased(evt);
+            }
+        });
+
+        jTextField7.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                jTextField7KeyPressed(evt);
+            }
+
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextField7KeyReleased(evt);
+            }
+        });
+
+        jTextField8.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                jTextField8KeyPressed(evt);
+            }
+
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextField8KeyReleased(evt);
+            }
+        });
+
+        jPasswordField1.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                jPasswordField1KeyPressed(evt);
+            }
+
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jPasswordField1KeyReleased(evt);
+            }
+        });
+
+        jCheckBox1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBox1ActionPerformed(evt);
+            }
+        });
+
         pack();
-    }
-
-    // </editor-fold>
-
-    public void jComboBox1ActionPerformed(java.awt.event.ActionEvent evt) {
-        // TODO add your handling code here:
     }
 
     public void helpMenuActionPerformed(java.awt.event.ActionEvent evt) {
         // TODO add your handling code here:
     }
 
+    public void popupDeleteActionPerformed(java.awt.event.ActionEvent evt) {
+        int i = jList1.getSelectedIndex();
+        if (i > -1) {
+            Integer accId = new Integer(((Account) accounts.elementAt(i)).id);
+
+            params.clear();
+            params.add(accId);
+            if (((Boolean) execute("core.accountDelete", params))
+                    .booleanValue()) {
+                list1.remove(i);
+                accounts.remove(i);
+                jTextField2.setText("");
+                jTextField3.setText("");
+                jTextField4.setText("");
+                jTextField5.setText("");
+                jTextField6.setText("");
+                jTextField7.setText("");
+                jTextField8.setText("");
+                jPasswordField1.setText("");
+                jCheckBox1.setSelected(false);
+                jTextArea1.append(Utils.getTimestamp() + ": Account with ID "
+                        + accId.intValue() + " removed.\n");
+
+            }
+        }
+    }
+
+    public void popupRegisterActionPerformed(java.awt.event.ActionEvent evt) {
+        int i = jList1.getSelectedIndex();
+        if (i > -1) {
+
+            Account acc = (Account) accounts.elementAt(i);
+            Integer accId = new Integer(acc.id);
+
+            params.clear();
+            params.add(accId);
+            ImageIcon img = new ImageIcon(cl
+                    .getResource("gui/resources/yellow.gif"));
+            img.setDescription(accId.toString());
+            list1.set(i, img);
+
+            if (acc.registered) {
+                execute("core.unregister", params);
+            } else {
+                execute("core.register", params);
+            }
+        }
+    }
+
     /**
      * Main method. It calls methods to create the GUI window and to make it
      * visible to the user.
-     *
+     * 
      * @param args
-     *            Console arguments. They all will be ignored.
+     *                   Console arguments. They all will be ignored.
      */
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(new Runnable() {
@@ -886,6 +1024,10 @@ public class Gui extends JFrame {
 
     public JMenuItem jMenuItem2;
 
+    public JMenuItem popup_register;
+
+    public JMenuItem popup_delete;
+
     public JPanel jPanel1;
 
     public JPanel jPanel3;
@@ -944,13 +1086,7 @@ public class Gui extends JFrame {
 
     public JPasswordField jPasswordField1;
 
-    public JButton jButton1;
-
-    public JButton jButton2;
-
     public JButton jButton3;
-
-    public JButton jButton4;
 
     public JButton jButton5;
 
@@ -969,6 +1105,8 @@ public class Gui extends JFrame {
     public Vector accounts;
 
     public Vector calls;
+
+    public JPopupMenu popup;
 
     public JFrame addressBook;
 
@@ -1210,40 +1348,15 @@ public class Gui extends JFrame {
         addressBook.setVisible(true);
     }
 
-    /* "Register" button clicked */
-    public void jButton1MouseClicked(java.awt.event.MouseEvent evt) {
-        int i = jList1.getSelectedIndex();
-        if (i > -1) {
-
-            Account acc = (Account) accounts.elementAt(i);
-            Integer accId = new Integer(acc.id);
-
-            if (acc.registered) {
-                params.clear();
-                params.add(accId);
-                list1.set(i, "#" + accId.intValue() + ": unregistering ...");
-                execute("core.unregister", params);
-            } else {
-                params.clear();
-                params.add(accId);
-                list1.set(i, "#" + accId.intValue() + ": registering ...");
-                execute("core.register", params);
-            }
-
-        }
-    }
-
-    /* "Unregister" button clicked */
-    public void jButton2MouseClicked(java.awt.event.MouseEvent evt) {
-        execute("core.accountSave", params);
-    }
-
     /* "Set Values" button clicked */
     public void jButton3MouseClicked(java.awt.event.MouseEvent evt) {
         int i = jList1.getSelectedIndex();
         if (i > -1) {
             Integer accId = new Integer(((Account) accounts.elementAt(i)).id);
             setValues(accId);
+            modified = false;
+            restoreColor();
+            jButton3.setEnabled(false);
         }
     }
 
@@ -1306,32 +1419,51 @@ public class Gui extends JFrame {
             params.add("0");
         }
         execute("core.accountSet", params);
+        params.clear();
+        execute("core.accountSave", params);
     }
 
-    /* "Delete" button clicked */
-    public void jButton4MouseClicked(java.awt.event.MouseEvent evt) {
-        int i = jList1.getSelectedIndex();
-        if (i > -1) {
-            Integer accId = new Integer(((Account) accounts.elementAt(i)).id);
-
-            params.clear();
-            params.add(accId);
-            if (((Boolean) execute("core.accountDelete", params))
-                    .booleanValue()) {
-                list1.remove(i);
-                accounts.remove(i);
-                jTextField2.setText("");
-                jTextField3.setText("");
-                jTextField4.setText("");
-                jTextField5.setText("");
-                jTextField6.setText("");
-                jTextField7.setText("");
-                jTextField8.setText("");
-                jPasswordField1.setText("");
-                jCheckBox1.setSelected(false);
-                jTextArea1.append(Utils.getTimestamp() + ": Account with ID "
-                        + accId.intValue() + " removed.\n");
-            }
+    public void getValues(Integer accId) {
+        params.clear();
+        params.add(accId);
+        params.add("name");
+        jTextField8.setText((String) execute("core.accountGet", params));
+        params.clear();
+        params.add(accId);
+        params.add("displayname");
+        jTextField2.setText((String) execute("core.accountGet", params));
+        params.clear();
+        params.add(accId);
+        params.add("username");
+        jTextField3.setText((String) execute("core.accountGet", params));
+        params.clear();
+        params.add(accId);
+        params.add("authusername");
+        jTextField4.setText((String) execute("core.accountGet", params));
+        params.clear();
+        params.add(accId);
+        params.add("domain");
+        jTextField5.setText((String) execute("core.accountGet", params));
+        params.clear();
+        params.add(accId);
+        params.add("outboundproxy");
+        jTextField6.setText((String) execute("core.accountGet", params));
+        params.clear();
+        params.add(accId);
+        params.add("registrar");
+        jTextField7.setText((String) execute("core.accountGet", params));
+        params.clear();
+        params.add(accId);
+        params.add("password");
+        jPasswordField1.setText((String) execute("core.accountGet", params));
+        params.clear();
+        params.add(accId);
+        params.add("autoregister");
+        String s = (String) execute("core.accountGet", params);
+        if (s.equalsIgnoreCase("1")) {
+            jCheckBox1.setSelected(true);
+        } else {
+            jCheckBox1.setSelected(false);
         }
     }
 
@@ -1342,8 +1474,13 @@ public class Gui extends JFrame {
         if (accId != null) {
             Account acc = new Account(accId.intValue(), false);
             accounts.add(acc);
-            list1.addElement("#" + accId.toString() + ": not registered");
+            ImageIcon img = new ImageIcon(cl
+                    .getResource("gui/resources/red.gif"));
+            img.setDescription(accId.toString());
+            list1.addElement(img);
             setValues(accId);
+            modified = false;
+            restoreColor();
         }
     }
 
@@ -1358,6 +1495,7 @@ public class Gui extends JFrame {
         jTextField8.setText("");
         jPasswordField1.setText("");
         jCheckBox1.setSelected(false);
+        jList1.clearSelection();
     }
 
     /* Phonebook "Select" button clicked */
@@ -1438,72 +1576,85 @@ public class Gui extends JFrame {
     }
 
     private void jList1ValueChanged(javax.swing.event.ListSelectionEvent evt) {
-        int i = jList1.getSelectedIndex();
-        if (i > -1) {
 
-            Account acc = (Account) accounts.elementAt(i);
-            actacc = acc;
-            Integer accId = new Integer(acc.id);
-
-            if (acc.registered) {
-                jButton1.setText("Unregister");
-            } else {
-                jButton1.setText("Register");
-            }
-
-            jButton1.setEnabled(true);
-            jButton2.setEnabled(true);
-            jButton3.setEnabled(true);
-            jButton4.setEnabled(true);
-
-            params.clear();
-            params.add(accId);
-            params.add("name");
-            jTextField8.setText((String) execute("core.accountGet", params));
-            params.clear();
-            params.add(accId);
-            params.add("displayname");
-            jTextField2.setText((String) execute("core.accountGet", params));
-            params.clear();
-            params.add(accId);
-            params.add("username");
-            jTextField3.setText((String) execute("core.accountGet", params));
-            params.clear();
-            params.add(accId);
-            params.add("authusername");
-            jTextField4.setText((String) execute("core.accountGet", params));
-            params.clear();
-            params.add(accId);
-            params.add("domain");
-            jTextField5.setText((String) execute("core.accountGet", params));
-            params.clear();
-            params.add(accId);
-            params.add("outboundproxy");
-            jTextField6.setText((String) execute("core.accountGet", params));
-            params.clear();
-            params.add(accId);
-            params.add("registrar");
-            jTextField7.setText((String) execute("core.accountGet", params));
-            params.clear();
-            params.add(accId);
-            params.add("password");
-            jPasswordField1
-                    .setText((String) execute("core.accountGet", params));
-            params.clear();
-            params.add(accId);
-            params.add("autoregister");
-            String s = (String) execute("core.accountGet", params);
-            if (s.equalsIgnoreCase("1")) {
-                jCheckBox1.setSelected(true);
-            } else {
-                jCheckBox1.setSelected(false);
-            }
+        if (justSelect) {
+            justSelect = false;
         } else {
-            jButton1.setEnabled(false);
-            jButton3.setEnabled(false);
-            jButton4.setEnabled(false);
-            actacc = null;
+
+            int i = jList1.getSelectedIndex();
+            if (i > -1) {
+
+                Account acc = (Account) accounts.elementAt(i);
+                actacc = acc;
+                Integer accId = new Integer(acc.id);
+
+                if (acc.registered) {
+                    popup_register.setText("Unregister");
+                } else {
+                    popup_register.setText("Register");
+                }
+
+                if (modified && oldIndex > -1) {
+                    Object[] options = { "Yes", "No (changes will be lost)",
+                            "Cancel" };
+                    int n = JOptionPane.showOptionDialog(this,
+                            "You have modified some values. "
+                                    + "Do you want to save them now?",
+                            "Warning", JOptionPane.YES_NO_CANCEL_OPTION,
+                            JOptionPane.WARNING_MESSAGE, null, options,
+                            options[0]);
+
+                    if (n == 0) {
+                        if (oldIndex != -1) {
+                            Account oldAcc = (Account) accounts
+                                    .elementAt(oldIndex);
+                            Integer oldAccId = new Integer(acc.id);
+                            setValues(oldAccId);
+                        }
+                        modified = false;
+                        jButton3.setEnabled(false);
+                        restoreColor();
+                        oldIndex = -1;
+                        getValues(accId);
+                    } else if (n == 1) {
+                        modified = false;
+                        getValues(accId);
+                        restoreColor();
+                        oldIndex = -1;
+                    } else {
+                        justSelect = true;
+                        if (oldIndex != -1) {
+                            jList1.setSelectedIndex(oldIndex);
+                        }
+                    }
+                } else {
+                    getValues(accId);
+                }
+
+            } else {
+                actacc = null;
+            }
         }
+    }
+
+    private void restoreColor() {
+        jTextField2.setBackground(Color.WHITE);
+        jTextField3.setBackground(Color.WHITE);
+
+        jTextField4.setBackground(Color.WHITE);
+
+        jTextField5.setBackground(Color.WHITE);
+
+        jTextField6.setBackground(Color.WHITE);
+
+        jTextField7.setBackground(Color.WHITE);
+
+        jTextField8.setBackground(Color.WHITE);
+
+        jPasswordField1.setBackground(Color.WHITE);
+
+        jCheckBox1.setBackground(jPanel3.getBackground());
+
     }
 
     private void jList2ValueChanged(javax.swing.event.ListSelectionEvent evt) {
@@ -1526,13 +1677,106 @@ public class Gui extends JFrame {
         }
     }
 
+    private void jTextField8KeyPressed(java.awt.event.KeyEvent evt) {
+        oldValue = jTextField8.getText();
+    }
+
+    private void jTextField8KeyReleased(java.awt.event.KeyEvent evt) {
+        checkChanges(jTextField8);
+    }
+
+    private void jTextField2KeyPressed(java.awt.event.KeyEvent evt) {
+        oldValue = jTextField2.getText();
+    }
+
+    private void jTextField2KeyReleased(java.awt.event.KeyEvent evt) {
+        checkChanges(jTextField2);
+    }
+
+    private void jTextField3KeyPressed(java.awt.event.KeyEvent evt) {
+        oldValue = jTextField3.getText();
+    }
+
+    private void jTextField3KeyReleased(java.awt.event.KeyEvent evt) {
+        checkChanges(jTextField3);
+    }
+
+    private void jTextField4KeyPressed(java.awt.event.KeyEvent evt) {
+        oldValue = jTextField4.getText();
+    }
+
+    private void jTextField4KeyReleased(java.awt.event.KeyEvent evt) {
+        checkChanges(jTextField4);
+    }
+
+    private void jTextField5KeyPressed(java.awt.event.KeyEvent evt) {
+        oldValue = jTextField5.getText();
+    }
+
+    private void jTextField5KeyReleased(java.awt.event.KeyEvent evt) {
+        checkChanges(jTextField5);
+    }
+
+    private void jTextField6KeyPressed(java.awt.event.KeyEvent evt) {
+        oldValue = jTextField6.getText();
+    }
+
+    private void jTextField6KeyReleased(java.awt.event.KeyEvent evt) {
+        checkChanges(jTextField6);
+    }
+
+    private void jTextField7KeyPressed(java.awt.event.KeyEvent evt) {
+        oldValue = jTextField7.getText();
+    }
+
+    private void jTextField7KeyReleased(java.awt.event.KeyEvent evt) {
+        checkChanges(jTextField7);
+    }
+
+    private void jPasswordField1KeyPressed(java.awt.event.KeyEvent evt) {
+        oldValue = ((JTextField) jPasswordField1).getText();
+    }
+
+    private void jPasswordField1KeyReleased(java.awt.event.KeyEvent evt) {
+        checkChanges((JTextField) jPasswordField1);
+    }
+
+    public void jCheckBox1ActionPerformed(java.awt.event.ActionEvent evt) {
+        modified = true;
+        oldIndex = jList1.getSelectedIndex();
+        jCheckBox1.setBackground(BGCOLOR);
+    }
+
+    /**
+     * Checks, if user has changed the text of a text field and shows a dialog.
+     * 
+     * @param t
+     */
+    private void checkChanges(JTextField t) {
+        int i = jList1.getSelectedIndex();
+        if (i > -1) {
+            if (modified) {
+                if (t.getText().compareTo(oldValue) != 0) {
+                    t.setBackground(BGCOLOR);
+                }
+            } else {
+                modified = (t.getText().compareTo(oldValue) != 0);
+                if (modified) {
+                    jButton3.setEnabled(true);
+                    oldIndex = jList1.getSelectedIndex();
+                    t.setBackground(BGCOLOR);
+                }
+            }
+        }
+    }
+
     private void print(String s) {
         jTextArea1.append(Utils.getTimestamp() + ": " + s + "\n");
     }
 
     /**
      * Execute a XML-RPC call with specified timeout.
-     *
+     * 
      * @param s
      * @param v
      * @param p
@@ -1546,7 +1790,7 @@ public class Gui extends JFrame {
 
     /**
      * Execute a XML-RPC call with standard timeout.
-     *
+     * 
      * @param s
      * @param v
      * @return
@@ -1629,6 +1873,38 @@ class PhonebookParser extends DefaultHandler {
             }
             Contact c = new Contact(name, sip);
             phonebook.add(c);
+        }
+    }
+}
+
+class PopupListener extends MouseAdapter {
+
+    Gui gui;
+
+    public PopupListener(Gui g) {
+        gui = g;
+    }
+
+    public void mousePressed(MouseEvent e) {
+        maybeShowPopup(e);
+    }
+
+    public void mouseReleased(MouseEvent e) {
+        maybeShowPopup(e);
+    }
+
+    private void maybeShowPopup(MouseEvent e) {
+        if (e.isPopupTrigger()) {
+            int pos = gui.jList1.locationToIndex(e.getPoint());
+            if (pos > -1) {
+                gui.jList1.setSelectedIndex(pos);
+                gui.popup_delete.setEnabled(true);
+                gui.popup_register.setEnabled(true);
+            } else {
+                gui.popup_delete.setEnabled(false);
+                gui.popup_register.setEnabled(false);
+            }
+            gui.popup.show(e.getComponent(), e.getX(), e.getY());
         }
     }
 }
