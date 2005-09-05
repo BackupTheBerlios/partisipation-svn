@@ -352,6 +352,8 @@ int account_create() {
 
 	add_node(a);
 
+	account_list_save();
+
 	printf("account_management.c - account_create() - exit\n");
 
 	return id;
@@ -368,6 +370,8 @@ int account_delete(int const accountId) {
 	printf("account_management.c - account_delete() - enter\n");
 
 	del_node(accountId);
+
+	account_list_save();
 
 	printf("account_management.c - account_delete() - exit\n");
 
