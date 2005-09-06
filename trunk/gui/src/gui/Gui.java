@@ -146,9 +146,9 @@ public class Gui extends JFrame {
             }
 
             readPhonebook();
-            Enumeration enum = phonebook.elements();
-            while (enum.hasMoreElements()) {
-                Contact con = (Contact) enum.nextElement();
+            Enumeration e = phonebook.elements();
+            while (e.hasMoreElements()) {
+                Contact con = (Contact) e.nextElement();
                 list3.addElement(con.name);
             }
 
@@ -1348,7 +1348,7 @@ public class Gui extends JFrame {
         addressBook.setVisible(true);
     }
 
-    /* "Set Values" button clicked */
+    /* "Save account data" button clicked */
     public void jButton3MouseClicked(java.awt.event.MouseEvent evt) {
         int i = jList1.getSelectedIndex();
         if (i > -1) {
@@ -1745,6 +1745,7 @@ public class Gui extends JFrame {
         modified = true;
         oldIndex = jList1.getSelectedIndex();
         jCheckBox1.setBackground(BGCOLOR);
+        jButton3.setEnabled(true);
     }
 
     /**
