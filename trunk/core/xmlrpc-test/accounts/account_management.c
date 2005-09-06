@@ -8,6 +8,8 @@
 #include <accounts/account_management.h>
 #include <constants.h>
 #include <accounts/list.h>
+#include <callback/gui_callback.h>
+#include <accounts/genx.h>
 
 #define BUFFSIZE 1000
 
@@ -148,50 +150,66 @@ void account_management_init() {
 	Save current accounts to an XML file.
 */
 void account_list_save() {
+
+	printf("accounts_list_save - start\n");
 	// open file in write-mode
 	FILE *xmlfile = fopen(XMLFILE, "w");
 
 	if (xmlfile) {
-		// write the XML declaration
-		fprintf(xmlfile,
-				"<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n");
-		fprintf(xmlfile, "<!DOCTYPE list SYSTEM \"./accounts.dtd\">\n");
-		// open document root element
-		fprintf(xmlfile, "<list>\n");
 
 		struct node *tmp = head;
 
+		genxWriter w = genxNew(NULL, NULL, NULL);
+
+		genxStartDocFile(w, xmlfile);
+		genxStartElementLiteral(w, NULL, "list");
+
 		// continue until the end of the list
 		while (tmp) {
+
 			// get current account
 			struct account *acc = tmp->acc;
 
-			// save account data
-			fprintf(xmlfile, "\t<account\n");
-			fprintf(xmlfile, "\t\tid=\"%d\"\n", acc->id);
-			fprintf(xmlfile, "\t\tname=\"%s\"\n", acc->name);
-			fprintf(xmlfile, "\t\tusername=\"%s\"\n", acc->username);
-			fprintf(xmlfile, "\t\tdomain=\"%s\"\n", acc->domain);
-			fprintf(xmlfile, "\t\tauthusername=\"%s\"\n",
-					acc->authusername);
-			fprintf(xmlfile, "\t\tpassword=\"%s\"\n", acc->password);
-			fprintf(xmlfile, "\t\tdisplayname=\"%s\"\n", acc->displayname);
-			fprintf(xmlfile, "\t\toutboundproxy=\"%s\"\n",
-					acc->outboundproxy);
-			fprintf(xmlfile, "\t\tregistrar=\"%s\"\n", acc->registrar);
-			fprintf(xmlfile, "\t\tautoregister=\"%d\"\n",
-					acc->autoregister);
-			fprintf(xmlfile, "\t/>\n");
-			// go on with next account
+			genxStartElementLiteral(w, NULL, "account");
+
+			char *str_id = (char *) malloc(20);
+			snprintf(str_id, 10, "%d", acc->id);
+			genxAddAttributeLiteral(w, NULL, "id", str_id);
+			free(str_id);
+
+			genxAddAttributeLiteral(w, NULL, "name", acc->name);
+			genxAddAttributeLiteral(w, NULL, "username", acc->username);
+			genxAddAttributeLiteral(w, NULL, "domain", acc->domain);
+			genxAddAttributeLiteral(w, NULL, "authusername",
+									acc->authusername);
+			genxAddAttributeLiteral(w, NULL, "password", acc->password);
+			genxAddAttributeLiteral(w, NULL, "displayname",
+									acc->displayname);
+			genxAddAttributeLiteral(w, NULL, "outboundproxy",
+									acc->outboundproxy);
+			genxAddAttributeLiteral(w, NULL, "registrar", acc->registrar);
+
+			char *str_autoreg = (char *) malloc(20);
+			snprintf(str_autoreg, 10, "%d", acc->autoregister);
+			genxAddAttributeLiteral(w, NULL, "autoregister", str_autoreg);
+			free(str_autoreg);
+
+			genxEndElement(w);
+
 			tmp = tmp->next;
+
 		}
-		// close document root element
-		fprintf(xmlfile, "</list>\n");
+
+		genxEndElement(w);
+		genxEndDocument(w);
+
 	} else {
 		printf("I/O error for file %s\n", XMLFILE);
 	}
 	// close file
 	fclose(xmlfile);
+
+	printf("accounts_list_save - exit\n");
 }
 
 /**
@@ -352,8 +370,6 @@ int account_create() {
 
 	add_node(a);
 
-	account_list_save();
-
 	printf("account_management.c - account_create() - exit\n");
 
 	return id;
@@ -380,16 +396,22 @@ int account_delete(int const accountId) {
 
 int account_register(int const accountId) {
 
-	// do something
-	printf("accountId: %d\n", accountId);
+	printf("account_management.c - account_register() - enter\n");
+	change_reg_status(accountId, 1);
+
+	printf("account_management.c - account_register() - exit\n");
 
 	return 1;
 }
 
 int account_unregister(int const accountId) {
 
+	printf("account_management.c - account_unregister() - enter\n");
 	// do something
 	printf("accountId: %d\n", accountId);
+	change_reg_status(accountId, 0);
+
+	printf("account_management.c - account_register() - exit\n");
 
 	return 1;
 }
