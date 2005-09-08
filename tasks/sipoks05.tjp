@@ -531,6 +531,12 @@ task Core "Core" {
             allocate enrico
         }
 
+		task logger "Implementation of a logger for c" {
+			effort 1h
+			allocate matthias
+			actual:complete 100
+		}
+
         task sipstack "SIP stack" {
             task libs "Investigation of possible SIP stacks" {
                 effort 12h
