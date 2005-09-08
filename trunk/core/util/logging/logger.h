@@ -21,7 +21,7 @@
  * @ingroup utils
  * @{
  */
- 
+
 #ifndef HLOGGER_USED
 #define HLOGGER_USED
 
@@ -80,7 +80,7 @@ int logger_init();
  * @param lvl the loglevel for this message
  * @param fmt the format string or plain message
  * @param ... an optional argument list
- */ 
+ */
 void log_message(loglevel lvl, const char *fmt, ...);
 
 /**
