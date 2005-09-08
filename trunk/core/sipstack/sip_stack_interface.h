@@ -29,9 +29,19 @@
 #define HSIPSTACK_INTERFACE_USED
 
 #include <../util/queue/queue.h>
+#include <../util/logging/logger.h>
+
+/* maximum transactions per call */
+#define SIPSTACK_MAX_TRANSACTIONS 100
+
+/* maximum calls handled by this adapter */
+#define SIPSTACK_MAX_CALLS 100
+
+/* prefix for debug and error messages */
+#define SIPSTACK_MSG_PREFIX "[sipstack adapter] "
 
 typedef struct {
-	int status_code;
+	int statusCode;
 	char *message;
 	int callId;
 	int transactionId;

@@ -2,214 +2,32 @@
 #include <stdio.h>
 #include <netinet/in.h>
 
+#include <../util/thread_management.h>
+
 #include <eXosip2/eXosip.h>
 #include <osip2/osip.h>
 #include <osipparser2/osip_parser.h>
+
 #include "sip_stack_interface.h"
+#include "sip_listener_interface.h"
+#include "osip_adapter_cm.h"
 
-/* maximum transactions per call */
-#define MAX_TRANSACTIONS 100
+int listenerIsActive = 0;
 
-/* maximum calls handled by this adapter */
-#define MAX_CALLS 100
+void *sip_listener(void *args) {
+	while (listenerIsActive == 1) {
+		sipstack_event event = sipstack_receive_event(1);
 
-/* list of active calls */
-sipstack_call calls[MAX_CALLS];
-
-/* count of active calls */
-int callCounter = 0;
-
-/**
- * Check whether a call with this call id exists in the call list.
- *
- * @param callId call id
- */
-int call_exists(int callId) {
-	int i;
-	for (i = 0; i < callCounter; i++) {
-		if (calls[i].callId == callId) {
-			return 1;
+		/* dispatch events */
+		if (event.statusCode == 200) {
+			sip_listener_connect_call(event.callId);
+		} else {
+			sip_listener_throw(event.callId, event.statusCode);
 		}
 	}
+	int rc = thread_terminated(pthread_self());
+	pthread_exit(NULL);
 	return 0;
-}
-
-/**
- * Return list index of call with this call id.
- *sipstack_quit();
-
- * @param callId call id
- */
-int get_call_index_by_call_id(int callId) {
-	int i;
-	for (i = 0; i < callCounter; i++) {
-		if (calls[i].callId == callId) {
-			return i;
-		}
-	}
-	/* no call with this call id */
-	fprintf(stderr, "No call with this call id (call id = %i)\n", callId);
-	return -1;
-}
-
-/**
- * Return call id of call with this sip dialog id.
- *
- * @param sipDialogId a sip dialog id
- */
-int get_call_id_by_sip_dialog_id(int sipDialogId) {
-	int i;
-	for (i = 0; i < callCounter; i++) {
-		if (calls[i].sipDialogId == sipDialogId) {
-			return calls[i].callId;
-		}
-	}
-	return -1;
-}
-
-/**
- * Return call id of call with this sip transaction id.
- *
- * @param sipDialogId a sip dialog id
- */
-int get_call_id_by_sip_transaction_id(int sipTransactionId) {
-	int i;
-	for (i = 0; i < callCounter; i++) {
-		if (queue_is_element
-			((void *) sipTransactionId, calls[i].sipTransactionIds)) {
-			return calls[i].callId;
-		}
-	}
-	return -1;
-}
-
-int get_call_id_by_sip_call_id(int sipCallId) {
-	int i;
-	for (i = 0; i < callCounter; i++) {
-		if (calls[i].sipCallId == sipCallId) {
-			return calls[i].callId;
-		}
-	}
-	return -1;
-}
-
-int get_sip_dialog_id_by_call_id(int callId) {
-
-	int index = get_call_index_by_call_id(callId);
-	if (index < 0) {
-		return -1;
-	}
-	return calls[index].sipDialogId;
-
-}
-
-int get_sip_transaction_id_by_call_id(int callId) {
-	int index = get_call_index_by_call_id(callId);
-	if (index < 0) {
-		return -1;
-	}
-	if (!queue_is_empty(calls[index].sipTransactionIds)) {
-		return (int) queue_front(calls[index].sipTransactionIds);
-	}
-	return -1;
-}
-
-int get_sip_call_id_by_call_id(int callId) {
-	int index = get_call_index_by_call_id(callId);
-	if (index < 0) {
-		return -1;
-	}
-	return calls[index].sipCallId;
-}
-
-int terminate_current_transaction(int callId) {
-	if (call_exists(callId)) {
-		int callIndex = get_call_index_by_call_id(callId);
-		if (!queue_is_empty(calls[callIndex].sipTransactionIds)) {
-			queue_dequeue(calls[callIndex].sipTransactionIds);
-			return 0;
-		}
-	}
-	return -1;
-}
-
-sipstack_call build_sipstack_call(int callId, int sipCallId,
-								  int sipDialogId,
-								  queue sipTransactionIds,
-								  sipstack_transaction_type type) {
-	sipstack_call call;
-	call.callId = callId;
-	call.sipCallId = sipCallId;
-	call.sipDialogId = sipDialogId;
-	call.sipTransactionIds = sipTransactionIds;
-	call.type = type;
-
-	return call;
-}
-
-/**
- * Adds or edits a sip stack call and returns a sip stack event.
- *
- * @param callId call id
- * @param event eXosip event
- * @return sip stack event
- */
-sipstack_event sipstack_map_event(int callId, eXosip_event_t * event) {
-
-	/* sip stack event which will be returned */
-	sipstack_event sse;
-
-	/* sip stack call */
-	sipstack_call call;
-
-	/* check whether a call with this call id already exists */
-	if (callId > 0 && call_exists(callId)) {
-		/* get call with this call id */
-		int callIndex = get_call_index_by_call_id(callId);
-		/* set sip call id if not set */
-		if (calls[callIndex].sipCallId < 1) {
-			calls[callIndex].sipCallId = event->cid;
-		}
-		/* set sip dialog id if not set */
-		if (calls[callIndex].sipDialogId < 1) {
-			calls[callIndex].sipDialogId = event->did;
-		}
-		/* add transaction id if not in queue */
-		if (!queue_is_element
-			((void *) event->tid, calls[callIndex].sipTransactionIds)) {
-			/* transaction id is not in queue, so enqueue it */
-			queue_enqueue((void *) event->tid,
-						  calls[callIndex].sipTransactionIds);
-		}
-	} else {
-		/* build new call */
-		queue transactionIds = queue_create_queue(MAX_TRANSACTIONS);
-		queue_enqueue((void *) event->tid, transactionIds);
-		/* set transaction type (invite or non-invite) */
-		sipstack_transaction_type type = NON_INVITE;
-		if (event->type == EXOSIP_CALL_INVITE) {
-			type = INVITE;
-		}
-		call = build_sipstack_call(callId, event->cid, event->did,
-								   transactionIds, type);
-		calls[callCounter] = call;
-		callCounter++;
-	}
-	/* get response status code */
-	sse.status_code = event->response->status_code;
-	/* get response message */
-	sse.message = event->textinfo;
-	/* get dialog id */
-	sse.callId = callId;
-	/* is event an acknowledgment */
-	if (event->ack != NULL) {
-		sse.ack = 1;
-	} else {
-		sse.ack = 0;
-	}
-
-	/* return event */
-	return sse;
 }
 
 /* the following methods are part of the sip stack API */
@@ -217,38 +35,99 @@ sipstack_event sipstack_map_event(int callId, eXosip_event_t * event) {
 int sipstack_init(int port) {
 
 	/* used to get return codes */
-	int i;
+	int rc;
+
+	/* init logger */
+	rc = logger_init();
+	if (rc == 0) {
+		fprintf(stderr,
+				SIPSTACK_MSG_PREFIX "Logging could not be initialized.\n");
+	}
 
 	/* initialize trace */
 	TRACE_INITIALIZE(6, stdout);
 
 	/* initialize eXosip */
-	i = eXosip_init();
-	if (i != 0) {
+	rc = eXosip_init();
+	if (rc != 0) {
 		/* initialization of eXosip failed */
 		/* print error message */
-		fprintf(stderr, "Could not initialize eXosip.\n");
+		log_message(LOG_ERROR,
+					SIPSTACK_MSG_PREFIX "Could not initialize eXosip.");
 		/* return error code */
 		return -1;
 	}
 
 	/* listen to given port on every interface, use udp */
-	i = eXosip_listen_addr(IPPROTO_UDP, INADDR_ANY, port, AF_INET, 0);
-	if (i != 0) {
+	rc = eXosip_listen_addr(IPPROTO_UDP, INADDR_ANY, port, AF_INET, 0);
+	if (rc != 0) {
 		/* shutdown sip stack */
 		eXosip_quit();
 		/* print error message */
-		fprintf(stderr, "Could not initialize transport layer.\n");
+		log_message(LOG_ERROR,
+					SIPSTACK_MSG_PREFIX
+					"Could not initialize transport layer.");
 		/* return error code */
 		return -1;
+	} else {
+		log_message(LOG_DEBUG,
+					SIPSTACK_MSG_PREFIX "Transport layer initialized.");
 	}
+
+	/* init thread management for the sip listener thread */
+	rc = tm_init();
+	if (rc == 0) {
+		log_message(LOG_ERROR,
+					SIPSTACK_MSG_PREFIX
+					"Thread management could not be initialized.");
+	}
+	/* start the sip listener thread */
+	listenerIsActive = 1;
+	rc = start_thread(sip_listener, NULL);
+	if (rc == 0) {
+		log_message(LOG_ERROR,
+					SIPSTACK_MSG_PREFIX
+					"Sip listener thread could not be started");
+	} else {
+		log_message(LOG_DEBUG,
+					SIPSTACK_MSG_PREFIX
+					"Sip listener thread started: id = %i", rc);
+	}
+
 	/* return success code */
 	return 0;
 }
 
 void sipstack_quit() {
+
+	/* used to get return codes */
+	int rc;
+
+	/* shut down sip listener */
+	listenerIsActive = 0;
+
+	/* wait for sip listener thread to terminate */
+	sleep(1);
+
+	/* shut down thread management */
+	rc = tm_destroy();
+	if (rc == 0) {
+		log_message(LOG_ERROR,
+					SIPSTACK_MSG_PREFIX
+					"Thread management could not be released.");
+	}
+	log_message(LOG_DEBUG,
+				SIPSTACK_MSG_PREFIX "Sip listener is shut down.");
+
 	/* shut down eXosip */
 	eXosip_quit();
+	log_message(LOG_DEBUG, SIPSTACK_MSG_PREFIX "eXosip is shut down.");
+
+	/* shutdown logger */
+	rc = logger_destroy();
+	if (rc == 0) {
+		fprintf(stderr, "logging could not be shut down");
+	}
 }
 
 sipstack_event sipstack_receive_event(int timeout) {
@@ -268,7 +147,7 @@ sipstack_event sipstack_receive_event(int timeout) {
 	if (je == NULL) {
 		/* no response received in time */
 		/* return error code */
-		sse.status_code = -1;
+		sse.statusCode = -1;
 		return sse;
 	} else {
 		/* if event is not part of a registration */
@@ -277,14 +156,14 @@ sipstack_event sipstack_receive_event(int timeout) {
 			int callId;
 			/* check if event has a sip call or dialog id */
 			if (je->cid > 0) {
-				callId = get_call_id_by_sip_call_id(je->cid);
+				callId = cm_get_call_id_by_sip_call_id(je->cid);
 				if (callId < 1) {
 					fprintf(stderr,
 							"No call id for sip call id of received event.(dialog id = %i)\n",
 							je->cid);
 				}
 			} else if (je->did > 0) {
-				callId = get_call_id_by_sip_dialog_id(je->did);
+				callId = cm_get_call_id_by_sip_dialog_id(je->did);
 				if (callId < 1) {
 					fprintf(stderr,
 							"No call id for sip dialog id of received event.(dialog id = %i)\n",
@@ -292,22 +171,21 @@ sipstack_event sipstack_receive_event(int timeout) {
 				}
 			}
 			/* add/edit call and get sip stack event */
-			sse = sipstack_map_event(callId, je);
+			sse = cm_map_event(callId, je);
 
-			int callIndex = get_call_index_by_call_id(callId);
-			sipstack_call call = calls[callIndex];
+			sipstack_call call = cm_get_call_by_call_id(callId);
 
 			/* terminate transaction if neccessary */
 			if (call.type == INVITE && sse.ack) {
-				terminate_current_transaction(callId);
-			} else if (call.type == NON_INVITE && sse.status_code == 200) {
-				terminate_current_transaction(callId);
+				cm_terminate_current_transaction(callId);
+			} else if (call.type == NON_INVITE && sse.statusCode == 200) {
+				cm_terminate_current_transaction(callId);
 			}
 		} else {
 			/* handle registration events */
 
 			/* do not add call to call list but get sip stack event */
-			sse = sipstack_map_event(0, je);
+			sse = cm_map_event(0, je);
 		}
 		/* return sip stack event */
 		return sse;
@@ -489,12 +367,12 @@ int sipstack_send_invite(int callId, char *to, char *from, char *subject) {
 	sipstack_transaction_type type = INVITE;
 
 	/* store call data */
-	queue transactionIds = queue_create_queue(MAX_TRANSACTIONS);
+	queue transactionIds = queue_create_queue(SIPSTACK_MAX_TRANSACTIONS);
 	call =
-		build_sipstack_call(callId, sipCallId, -1, transactionIds, type);
+		cm_build_sipstack_call(callId, sipCallId, -1, transactionIds,
+							   type);
 	/* add call */
-	calls[callCounter] = call;
-	callCounter++;
+	cm_add_call(call);
 
 	/* return return status code */
 	if (sipCallId >= 0) {
@@ -512,7 +390,7 @@ int sipstack_send_reinvite(int callId) {
 	osip_message_t *invite;
 
 	/* get dialog id of the call */
-	int dialogId = get_sip_dialog_id_by_call_id(callId);
+	int dialogId = cm_get_sip_dialog_id_by_call_id(callId);
 	if (dialogId == -1) {
 		/* call has no active dialog */
 		return -1;
@@ -571,9 +449,9 @@ int sipstack_bye(int callId) {
 	/* call sipstack_terminate_call() because it handles call termination */
 
 	/* get sip dialog id of the call */
-	int sipDialogId = get_sip_dialog_id_by_call_id(callId);
+	int sipDialogId = cm_get_sip_dialog_id_by_call_id(callId);
 	/* get sip call id of the call */
-	int sipCallId = get_sip_dialog_id_by_call_id(callId);
+	int sipCallId = cm_get_sip_dialog_id_by_call_id(callId);
 	/* return return code of termination */
 	return sipstack_terminate_call(sipCallId, sipDialogId);
 }
@@ -582,9 +460,9 @@ int sipstack_cancel(int callId) {
 	/* call sipstack_terminate_call() because it handles call termination */
 
 	/* get sip call id of the call */
-	int sipCallId = get_sip_call_id_by_call_id(callId);
+	int sipCallId = cm_get_sip_call_id_by_call_id(callId);
 	/* get sip dialog id of the call */
-	int sipDialogId = get_sip_dialog_id_by_call_id(callId);
+	int sipDialogId = cm_get_sip_dialog_id_by_call_id(callId);
 	/* return return code of termination */
 	return sipstack_terminate_call(sipCallId, sipDialogId);
 }
@@ -593,9 +471,9 @@ int sipstack_decline(int callId) {
 	/* call sipstack_terminate_call() because it handles call termination */
 
 	/* get sip dialog id of the call */
-	int sipDialogId = get_sip_dialog_id_by_call_id(callId);
+	int sipDialogId = cm_get_sip_dialog_id_by_call_id(callId);
 	/* get sip call id of the call */
-	int sipCallId = get_sip_dialog_id_by_call_id(callId);
+	int sipCallId = cm_get_sip_dialog_id_by_call_id(callId);
 	/* return return code sipstack_terminate_call(of termination */
 	return sipstack_terminate_call(sipCallId, sipDialogId);
 }
@@ -606,14 +484,14 @@ int sipstack_send_ok(int callId) {
 	osip_message_t *ok = NULL;
 
 	/* get dialog id of the call */
-	int dialogId = get_sip_dialog_id_by_call_id(callId);
+	int dialogId = cm_get_sip_dialog_id_by_call_id(callId);
 	if (dialogId < 1) {
 		/* call has no active dialog */
 		return -1;
 	}
 
 	/* get current transaction id of the call */
-	int transactionId = get_sip_transaction_id_by_call_id(callId);
+	int transactionId = cm_get_sip_transaction_id_by_call_id(callId);
 	if (transactionId < 1) {
 		/* call has no active transaction */
 		return -1;
@@ -649,9 +527,9 @@ int sipstack_send_ok(int callId) {
 	   because an ok always indicates the end of a
 	   non-invite transaction
 	 */
-	int callIndex = get_call_index_by_call_id(callId);
-	if (calls[callIndex].type == NON_INVITE) {
-		int j = terminate_current_transaction(callId);
+	sipstack_call call = cm_get_call_by_call_id(callId);
+	if (call.type == NON_INVITE) {
+		int j = cm_terminate_current_transaction(callId);
 		if (j != 0) {
 			fprintf(stderr, "Transaction termination failed.");
 			return -1;
@@ -667,7 +545,7 @@ int sipstack_send_acknowledgment(int callId) {
 	osip_message_t *ack = NULL;
 
 	/* get dialog id of the call */
-	int dialogId = get_sip_dialog_id_by_call_id(callId);
+	int dialogId = cm_get_sip_dialog_id_by_call_id(callId);
 	if (dialogId < 1) {
 		/* call has no active dialog */
 		fprintf(stderr, "Call has no active dialog (call id = %i)\n",
@@ -696,7 +574,7 @@ int sipstack_send_acknowledgment(int callId) {
 	   remove transaction from transaction queue
 	   because an acknowledgement always indicates the end of a transaction
 	 */
-	int j = terminate_current_transaction(callId);
+	int j = cm_terminate_current_transaction(callId);
 	if (j != 0) {
 		fprintf(stderr, "Transaction termination failed.");
 		return -1;
@@ -712,7 +590,7 @@ int sipstack_send_status_code(int callId, int status_code) {
 	osip_message_t *answer = NULL;
 
 	/* get current transaction id of the call */
-	int transactionId = get_sip_transaction_id_by_call_id(callId);
+	int transactionId = cm_get_sip_transaction_id_by_call_id(callId);
 	if (transactionId == -1) {
 		/* call has no active transaction */
 		return -1;
