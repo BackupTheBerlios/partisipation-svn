@@ -124,6 +124,8 @@ public class Gui extends JFrame {
                 o = execute("core.accountGetAll", params);
 
                 int a = 0;
+                int r = 0;
+
                 if (o != null && o instanceof Vector) {
                     Vector v = (Vector) o;
                     Enumeration e = v.elements();
@@ -138,8 +140,21 @@ public class Gui extends JFrame {
                         Account acc = new Account(n.intValue(), false);
                         accounts.add(acc);
                         a++;
+
+                        params.clear();
+                        params.add(n);
+                        params.add("autoregister");
+                        String s = (String) execute("core.accountGet", params);
+                        if (s.equalsIgnoreCase("1")) {
+                            params.clear();
+                            params.add(n);
+                            execute("core.register", params);
+                            r++;
+                        }
+
                     }
-                    print("Got " + a + " accounts.");
+                    print("Got " + a + " accounts (" + r
+                            + " automatically registered).");
                 }
             } else {
                 print("ERROR: GUI not registered.");
