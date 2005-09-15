@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <netinet/in.h>
 
-#include <../util/logging/logger.h>
+#include <util/logging/logger.h>
 
-#include "sip_listener_interface.h"
+#include "sipstack/sip_listener_interface.h"
 
 #define SIP_LISTENER_MSG_PREFIX "[sip listener]"
 

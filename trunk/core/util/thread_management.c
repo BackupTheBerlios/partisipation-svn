@@ -14,8 +14,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <storage.h>
-#include <../util/logging/logger.h>
+#include <util/storage.h>
+#include <util/logging/logger.h>
 
 /**
  * Amount of threads that can run simultaneously.

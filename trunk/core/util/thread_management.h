@@ -9,6 +9,10 @@
  *
  * @author Matthias Liebig
  */
+
+#ifndef HTHREAD_MANAGEMENT_USED
+#define HTHREAD_MANAGEMENT_USED
+
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,3 +24,5 @@ int start_thread(void *(*start_routine) (void *), void *args);
 int thread_terminated(pthread_t tid);
 
 int tm_destroy();
+
+#endif

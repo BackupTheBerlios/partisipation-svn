@@ -3,10 +3,10 @@
 #include <check.h>
 #include <unistd.h>
 
-#include "sip_stack_interface.h"
+#include "sipstack/sip_stack_interface.h"
 
-#include <../util/thread_management.h>
-#include <../util/logging/logger.h>
+#include <util/thread_management.h>
+#include <util/logging/logger.h>
 
 // *INDENT-OFF*
 

@@ -1,4 +1,4 @@
-#include "sip_stack_interface.h"
+#include "sipstack/sip_stack_interface.h"
 
 #include <eXosip2/eXosip.h>
 #include <osip2/osip.h>

@@ -1,4 +1,4 @@
-#include "queue.h"
+#include "util/queue/queue.h"
 #include <stdlib.h>
 
 #define MIN_QUEUE_SIZE (5)

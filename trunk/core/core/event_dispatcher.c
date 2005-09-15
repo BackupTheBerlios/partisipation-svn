@@ -4,11 +4,11 @@
 #include <unistd.h>
 #include <string.h>
 
-#include <../util/thread_management.h>
-#include <events.h>
-#include <statemachine.h>
-#include <call_id_generator.h>
-#include <event_dispatcher.h>
+#include <util/thread_management.h>
+#include <core/events.h>
+#include <core/statemachine.h>
+#include <core/call_id_generator.h>
+#include <core/event_dispatcher.h>
 
 int const MAX_CALLS = 32;
 int const MAX_EVENTS = 16;

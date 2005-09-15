@@ -5,31 +5,15 @@
 #include <string.h>
 #include <time.h>
 
-#include <logger.h>
+#include <util/logging/logger.h>
+#include <util/config/config_reader.h>
 
 const int MAX_LOG_MSG_LEN = 2048;
-
-int logToFile;
-int logToConsole;
-int logWithTime;
-int logVerbose;
-loglevel logLevelFile;
-loglevel logLevelConsole;
-char *logFileName;
 
 pthread_mutex_t logFileLock;
 
 int logger_init() {
 	int rc;
-
-	logToFile = 1;
-	logToConsole = 1;
-	logWithTime = 1;
-	logVerbose = 1;
-	logLevelFile = LOG_DEBUG;
-	logLevelConsole = LOG_MESSAGE;
-	logFileName = (char *) malloc(256 * sizeof(char));
-	strcpy(logFileName, "/tmp/sipoks05core.log");
 
 	rc = pthread_mutex_init(&logFileLock, NULL);
 	if (rc != 0) {
@@ -42,8 +26,6 @@ int logger_init() {
 
 int logger_destroy() {
 	int rc;
-
-	free(logFileName);
 
 	rc = pthread_mutex_destroy(&logFileLock);
 	if (rc != 0) {
@@ -95,18 +77,25 @@ void log_message(loglevel lvl, const char *fmt, ...) {
 		// ERROR
 	}
 
-	if (logToConsole && lvl >= logLevelConsole) {
+	if (config.logging.simpleLogger.console.enabled
+		&& lvl >= config.logging.simpleLogger.console.logLevel) {
+
 		printf(strtmp);
 	}
 
-	if (logToFile && lvl >= logLevelFile) {
+	if (config.logging.simpleLogger.file.enabled
+		&& lvl >= config.logging.simpleLogger.file.logLevel) {
+
 		pthread_mutex_lock(&logFileLock);
-		FILE *f = fopen(logFileName, "a");
+		FILE *f = fopen(config.logging.simpleLogger.file.fileName, "a");
 		if (f == NULL) {
 			// ERROR
+			printf("error opening %s\n",
+				   config.logging.simpleLogger.file.fileName);
+			return;
 		}
 
-		if (logWithTime) {
+		if (config.logging.simpleLogger.file.withTime) {
 			char timebuf[100];
 			time_t t = time(NULL);
 			strftime(timebuf, 100, "%d.%m.%Y - %H:%M:%S : ",
@@ -114,7 +103,7 @@ void log_message(loglevel lvl, const char *fmt, ...) {
 			fprintf(f, "%s", timebuf);
 		}
 
-		if (logVerbose) {
+		if (config.logging.simpleLogger.file.verbose) {
 			switch (lvl) {
 				case LOG_DEBUG:
 					fprintf(f, "%s", "[DBG] : ");
@@ -138,6 +127,10 @@ void log_message(loglevel lvl, const char *fmt, ...) {
 					fprintf(f, "%s", "[N/A] : ");
 					break;
 			}
+		}
+
+		if (config.logging.simpleLogger.file.threadId) {
+			fprintf(f, "Thread ID <%d> : ", pthread_self());
 		}
 
 		fprintf(f, "%s", strtmp);

@@ -4,8 +4,8 @@
 #include <unistd.h>
 #include <limits.h>
 
-#include <../util/thread_management.h>
-#include <call_id_generator.h>
+#include <util/thread_management.h>
+#include <core/call_id_generator.h>
 
 int callId;
 pthread_mutex_t idLock;

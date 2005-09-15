@@ -1,0 +1,19 @@
+<!ELEMENT config (logging)>
+
+<!ELEMENT logging (simplelogger+)>
+
+<!ELEMENT simplelogger (console+,file+)>
+
+<!ELEMENT console EMPTY>
+
+<!ELEMENT file EMPTY>
+
+<!ATTLIST console enabled (true|false) #REQUIRED>
+<!ATTLIST console loglevel (LOG_DEBUG|LOG_INFO|LOG_MESSAGE|LOG_WARNING|LOG_ERROR|LOG_FAILURE) #REQUIRED>
+
+<!ATTLIST file enabled (true|false) #REQUIRED>
+<!ATTLIST file filename CDATA #REQUIRED>
+<!ATTLIST file loglevel (LOG_DEBUG|LOG_INFO|LOG_MESSAGE|LOG_WARNING|LOG_ERROR|LOG_FAILURE) #REQUIRED>
+<!ATTLIST file withtime (true|false) #REQUIRED>
+<!ATTLIST file verbose (true|false) #REQUIRED>
+<!ATTLIST file threadid (true|false) #REQUIRED>

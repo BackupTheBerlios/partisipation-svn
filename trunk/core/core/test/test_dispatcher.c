@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <../util/thread_management.h>
-#include <event_dispatcher.h>
-#include <events.h>
+#include <util/thread_management.h>
+#include <core/event_dispatcher.h>
+#include <core/events.h>
 
 int main() {
 	int x;

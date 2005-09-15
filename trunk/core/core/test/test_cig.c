@@ -3,11 +3,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <check.h>
-
-#include <../util/thread_management.h>
-#include <../util/logging/logger.h>
-#include <call_id_generator.h>
 #include <time.h>
+
+#include <util/thread_management.h>
+#include <util/logging/logger.h>
+#include <util/config/config_reader.h>
+#include <core/call_id_generator.h>
 
 #define MAX_IDS_PLAIN (10)
 #define MAX_IDS_THREADED (10)
@@ -32,6 +33,9 @@ void teardown(void) {
 
 void setup_with_tm(void) {
 	int rc;
+
+	rc = cr_init("../../cfg/core_config.xml");
+	fail_if(rc == 0, "config reader could not be initalized");
 
 	rc = logger_init();
 	fail_if(rc == 0, "logging could not be initialized");
@@ -58,6 +62,9 @@ void teardown_with_tm(void) {
 
 	rc = logger_destroy();
 	fail_if(rc == 0, "logging could not be released");
+
+	rc = cr_destroy();
+	fail_if(rc == 0, "config reader could not be released");
 
 	pthread_exit(NULL);
 }

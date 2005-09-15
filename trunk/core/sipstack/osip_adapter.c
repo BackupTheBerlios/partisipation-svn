@@ -2,15 +2,15 @@
 #include <stdio.h>
 #include <netinet/in.h>
 
-#include <../util/thread_management.h>
+#include <util/thread_management.h>
 
 #include <eXosip2/eXosip.h>
 #include <osip2/osip.h>
 #include <osipparser2/osip_parser.h>
 
-#include "sip_stack_interface.h"
-#include "sip_listener_interface.h"
-#include "osip_adapter_cm.h"
+#include "sipstack/sip_stack_interface.h"
+#include "sipstack/sip_listener_interface.h"
+#include "sipstack/osip_adapter_cm.h"
 
 int listenerIsActive = 0;
 
@@ -36,6 +36,14 @@ int sipstack_init(int port) {
 
 	/* used to get return codes */
 	int rc;
+
+	/* read config */
+	rc = cr_init("../cfg/core_config.xml");
+	if (rc == 0) {
+		fprintf(stderr,
+				SIPSTACK_MSG_PREFIX
+				"Config reader could not be initalized.\n");
+	}
 
 	/* init logger */
 	rc = logger_init();
@@ -126,7 +134,15 @@ void sipstack_quit() {
 	/* shutdown logger */
 	rc = logger_destroy();
 	if (rc == 0) {
-		fprintf(stderr, "logging could not be shut down");
+		fprintf(stderr,
+				SIPSTACK_MSG_PREFIX "logging could not be shut down.");
+	}
+
+	rc = cr_destroy();
+	if (rc == 0) {
+		fprintf(stderr,
+				SIPSTACK_MSG_PREFIX
+				"config reader could not be released.");
 	}
 }
 

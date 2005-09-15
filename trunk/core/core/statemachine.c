@@ -3,12 +3,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <../util/thread_management.h>
-#include <../xmlrpc-test/callback/gui_callback.h>
-#include <../sipstack/sip_stack_interface.h>
-#include <events.h>
-#include <event_dispatcher.h>
-#include <statemachine.h>
+#include <util/thread_management.h>
+#include <xmlrpc-test/callback/gui_callback.h>
+#include <sipstack/sip_stack_interface.h>
+#include <core/events.h>
+#include <core/event_dispatcher.h>
+#include <core/statemachine.h>
 
 extern sm_data **queues;
 

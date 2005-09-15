@@ -28,8 +28,9 @@
 #ifndef HSIPSTACK_INTERFACE_USED
 #define HSIPSTACK_INTERFACE_USED
 
-#include <../util/queue/queue.h>
-#include <../util/logging/logger.h>
+#include <util/queue/queue.h>
+#include <util/logging/logger.h>
+#include <util/config/config_reader.h>
 
 /* maximum transactions per call */
 #define SIPSTACK_MAX_TRANSACTIONS 100

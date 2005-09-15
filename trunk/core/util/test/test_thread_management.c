@@ -4,11 +4,14 @@
 #include <unistd.h>
 #include <check.h>
 
-#include <thread_management.h>
-#include <../util/logging/logger.h>
+#include <util/thread_management.h>
+#include <util/config/config_reader.h>
+#include <util/logging/logger.h>
 
 void setup(void) {
 	int rc;
+	rc = cr_init("../../cfg/core_config.xml");
+	fail_if(rc == 0, "config reader could not be initalized");
 	rc = logger_init();
 	fail_if(rc == 0, "logging could not be initialized");
 	rc = tm_init();
@@ -21,6 +24,8 @@ void teardown(void) {
 	fail_if(rc == 0, "thread management could not be released");
 	rc = logger_destroy();
 	fail_if(rc == 0, "logging could not be released");
+	rc = cr_destroy();
+	fail_if(rc == 0, "config reader could not be released");
 	pthread_exit(NULL);
 }
 

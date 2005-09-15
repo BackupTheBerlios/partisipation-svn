@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <netinet/in.h>
 
-#include "osip_adapter_cm.h"
+#include "sipstack/osip_adapter_cm.h"
 
 /* list of active calls */
 sipstack_call calls[SIPSTACK_MAX_CALLS];

@@ -1,8 +1,8 @@
-STYLEDOCDIR_LOCAL = $(STYLEDOCDIR)/queue
+STYLEDOCDIR_LOCAL = $(STYLEDOCDIR)/config
 
 compile:
 	find ./ -maxdepth 1 | grep \\.c$$ | grep -v docs/ | xargs $(COMPILE.c) -I../../
-	
+
 clean:
 	find ./ -maxdepth 1 | grep \\.o$$ | xargs rm -f
 

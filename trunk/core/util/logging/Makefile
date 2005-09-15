@@ -1,7 +1,7 @@
 STYLEDOCDIR_LOCAL = $(STYLEDOCDIR)/logger
 
 compile:
-	find ./ -maxdepth 1 | grep \\.c$$ | grep -v docs/ | xargs $(COMPILE.c) -I./
+	find ./ -maxdepth 1 | grep \\.c$$ | grep -v docs/ | xargs $(COMPILE.c) -I../../
 	
 clean:
 	find ./ -maxdepth 1 | grep \\.o$$ | xargs rm -f

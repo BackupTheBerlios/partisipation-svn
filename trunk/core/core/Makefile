@@ -1,7 +1,7 @@
 STYLEDOCDIR_LOCAL = $(STYLEDOCDIR)/core
 
 compile:
-	find ./ -maxdepth 1 | grep \\.c$$ | grep -v docs/ | xargs $(COMPILE.c) -I ./
+	find ./ -maxdepth 1 | grep \\.c$$ | grep -v docs/ | xargs $(COMPILE.c) -I../
 
 	$(MAKE) -C test
 

@@ -1,8 +1,8 @@
 #ifndef HEVENT_DISPATCHER_USED
 #define HEVENT_DISPATCHER_USED
 
-#include <events.h>
-#include <../util/queue/queue.h>
+#include <core/events.h>
+#include <util/queue/queue.h>
 
 //int const MAX_CALLS = 32;
 
