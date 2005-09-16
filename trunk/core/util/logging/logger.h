@@ -25,6 +25,13 @@
 #ifndef HLOGGER_USED
 #define HLOGGER_USED
 
+#define LOG_DEBUG(	msg, ...)		log_message(LOG_DEBUG, msg, ##__VA_ARGS__)
+#define LOG_INFO(	msg, ...)		log_message(LOG_INFO, msg, ##__VA_ARGS__)
+#define LOG_MESSAGE(msg, ...)		log_message(LOG_MESSAGE, msg, ##__VA_ARGS__)
+#define LOG_WARNING(msg, ...)		log_message(LOG_WARNING, msg, ##__VA_ARGS__)
+#define LOG_ERROR(	msg, ...)		log_message(LOG_ERROR, msg, ##__VA_ARGS__)
+#define LOG_FAILURE(msg, ...)		log_message(LOG_FAILURE, msg, ##__VA_ARGS__)
+
 /**
  * A log level is meant for filtering and prioritising log messages. A higher
  * log level is more likely to be displayed.

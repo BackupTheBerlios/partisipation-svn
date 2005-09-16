@@ -17,6 +17,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define THREAD_MGMT_MSG_PREFIX "[thread management] "
+
 int tm_init();
 
 int start_thread(void *(*start_routine) (void *), void *args);

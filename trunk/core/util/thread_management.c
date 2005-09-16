@@ -16,6 +16,7 @@
 
 #include <util/storage.h>
 #include <util/logging/logger.h>
+#include <util/thread_management.h>
 
 /**
  * Amount of threads that can run simultaneously.
@@ -65,7 +66,7 @@ void *add_thread(void *args) {
 
 		if (i == MAXTHREADS) {
 			// ERROR
-			log_message(LOG_ERROR, "no free position found!\n");
+			LOG_ERROR(THREAD_MGMT_MSG_PREFIX "no free position found!\n");
 
 			// unlock:
 			pthread_mutex_unlock(&thrManLock);
@@ -77,17 +78,16 @@ void *add_thread(void *args) {
 		}
 	}
 
-	log_message(LOG_INFO, "found free pos: %d\n", i);
+	LOG_INFO(THREAD_MGMT_MSG_PREFIX "found free pos: %d\n", i);
 
 	// create desired thread:
 	rc = pthread_create(&threads[i], NULL, td->start_routine, td->args);
 	if (rc != 0) {
-		log_message(LOG_INFO,
-					"ERROR; return code from pthread_create() is %d\n",
-					rc);
+		LOG_ERROR(THREAD_MGMT_MSG_PREFIX
+				  "return code from pthread_create() is %d\n", rc);
 	}
 
-	log_message(LOG_INFO, "created thread\n");
+	LOG_INFO(THREAD_MGMT_MSG_PREFIX "created thread\n");
 
 	activeThreads++;
 	if (activeThreads > peak) {
@@ -123,7 +123,7 @@ void *remove_thread(void *args) {
 	while (threads[i] != *tid) {
 		i++;
 		if (i == MAXTHREADS) {
-			log_message(LOG_ERROR, "thread not found.\n");
+			LOG_ERROR(THREAD_MGMT_MSG_PREFIX "thread not found.\n");
 			// unlock:
 			pthread_mutex_unlock(&thrManLock);
 
@@ -134,15 +134,15 @@ void *remove_thread(void *args) {
 		}
 	}
 
-	log_message(LOG_INFO, "found thread nr. %d at position %d\n",
-				(int) *tid, i);
+	LOG_INFO(THREAD_MGMT_MSG_PREFIX "found thread nr. %d at position %d\n",
+			 (int) *tid, i);
 
 	// remove reference:
 	threads[i] = 0;
 
 	activeThreads--;
 
-	log_message(LOG_INFO, "thread removed\n");
+	LOG_INFO(THREAD_MGMT_MSG_PREFIX "thread removed\n");
 
 	// unlock:
 	pthread_mutex_unlock(&thrManLock);
@@ -173,9 +173,8 @@ int start_thread(void *(*start_routine) (void *), void *args) {
 	td->args = args;
 	rc = pthread_create(&t, NULL, add_thread, (void *) td);
 	if (rc != 0) {
-		log_message(LOG_ERROR,
-					"ERROR; return code from pthread_create() is %d\n",
-					rc);
+		LOG_ERROR(THREAD_MGMT_MSG_PREFIX
+				  "return code from pthread_create() is %d\n", rc);
 		return 0;
 	}
 	return 1;
@@ -197,9 +196,8 @@ int thread_terminated(pthread_t tid) {
 	*param = tid;
 	rc = pthread_create(&t, NULL, remove_thread, (void *) param);
 	if (rc != 0) {
-		log_message(LOG_ERROR,
-					"ERROR; return code from pthread_create() is %d\n",
-					rc);
+		LOG_ERROR(THREAD_MGMT_MSG_PREFIX
+				  "return code from pthread_create() is %d\n", rc);
 		return 0;
 	}
 	return 1;
@@ -245,8 +243,8 @@ int tm_destroy() {
 		return 0;
 	}
 
-	log_message(LOG_INFO, "activeThreads: %d\n", activeThreads);
-	log_message(LOG_INFO, "peak was: %d\n", peak);
+	LOG_INFO(THREAD_MGMT_MSG_PREFIX "activeThreads: %d\n", activeThreads);
+	LOG_INFO(THREAD_MGMT_MSG_PREFIX "peak was: %d\n", peak);
 
 	// free memory for thread references
 	free(threads);
