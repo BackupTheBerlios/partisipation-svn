@@ -17,7 +17,8 @@ int logger_init() {
 
 	rc = pthread_mutex_init(&logFileLock, NULL);
 	if (rc != 0) {
-		// ERROR
+		fprintf(stderr,
+				LOGGER_MSG_PREFIX "failed to initialize mutex lock\n");
 		return 0;
 	}
 
@@ -29,7 +30,8 @@ int logger_destroy() {
 
 	rc = pthread_mutex_destroy(&logFileLock);
 	if (rc != 0) {
-		// ERROR
+		fprintf(stderr,
+				LOGGER_MSG_PREFIX "failed to release mutex lock\n");
 		return 0;
 	}
 
@@ -74,7 +76,7 @@ void log_message(loglevel lvl, const char *fmt, ...) {
 	// ensure line ends with newline, so next message won't be screwed up
 	rc = ensure_newline(strtmp);
 	if (!rc) {
-		// ERROR
+		fprintf(stderr, LOGGER_MSG_PREFIX "failed to ensure newline\n");
 	}
 
 	if (config.logging.simpleLogger.console.enabled
@@ -89,9 +91,8 @@ void log_message(loglevel lvl, const char *fmt, ...) {
 		pthread_mutex_lock(&logFileLock);
 		FILE *f = fopen(config.logging.simpleLogger.file.fileName, "a");
 		if (f == NULL) {
-			// ERROR
-			printf("error opening %s\n",
-				   config.logging.simpleLogger.file.fileName);
+			fprintf(stderr, LOGGER_MSG_PREFIX "error opening %s\n",
+					config.logging.simpleLogger.file.fileName);
 			return;
 		}
 
@@ -130,14 +131,15 @@ void log_message(loglevel lvl, const char *fmt, ...) {
 		}
 
 		if (config.logging.simpleLogger.file.threadId) {
-			fprintf(f, "Thread ID <%d> : ", pthread_self());
+			fprintf(f, "Thread ID <%d> : ", (int) pthread_self());
 		}
 
 		fprintf(f, "%s", strtmp);
 
 		rc = fclose(f);
 		if (rc) {
-			// ERROR
+			fprintf(stderr, LOGGER_MSG_PREFIX "failed to close %s\n",
+					config.logging.simpleLogger.file.fileName);
 		}
 
 		pthread_mutex_unlock(&logFileLock);

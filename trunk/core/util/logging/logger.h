@@ -25,6 +25,8 @@
 #ifndef HLOGGER_USED
 #define HLOGGER_USED
 
+#define LOGGER_MSG_PREFIX "[logger] "
+
 #define LOG_DEBUG(	msg, ...)		log_message(LOG_DEBUG, msg, ##__VA_ARGS__)
 #define LOG_INFO(	msg, ...)		log_message(LOG_INFO, msg, ##__VA_ARGS__)
 #define LOG_MESSAGE(msg, ...)		log_message(LOG_MESSAGE, msg, ##__VA_ARGS__)
