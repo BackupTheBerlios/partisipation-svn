@@ -67,6 +67,19 @@ void *add_thread(void *args) {
 
 	td = (thread_data *) args;
 
+	pthread_mutex_lock(&startLock);
+
+	if (shuttingDown) {
+		pthread_mutex_unlock(&startLock);
+		free(td);
+
+		// we're done
+		pthread_exit(NULL);
+		return NULL;
+	}
+
+	pthread_mutex_unlock(&startLock);
+
 	// enter lock to prevent concurring access to thread references
 	pthread_mutex_lock(&thrManLock);
 
@@ -130,19 +143,6 @@ void *remove_thread(void *args) {
 	pthread_t *tid;
 
 	tid = (pthread_t *) args;
-
-	pthread_mutex_lock(&startLock);
-
-	if (shuttingDown) {
-		pthread_mutex_unlock(&startLock);
-		free(tid);
-
-		// we're done
-		pthread_exit(NULL);
-		return NULL;
-	}
-
-	pthread_mutex_unlock(&startLock);
 
 	// enter lock to prevent concurring access to thread references
 	pthread_mutex_lock(&thrManLock);
@@ -298,7 +298,8 @@ int join_threads() {
 						  "pthread_join() is %d", (int) tid, rc);
 				return 0;
 			}
-			LOG_DEBUG(THREAD_MGMT_MSG_PREFIX "joined thread nr. %d", tid);
+			LOG_DEBUG(THREAD_MGMT_MSG_PREFIX "joined thread nr. %d",
+					  (int) tid);
 		}
 	}
 	return 1;
@@ -392,18 +393,18 @@ int tm_destroy(int forceShutdown) {
 						  "failed to wait for all threads");
 			}
 		}
-	}
-	// now wait on all remaining remove_thread() instances 
-	pthread_mutex_lock(&thrManLock);
 
-	while (activeThreads > 0) {
-		pthread_mutex_unlock(&thrManLock);
-		// activate a remove_thread()-thread
-		sched_yield();
+		// now wait on all remaining remove_thread() instances 
 		pthread_mutex_lock(&thrManLock);
-	}
-	pthread_mutex_unlock(&thrManLock);
 
+		while (activeThreads > 0) {
+			pthread_mutex_unlock(&thrManLock);
+			// activate a remove_thread()-thread
+			sched_yield();
+			pthread_mutex_lock(&thrManLock);
+		}
+		pthread_mutex_unlock(&thrManLock);
+	}
 	// now all threads are finished, references cleared
 
 	// release locks:
