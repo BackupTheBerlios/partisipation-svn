@@ -208,8 +208,8 @@ void *dispatch(void *args) {
 
 				free(param);
 
-				thread_terminated(pthread_self());
-				pthread_exit(NULL);
+				thread_terminated(NULL);
+				return NULL;
 			}
 
 			queue_enqueue((void *) param, queues[pos]->eventPool);
@@ -226,8 +226,8 @@ void *dispatch(void *args) {
 
 				free(param);
 
-				thread_terminated(pthread_self());
-				pthread_exit(NULL);
+				thread_terminated(NULL);
+				return NULL;
 			}
 
 			queue_enqueue((void *) param, queues[pos]->eventPool);
@@ -245,8 +245,7 @@ void *dispatch(void *args) {
 			 * 
 			 * free(param);
 			 * 
-			 * thread_terminated(pthread_self());
-			 * pthread_exit(NULL);
+			 * thread_terminated(NULL);
 			 * } 
 			 */
 			// </TEST>
@@ -310,8 +309,8 @@ void *dispatch(void *args) {
 
 	// free(param); ?
 
-	thread_terminated(pthread_self());
-	pthread_exit(NULL);
+	thread_terminated(NULL);
+	return NULL;
 }
 
 int event_dispatch(event evt, void **params) {

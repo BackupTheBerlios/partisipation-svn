@@ -218,10 +218,11 @@ int start_thread(void *(*start_routine) (void *), void *args) {
  * This function should be called by a thread that was launched using the
  * start_thread() function. It signals its termination to the thread 
  * management.
- * @param tid the (own) thread id - usually obtained by calling pthread_self()
+ * @param returnValue this is similiar to a return value of a function, except
+ * it can only be obtained by joining the thread
  * @return whether removing thread reference was successful (boolean)
  */
-int thread_terminated(pthread_t tid) {
+int thread_terminated(void *returnValue) {
 	LOG_DEBUG(THREAD_MGMT_MSG_PREFIX "thread_terminated() called");
 
 	int rc;
@@ -229,7 +230,7 @@ int thread_terminated(pthread_t tid) {
 	pthread_t *param;
 
 	param = (pthread_t *) malloc(sizeof(pthread_t));
-	*param = tid;
+	*param = pthread_self();
 	rc = pthread_create(&t, NULL, remove_thread, (void *) param);
 	if (rc != 0) {
 		LOG_ERROR(THREAD_MGMT_MSG_PREFIX
@@ -238,6 +239,7 @@ int thread_terminated(pthread_t tid) {
 	}
 
 	LOG_DEBUG(THREAD_MGMT_MSG_PREFIX "leaving thread_terminated()");
+	pthread_exit(NULL);
 	return 1;
 }
 

@@ -32,9 +32,9 @@ void teardown(void) {
 void *thrd_start_thread(void *args) {
 	int rc;
 	sleep(2);
-	rc = thread_terminated(pthread_self());
+	rc = thread_terminated(NULL);
 	fail_if(rc == 0, "thread referenced could not be removed");
-	pthread_exit(NULL);
+	return NULL;
 }
 
 void *thrd_simple_arguments(void *args) {
@@ -45,9 +45,9 @@ void *thrd_simple_arguments(void *args) {
 	fail_unless(i == 2842, "argument has not expected value");
 	sleep(2);
 
-	rc = thread_terminated(pthread_self());
+	rc = thread_terminated(NULL);
 	fail_if(rc == 0, "thread referenced could not be removed");
-	pthread_exit(NULL);
+	return NULL;
 }
 
 void *thrd_simple_return_value(void *args) {
@@ -55,9 +55,9 @@ void *thrd_simple_return_value(void *args) {
 
 	sleep(2);
 
-	rc = thread_terminated(pthread_self());
+	rc = thread_terminated((void *) 4711);
 	fail_if(rc == 0, "thread referenced could not be removed");
-	pthread_exit((void *) 4711);
+	return NULL;
 }
 
 // *INDENT-OFF*

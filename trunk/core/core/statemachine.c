@@ -1,4 +1,3 @@
-#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -245,6 +244,6 @@ void *sm_start(void *args) {
 	}
 
 	free(callInfo);
-	thread_terminated(pthread_self());
-	pthread_exit(NULL);
+	thread_terminated(NULL);
+	return NULL;
 }

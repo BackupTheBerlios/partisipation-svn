@@ -25,9 +25,8 @@ void *sip_listener(void *args) {
 			sip_listener_throw(event.callId, event.statusCode);
 		}
 	}
-	int rc = thread_terminated(pthread_self());
-	pthread_exit(NULL);
-	return 0;
+	int rc = thread_terminated(NULL);
+	return NULL;
 }
 
 /* the following methods are part of the sip stack API */

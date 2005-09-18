@@ -82,8 +82,8 @@ void *thrd_request_id(void *args) {
 	testIdsSize++;
 	pthread_mutex_unlock(&idsLock);
 
-	thread_terminated(pthread_self());
-	pthread_exit(NULL);
+	thread_terminated(NULL);
+	return NULL;
 }
 
 // *INDENT-OFF*
