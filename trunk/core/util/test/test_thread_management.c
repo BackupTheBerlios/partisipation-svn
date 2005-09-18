@@ -20,7 +20,7 @@ void setup(void) {
 
 void teardown(void) {
 	int rc;
-	rc = tm_destroy();
+	rc = tm_destroy(0);
 	fail_if(rc == 0, "thread management could not be released");
 	rc = logger_destroy();
 	fail_if(rc == 0, "logging could not be released");
@@ -66,7 +66,6 @@ START_TEST(test_start_thread) {
 	int rc;
 	rc = start_thread(thrd_start_thread, NULL);
 	fail_if(rc == 0, "thread could not be started");
-	sleep(6);
 } END_TEST 
 
 START_TEST(test_start_multiple_threads) {
@@ -79,7 +78,6 @@ START_TEST(test_start_multiple_threads) {
 	fail_if(rc == 0, "thread could not be started");
 	rc = start_thread(thrd_start_thread, NULL);
 	fail_if(rc == 0, "thread could not be started");
-	sleep(10);
 } END_TEST 
 
 START_TEST(test_simple_arguments) {
@@ -88,7 +86,6 @@ START_TEST(test_simple_arguments) {
 	i = 2842;
 	rc = start_thread(thrd_simple_arguments, (void *) i);
 	fail_if(rc == 0, "thread could not be started");
-	sleep(6);
 } END_TEST 
 
 START_TEST(test_simple_return_value) {

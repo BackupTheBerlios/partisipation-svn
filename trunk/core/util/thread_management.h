@@ -25,6 +25,8 @@ int start_thread(void *(*start_routine) (void *), void *args);
 
 int thread_terminated(pthread_t tid);
 
-int tm_destroy();
+int tm_destroy(int forceShutdown);
+
+int tm_join_active_threads();
 
 #endif

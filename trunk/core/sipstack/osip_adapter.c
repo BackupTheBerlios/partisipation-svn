@@ -118,7 +118,7 @@ void sipstack_quit() {
 	sleep(1);
 
 	/* shut down thread management */
-	rc = tm_destroy();
+	rc = tm_destroy(0);
 	if (rc == 0) {
 		log_message(LOG_ERROR,
 					SIPSTACK_MSG_PREFIX

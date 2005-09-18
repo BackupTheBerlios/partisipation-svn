@@ -29,6 +29,11 @@
 pthread_mutex_t thrManLock;
 
 /**
+ * lock for preventing new threads from starting while shutting down
+ */
+pthread_mutex_t startLock;
+
+/**
  * thread references
  */
 pthread_t *threads;
@@ -44,6 +49,11 @@ int activeThreads;
 int peak;
 
 /**
+ * whether thread management is shutting down (boolean)
+ */
+int shuttingDown;
+
+/**
  * Private function, do not call. 
  * It handles the work of start_thread() as a separate thread.
  * @param args an instance of thread_data containing the start routine and the
@@ -53,6 +63,7 @@ int peak;
 void *add_thread(void *args) {
 	int i, rc;
 	thread_data *td;
+	pthread_attr_t attr;
 
 	td = (thread_data *) args;
 
@@ -80,12 +91,18 @@ void *add_thread(void *args) {
 
 	LOG_INFO(THREAD_MGMT_MSG_PREFIX "found free pos: %d\n", i);
 
+	// initialize and set thread detached attribute
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+
 	// create desired thread:
-	rc = pthread_create(&threads[i], NULL, td->start_routine, td->args);
+	rc = pthread_create(&threads[i], &attr, td->start_routine, td->args);
 	if (rc != 0) {
 		LOG_ERROR(THREAD_MGMT_MSG_PREFIX
 				  "return code from pthread_create() is %d\n", rc);
 	}
+	// free attribute
+	pthread_attr_destroy(&attr);
 
 	LOG_INFO(THREAD_MGMT_MSG_PREFIX "created thread\n");
 
@@ -113,6 +130,19 @@ void *remove_thread(void *args) {
 	pthread_t *tid;
 
 	tid = (pthread_t *) args;
+
+	pthread_mutex_lock(&startLock);
+
+	if (shuttingDown) {
+		pthread_mutex_unlock(&startLock);
+		free(tid);
+
+		// we're done
+		pthread_exit(NULL);
+		return NULL;
+	}
+
+	pthread_mutex_unlock(&startLock);
 
 	// enter lock to prevent concurring access to thread references
 	pthread_mutex_lock(&thrManLock);
@@ -164,6 +194,8 @@ void *remove_thread(void *args) {
  * @return whether starting the thread was successfull (boolean)
  */
 int start_thread(void *(*start_routine) (void *), void *args) {
+	LOG_DEBUG(THREAD_MGMT_MSG_PREFIX "start_thread() called");
+
 	int rc;
 	pthread_t t;
 	thread_data *td;
@@ -177,6 +209,8 @@ int start_thread(void *(*start_routine) (void *), void *args) {
 				  "return code from pthread_create() is %d\n", rc);
 		return 0;
 	}
+
+	LOG_DEBUG(THREAD_MGMT_MSG_PREFIX "leaving start_thread()");
 	return 1;
 }
 
@@ -188,6 +222,8 @@ int start_thread(void *(*start_routine) (void *), void *args) {
  * @return whether removing thread reference was successful (boolean)
  */
 int thread_terminated(pthread_t tid) {
+	LOG_DEBUG(THREAD_MGMT_MSG_PREFIX "thread_terminated() called");
+
 	int rc;
 	pthread_t t;
 	pthread_t *param;
@@ -200,6 +236,8 @@ int thread_terminated(pthread_t tid) {
 				  "return code from pthread_create() is %d\n", rc);
 		return 0;
 	}
+
+	LOG_DEBUG(THREAD_MGMT_MSG_PREFIX "leaving thread_terminated()");
 	return 1;
 }
 
@@ -210,36 +248,174 @@ int thread_terminated(pthread_t tid) {
  */
 int tm_init() {
 
-	// create lock:
+	LOG_DEBUG(THREAD_MGMT_MSG_PREFIX "initialize thread management");
+
+	// create locks:
 	int rc;
 
 	rc = pthread_mutex_init(&thrManLock, NULL);
 	if (rc != 0) {
-		// ERROR
+		LOG_ERROR(THREAD_MGMT_MSG_PREFIX
+				  "failed to initialize mutex lock\n");
+		return 0;
+	}
+
+	rc = pthread_mutex_init(&startLock, NULL);
+	if (rc != 0) {
+		LOG_ERROR(THREAD_MGMT_MSG_PREFIX
+				  "failed to initialize mutex lock\n");
 		return 0;
 	}
 
 	activeThreads = 0;
 	peak = 0;
+	shuttingDown = 0;
 
 	// reserve memory for thread references:
 	threads = (pthread_t *) calloc(MAXTHREADS, sizeof(pthread_t));
 	return 1;
 }
 
+int shutdown_threads() {
+	return 1;
+}
+
+/**
+ * Join all remaining threads that are still running.
+ * @return whether joining all threads was successful (boolean)
+ */
+int join_threads() {
+	int i;
+
+	int rc;
+	for (i = 0; i < MAXTHREADS; i++) {
+		pthread_t tid = threads[i];
+		if (tid) {
+			rc = pthread_join(tid, NULL);
+			if (rc) {
+				LOG_ERROR(THREAD_MGMT_MSG_PREFIX
+						  "error joining thread nr. %d, return code from "
+						  "pthread_join() is %d", (int) tid, rc);
+				return 0;
+			}
+			LOG_DEBUG(THREAD_MGMT_MSG_PREFIX "joined thread nr. %d", tid);
+		}
+	}
+	return 1;
+}
+
+/**
+ * This waits on all running threads until they are finished. It does not 
+ * prevent new threads threads from starting, so it is possible that there are
+ * still threads running after this function. This only happens if you have 
+ * threads starting other threads. In this case you can ensure the termination
+ * of all threads if you call tm_destroy().<br \>
+ * If you start threads right before this routine, it is wise to insert a 
+ * sleep() right before it to ensure that all threads are really started.
+ * @return if joining all threads was successful (boolean)
+ */
+int tm_join_active_threads() {
+	LOG_DEBUG(THREAD_MGMT_MSG_PREFIX "entering tm_join_active_threads()");
+	int threadsRunning;			// whether there are threads running
+	int rc;						// return code
+
+	// only lock for getting the number of active threads, because we don't
+	// want to block starting or removing managed threads:
+	threadsRunning = 0;
+	pthread_mutex_lock(&thrManLock);
+	threadsRunning = activeThreads > 0;
+	pthread_mutex_unlock(&thrManLock);
+
+	if (threadsRunning) {
+		// there are working threads:
+		LOG_DEBUG(THREAD_MGMT_MSG_PREFIX
+				  "waiting for all threads to finish");
+		rc = join_threads();
+		if (!rc) {
+			LOG_ERROR(THREAD_MGMT_MSG_PREFIX
+					  "failed to wait for all threads");
+			return 0;
+		}
+	}
+
+	LOG_DEBUG(THREAD_MGMT_MSG_PREFIX "leaving tm_join_active_threads()");
+	return 1;
+}
+
 /**
  * Destroy lock and free memory. Call this function when you are done using
- * thread management.
+ * thread management. It is not possible to start new threads after invoking 
+ * this.
+ * @param forceShutdown whether all running threads shall be cancelled or if
+ * all threads will be joined, i.e. we wait until they are done (boolean)
  * @return if releasing thread management was successfull (boolean)
  */
-int tm_destroy() {
+int tm_destroy(int forceShutdown) {
+	LOG_DEBUG(THREAD_MGMT_MSG_PREFIX "releasing thread management");
 
-	// release lock:
-	int rc;
+	int rc;						// return code
+	int threadsRunning;			// are there still threads running (boolean)
 
+	// prevent that tm_destroy is called too early:
+	sched_yield();
+
+	// prevent new threads from starting:
+	pthread_mutex_lock(&startLock);
+	shuttingDown = 1;
+	pthread_mutex_unlock(&startLock);
+
+	// check whether threads are running
+	threadsRunning = 0;
+	pthread_mutex_lock(&thrManLock);
+	threadsRunning = activeThreads > 0;
+	pthread_mutex_unlock(&thrManLock);
+
+	// unlock because remove_thread() is allowed
+
+	if (threadsRunning) {
+		if (forceShutdown) {
+			// don't wait, shut down now
+			LOG_DEBUG(THREAD_MGMT_MSG_PREFIX
+					  "forcing shutdown of all threads");
+			rc = shutdown_threads();
+			if (!rc) {
+				LOG_ERROR(THREAD_MGMT_MSG_PREFIX
+						  "failed to shut down all threads");
+			}
+		} else {
+			// wait for all remaining threads
+			LOG_DEBUG(THREAD_MGMT_MSG_PREFIX
+					  "waiting for all threads to finish");
+			rc = join_threads();
+			if (!rc) {
+				LOG_ERROR(THREAD_MGMT_MSG_PREFIX
+						  "failed to wait for all threads");
+			}
+		}
+	}
+	// now wait on all remaining remove_thread() instances 
+	pthread_mutex_lock(&thrManLock);
+
+	while (activeThreads > 0) {
+		pthread_mutex_unlock(&thrManLock);
+		// activate a remove_thread()-thread
+		sched_yield();
+		pthread_mutex_lock(&thrManLock);
+	}
+	pthread_mutex_unlock(&thrManLock);
+
+	// now all threads are finished, references cleared
+
+	// release locks:
 	rc = pthread_mutex_destroy(&thrManLock);
 	if (rc != 0) {
-		// ERROR
+		LOG_ERROR(THREAD_MGMT_MSG_PREFIX "failed to release mutex lock\n");
+		return 0;
+	}
+
+	rc = pthread_mutex_destroy(&startLock);
+	if (rc != 0) {
+		LOG_ERROR(THREAD_MGMT_MSG_PREFIX "failed to release mutex lock\n");
 		return 0;
 	}
 

@@ -57,7 +57,7 @@ void teardown_with_tm(void) {
 	rc = pthread_mutex_destroy(&idsLock);
 	fail_unless(rc == 0, "mutex could not be released");
 
-	rc = tm_destroy();
+	rc = tm_destroy(0);
 	fail_if(rc == 0, "thread management could not be released");
 
 	rc = logger_destroy();
@@ -72,9 +72,7 @@ void teardown_with_tm(void) {
 void *thrd_request_id(void *args) {
 	int id;
 
-	/*
-	 * sleep up to 15 seconds 
-	 */
+	// sleep up to 15 seconds:
 	sleep((int) args);
 
 	id = cig_generate_call_id();
@@ -111,16 +109,18 @@ START_TEST(test_threaded) {
 
 	testIdsSize = 0;
 
-	/*
-	 * initialize random generator 
-	 */
+	// initialize random generator: 
 	srand(time(NULL));
 
 	for (i = 0; i < MAX_IDS_THREADED; i++) {
 		r = rand() % 15;
 		start_thread(thrd_request_id, (void *) r);
 	}
-	sleep(20);
+	
+	// ensure creation of threads:
+	sleep(2);
+	// wait for all threads to be finished:
+	tm_join_active_threads();
 
 	for (i = 0; i < MAX_IDS_THREADED - 1; i++) {
 		for (j = i + 1; j < MAX_IDS_THREADED; j++) {

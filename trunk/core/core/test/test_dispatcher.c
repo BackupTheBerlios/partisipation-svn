@@ -22,7 +22,7 @@ int main() {
 	event_dispatch(GUI_MAKE_CALL, params2);
 	scanf("%d", &x);
 	ed_destroy();
-	tm_destroy();
+	tm_destroy(0);
 	free(params1);
 	free(params2);
 	pthread_exit(NULL);
