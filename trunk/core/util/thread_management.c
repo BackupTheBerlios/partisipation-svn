@@ -53,6 +53,20 @@ int peak;
  */
 int shuttingDown;
 
+int* haveCleaner;
+
+
+int find_pos_by_thread_id(pthread_t tid) {
+	int i = 0;
+	while (threads[i] != tid) {
+		i++;
+		if (i == MAXTHREADS) {
+			return -1;
+		}
+	}
+	return i;
+}
+
 /**
  * Private function, do not call. 
  * It handles the work of start_thread() as a separate thread.
@@ -140,9 +154,9 @@ void *add_thread(void *args) {
  */
 void *remove_thread(void *args) {
 
-	pthread_t *tid;
+//	pthread_t *tid;
 
-	tid = (pthread_t *) args;
+//	tid = (pthread_t *) args;
 
 	// enter lock to prevent concurring access to thread references
 	pthread_mutex_lock(&thrManLock);
@@ -164,7 +178,7 @@ void *remove_thread(void *args) {
 		}
 	}
 
-	LOG_INFO(THREAD_MGMT_MSG_PREFIX "found thread nr. %d at position %d\n",
+	LOG_INFO(THREAD_MGMT_MSG_PREFIX "found thread No. %d at position %d\n",
 			 (int) *tid, i);
 
 	// remove reference:
@@ -227,11 +241,17 @@ int thread_terminated(void *returnValue) {
 
 	int rc;
 	pthread_t t;
-	pthread_t *param;
-
-	param = (pthread_t *) malloc(sizeof(pthread_t));
-	*param = pthread_self();
-	rc = pthread_create(&t, NULL, remove_thread, (void *) param);
+//	pthread_t *param;
+	
+	int pos;
+	pos = find_pos_by_thread_id(pthread_self());
+	if (pos == -1) {
+		LOG_ERROR(THREAD_MGMT_MSG_PREFIX "thread not found.\n");
+		return 0;
+	}
+//	param = (pthread_t *) malloc(sizeof(pthread_t));
+//	*param = pthread_self();
+	rc = pthread_create(&t, NULL, remove_thread, (void *) pos);
 	if (rc != 0) {
 		LOG_ERROR(THREAD_MGMT_MSG_PREFIX
 				  "return code from pthread_create() is %d\n", rc);
@@ -239,6 +259,10 @@ int thread_terminated(void *returnValue) {
 	}
 
 	LOG_DEBUG(THREAD_MGMT_MSG_PREFIX "leaving thread_terminated()");
+	if (haveCleaner[pos]) {
+		pthread_cleanup_pop(0);
+		haveCleaner[pos] = 0;
+	}
 	pthread_exit(NULL);
 	return 1;
 }
@@ -275,6 +299,8 @@ int tm_init() {
 
 	// reserve memory for thread references:
 	threads = (pthread_t *) calloc(MAXTHREADS, sizeof(pthread_t));
+	
+	haveCleaner = (int *) calloc(MAXTHREADS, sizeof(int));
 	return 1;
 }
 
@@ -296,11 +322,11 @@ int join_threads() {
 			rc = pthread_join(tid, NULL);
 			if (rc) {
 				LOG_ERROR(THREAD_MGMT_MSG_PREFIX
-						  "error joining thread nr. %d, return code from "
+						  "error joining thread No. %d, return code from "
 						  "pthread_join() is %d", (int) tid, rc);
 				return 0;
 			}
-			LOG_DEBUG(THREAD_MGMT_MSG_PREFIX "joined thread nr. %d",
+			LOG_DEBUG(THREAD_MGMT_MSG_PREFIX "joined thread No. %d",
 					  (int) tid);
 		}
 	}
@@ -429,3 +455,58 @@ int tm_destroy(int forceShutdown) {
 	free(threads);
 	return 1;
 }
+
+int tm_enable_cancelability() {
+	int rc;
+
+	rc = pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+	if (rc != 0) {
+		LOG_ERROR(THREAD_MGMT_MSG_PREFIX
+				  "could not set cancelstate to enable of thread No. %d,"
+				  " return value was %d", pthread_self(), rc);
+		return 0;
+	}
+
+	rc = pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
+	if (rc != 0) {
+		LOG_ERROR(THREAD_MGMT_MSG_PREFIX
+				  "could not set canceltype to deferred of thread No. %d, "
+				  "return value was %d", pthread_self(), rc);
+		return 0;
+	}
+
+	return 1;
+}
+
+int tm_disable_cancelability() {
+	int rc;
+
+	rc = pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+	if (rc != 0) {
+		LOG_ERROR(THREAD_MGMT_MSG_PREFIX
+				  "could not set cancelstate to enable of thread No. %d,"
+				  " return value was %d", pthread_self(), rc);
+		return 0;
+	}
+
+	return 1;
+}
+
+void tm_cancellation_point() {
+	pthread_testcancel();
+}
+
+int tm_set_cleaner(void (*routine)(void *), void *arg) {
+	int pos;
+	
+	pos = find_pos_by_thread_id(pthread_self());
+	if (pos == -1) {
+		LOG_ERROR(THREAD_MGMT_MSG_PREFIX "could not retrieve thread to set cleanup routine");
+		return 0;
+	}
+	
+	haveCleaner[pos] = 1;
+
+	pthread_cleanup_push(routine, arg);
+	return 1;
+
