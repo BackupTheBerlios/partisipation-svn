@@ -1,6 +1,7 @@
 package gui;
 
 import java.awt.Color;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.Vector;
 import javax.swing.DefaultListModel;
@@ -204,10 +206,7 @@ public class Gui extends JFrame {
         jSlider2 = new JSlider(0, 100, 50);
         menuBar = new JMenuBar();
         helpMenu = new JMenu();
-        contentsMenuItem = new JMenuItem();
         aboutMenuItem = new JMenuItem();
-        jMenuItem1 = new JMenuItem();
-        jMenuItem2 = new JMenuItem();
         popup_register = new JMenuItem("Register");
         popup_delete = new JMenuItem("Delete");
         jScrollPane1 = new JScrollPane();
@@ -495,9 +494,9 @@ public class Gui extends JFrame {
         addressBook.pack();
 
         helpMenu.setText("Help");
-        helpMenu.addActionListener(new java.awt.event.ActionListener() {
+        aboutMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                helpMenuActionPerformed(evt);
+                aboutActionPerformed(evt);
             }
         });
 
@@ -513,17 +512,8 @@ public class Gui extends JFrame {
             }
         });
 
-        contentsMenuItem.setText("Contents");
-        helpMenu.add(contentsMenuItem);
-
         aboutMenuItem.setText("About");
         helpMenu.add(aboutMenuItem);
-
-        jMenuItem1.setText("Item");
-        helpMenu.add(jMenuItem1);
-
-        jMenuItem2.setText("Item");
-        helpMenu.add(jMenuItem2);
 
         menuBar.add(helpMenu);
 
@@ -898,8 +888,12 @@ public class Gui extends JFrame {
         pack();
     }
 
-    public void helpMenuActionPerformed(java.awt.event.ActionEvent evt) {
-        // TODO add your handling code here:
+    public void aboutActionPerformed(ActionEvent e) {
+        URL logoURL = cl.getResource("gui/resources/logo.jpg");
+        ImageIcon icon = new ImageIcon(logoURL);
+
+        JOptionPane.showMessageDialog(this, "", "Info",
+                JOptionPane.INFORMATION_MESSAGE, icon);
     }
 
     public void popupDeleteActionPerformed(java.awt.event.ActionEvent evt) {
@@ -969,8 +963,6 @@ public class Gui extends JFrame {
     // Variables declaration - do not modify
     public JMenuItem aboutMenuItem;
 
-    public JMenuItem contentsMenuItem;
-
     public JMenu helpMenu;
 
     public JTextField jTextField1;
@@ -1034,10 +1026,6 @@ public class Gui extends JFrame {
     public JLabel jLabel8;
 
     public JLabel jLabel9;
-
-    public JMenuItem jMenuItem1;
-
-    public JMenuItem jMenuItem2;
 
     public JMenuItem popup_register;
 
