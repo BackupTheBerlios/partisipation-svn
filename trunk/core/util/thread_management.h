@@ -23,7 +23,7 @@ int tm_init();
 
 int start_thread(void *(*start_routine) (void *), void *args);
 
-int thread_terminated(void *returnValue);
+int thread_terminated();
 
 int tm_destroy(int forceShutdown);
 

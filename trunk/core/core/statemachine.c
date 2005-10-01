@@ -244,6 +244,6 @@ void *sm_start(void *args) {
 	}
 
 	free(callInfo);
-	thread_terminated(NULL);
+	thread_terminated();
 	return NULL;
 }

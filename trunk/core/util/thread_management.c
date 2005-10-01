@@ -53,8 +53,7 @@ int peak;
  */
 int shuttingDown;
 
-int* haveCleaner;
-
+int *haveCleaner;
 
 int find_pos_by_thread_id(pthread_t tid) {
 	int i = 0;
@@ -147,57 +146,6 @@ void *add_thread(void *args) {
 }
 
 /**
- * Private function, do not call. 
- * It handles the work of thread_terminated() as a separate thread.
- * @param args the thread id of the thread that will be removed
- * @return nothing so far
- */
-void *remove_thread(void *args) {
-
-//	pthread_t *tid;
-
-//	tid = (pthread_t *) args;
-
-	// enter lock to prevent concurring access to thread references
-	pthread_mutex_lock(&thrManLock);
-
-	int i = 0;
-
-	// find position of given thread in array:
-	while (threads[i] != *tid) {
-		i++;
-		if (i == MAXTHREADS) {
-			LOG_ERROR(THREAD_MGMT_MSG_PREFIX "thread not found.\n");
-			// unlock:
-			pthread_mutex_unlock(&thrManLock);
-
-			free(tid);
-
-			// we're done
-			pthread_exit(NULL);
-		}
-	}
-
-	LOG_INFO(THREAD_MGMT_MSG_PREFIX "found thread No. %d at position %d\n",
-			 (int) *tid, i);
-
-	// remove reference:
-	threads[i] = 0;
-
-	activeThreads--;
-
-	LOG_INFO(THREAD_MGMT_MSG_PREFIX "thread removed\n");
-
-	// unlock:
-	pthread_mutex_unlock(&thrManLock);
-
-	free(tid);
-
-	// we're done
-	pthread_exit(NULL);
-}
-
-/**
  * This function should be called whenever a thread needs to be created.
  * It prevents "fire&forget" thread starting by holding track of currently
  * running threads. It is possible that your thread is not starting 
@@ -232,37 +180,40 @@ int start_thread(void *(*start_routine) (void *), void *args) {
  * This function should be called by a thread that was launched using the
  * start_thread() function. It signals its termination to the thread 
  * management.
- * @param returnValue this is similiar to a return value of a function, except
- * it can only be obtained by joining the thread
  * @return whether removing thread reference was successful (boolean)
  */
-int thread_terminated(void *returnValue) {
+int thread_terminated() {
 	LOG_DEBUG(THREAD_MGMT_MSG_PREFIX "thread_terminated() called");
 
-	int rc;
-	pthread_t t;
-//	pthread_t *param;
-	
 	int pos;
 	pos = find_pos_by_thread_id(pthread_self());
 	if (pos == -1) {
 		LOG_ERROR(THREAD_MGMT_MSG_PREFIX "thread not found.\n");
 		return 0;
 	}
-//	param = (pthread_t *) malloc(sizeof(pthread_t));
-//	*param = pthread_self();
-	rc = pthread_create(&t, NULL, remove_thread, (void *) pos);
-	if (rc != 0) {
-		LOG_ERROR(THREAD_MGMT_MSG_PREFIX
-				  "return code from pthread_create() is %d\n", rc);
-		return 0;
-	}
+
+	LOG_INFO(THREAD_MGMT_MSG_PREFIX "found thread No. %d at position %d\n",
+			 (int) threads[pos], pos);
+
+	// enter lock to prevent concurring access to thread references
+	pthread_mutex_lock(&thrManLock);
+
+	// remove reference:
+	threads[pos] = 0;
+
+	activeThreads--;
+
+	LOG_INFO(THREAD_MGMT_MSG_PREFIX "thread removed\n");
+
+	// unlock:
+	pthread_mutex_unlock(&thrManLock);
 
 	LOG_DEBUG(THREAD_MGMT_MSG_PREFIX "leaving thread_terminated()");
 	if (haveCleaner[pos]) {
-		pthread_cleanup_pop(0);
+		//pthread_cleanup_pop(0);
 		haveCleaner[pos] = 0;
 	}
+
 	pthread_exit(NULL);
 	return 1;
 }
@@ -299,7 +250,7 @@ int tm_init() {
 
 	// reserve memory for thread references:
 	threads = (pthread_t *) calloc(MAXTHREADS, sizeof(pthread_t));
-	
+
 	haveCleaner = (int *) calloc(MAXTHREADS, sizeof(int));
 	return 1;
 }
@@ -496,17 +447,18 @@ void tm_cancellation_point() {
 	pthread_testcancel();
 }
 
-int tm_set_cleaner(void (*routine)(void *), void *arg) {
+int tm_set_cleaner(void (*routine) (void *), void *arg) {
 	int pos;
-	
+
 	pos = find_pos_by_thread_id(pthread_self());
 	if (pos == -1) {
-		LOG_ERROR(THREAD_MGMT_MSG_PREFIX "could not retrieve thread to set cleanup routine");
+		LOG_ERROR(THREAD_MGMT_MSG_PREFIX
+				  "could not retrieve thread to set cleanup routine");
 		return 0;
 	}
-	
+
 	haveCleaner[pos] = 1;
 
-	pthread_cleanup_push(routine, arg);
+	//pthread_cleanup_push(routine, arg);
 	return 1;
-
+}

@@ -208,7 +208,7 @@ void *dispatch(void *args) {
 
 				free(param);
 
-				thread_terminated(NULL);
+				thread_terminated();
 				return NULL;
 			}
 
@@ -226,7 +226,7 @@ void *dispatch(void *args) {
 
 				free(param);
 
-				thread_terminated(NULL);
+				thread_terminated();
 				return NULL;
 			}
 
@@ -245,7 +245,7 @@ void *dispatch(void *args) {
 			 * 
 			 * free(param);
 			 * 
-			 * thread_terminated(NULL);
+			 * thread_terminated();
 			 * } 
 			 */
 			// </TEST>
@@ -309,7 +309,7 @@ void *dispatch(void *args) {
 
 	// free(param); ?
 
-	thread_terminated(NULL);
+	thread_terminated();
 	return NULL;
 }
 

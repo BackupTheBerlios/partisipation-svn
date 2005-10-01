@@ -25,7 +25,7 @@ void *sip_listener(void *args) {
 			sip_listener_throw(event.callId, event.statusCode);
 		}
 	}
-	int rc = thread_terminated(NULL);
+	int rc = thread_terminated();
 	return NULL;
 }
 
