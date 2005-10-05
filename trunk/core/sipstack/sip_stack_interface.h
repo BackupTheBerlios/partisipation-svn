@@ -80,7 +80,8 @@ sipstack_event sipstack_receive_event(int timeout);
  * @param expire time to live of registration in seconds
  * @return registration id which can be used to update the registration or to unregister
  */
-int sipstack_send_register(char *const identity, char *const registrar, int expire);
+int sipstack_send_register(char *const identity, char *const registrar,
+						   int expire);
 /**
  * Updates a registration and sets its expiration time to a given value.
  * After sending the REGISTER this method waits for a response.
@@ -131,7 +132,7 @@ int sipstack_send_reinvite(int dialogId);
  * @param dialogId dialog id
  * @return method result code
  */
-int sipstack_terminate(int callId, int dialogId) {
+int sipstack_terminate(int callId, int dialogId);
 
 /**
  * Terminate a call by sending BYE.
