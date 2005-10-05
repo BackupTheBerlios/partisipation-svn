@@ -38,6 +38,7 @@ typedef struct {
 	int statusCode;
 	char *message;
 	int callId;
+	int dialogId;
 	int transactionId;
 	int ack;
 } sipstack_event;
