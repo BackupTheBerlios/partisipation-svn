@@ -28,15 +28,8 @@
 #ifndef HSIPSTACK_INTERFACE_USED
 #define HSIPSTACK_INTERFACE_USED
 
-#include <util/queue/queue.h>
 #include <util/logging/logger.h>
 #include <util/config/config_reader.h>
-
-/* maximum transactions per call */
-#define SIPSTACK_MAX_TRANSACTIONS 100
-
-/* maximum calls handled by this adapter */
-#define SIPSTACK_MAX_CALLS 100
 
 /* prefix for debug and error messages */
 #define SIPSTACK_MSG_PREFIX "[sipstack adapter] "
@@ -48,19 +41,6 @@ typedef struct {
 	int transactionId;
 	int ack;
 } sipstack_event;
-
-typedef enum {
-	INVITE,
-	NON_INVITE
-} sipstack_transaction_type;
-
-typedef struct {
-	int callId;
-	int sipCallId;
-	int sipDialogId;
-	queue sipTransactionIds;
-	sipstack_transaction_type type;
-} sipstack_call;
 
 /**
  * Init sip stack. This method is supposed to be called before using the sip stack.
@@ -99,8 +79,7 @@ sipstack_event sipstack_receive_event(int timeout);
  * @param expire time to live of registration in seconds
  * @return registration id which can be used to update the registration or to unregister
  */
-int sipstack_send_register(char *const identity, char *const registrar,
-						   int expire);
+int sipstack_send_register(char *const identity, char *const registrar, int expire);
 /**
  * Updates a registration and sets its expiration time to a given value.
  * After sending the REGISTER this method waits for a response.
@@ -142,6 +121,16 @@ int sipstack_send_invite(int callId, char *to, char *from, char *subject);
  * @return return code (-1 if sending of reINVITE failed)
  */
 int sipstack_send_reinvite(int callId);
+
+/**
+ * Terminate a call by sending BYE, CANCEL or DECLINE.
+ * There is no need to wait for a 200 OK because the hole call termination process is
+ * done by this method.
+ *
+ * @param callId call id
+ * @return method result code
+ */
+int sipstack_terminate(int callId);
 
 /**
  * Terminate a call by sending BYE.
