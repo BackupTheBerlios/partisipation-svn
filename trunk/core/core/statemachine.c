@@ -20,8 +20,7 @@ typedef struct {
 
 int sm_inviting_state_on_entry(local_call_info * callInfo) {
 	int rc;
-	rc = sipstack_send_invite(callInfo->callId, callInfo->callee,
-							  callInfo->caller, "");
+	rc = sipstack_send_invite(callInfo->callee, callInfo->caller, "");
 	if (!rc) {
 		// ERROR
 		return 0;

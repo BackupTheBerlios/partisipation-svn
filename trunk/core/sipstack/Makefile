@@ -5,7 +5,7 @@ STYLEDOCDIR_LOCAL = $(STYLEDOCDIR)/sipstack
 
 compile:
 	find ./ | grep \\.c$$ | grep -v tests/ | xargs $(COMPILE.c) -I../
-	$(LINK.c) -o check_sipstack_adapter test_sipstack.o osip_adapter.o osip_adapter_cm.o sip_listener.o ../util/thread_management.o ../util/logging/logger.o ../util/config/config_reader.o ../util/queue/queue.o -L/usr/local/lib -lcheck -leXosip2 -losip2 -losipparser2 -lpthread $(LIBS_CLIENT) $(LIBS_ABYSS)
+	$(LINK.c) -o check_sipstack_adapter test_sipstack.o osip_adapter.o sip_listener.o ../util/thread_management.o ../util/logging/logger.o ../util/config/config_reader.o ../util/queue/queue.o -L/usr/local/lib -lcheck -leXosip2 -losip2 -losipparser2 -lpthread $(LIBS_CLIENT) $(LIBS_ABYSS)
 
 clean:
 	find ./ -maxdepth 1 | grep \\.o$$ | xargs rm -f

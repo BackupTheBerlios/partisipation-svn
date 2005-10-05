@@ -63,8 +63,8 @@ START_TEST(test_sipstack_call) {
 	int i = sipstack_init(5065);
 
 	/*send initial INVITE */
-	i = sipstack_send_invite(callId, "sip:321@192.168.0.2", "sip:123@192.168.0.2", "Sip Stack Test");
-	fail_unless(i == 0, "[test call][INVITE]Sending INVITE failed. (result = %2d)", i);
+	callId = sipstack_send_invite("sip:321@192.168.0.2", "sip:123@192.168.0.2", "Sip Stack Test");
+	fail_unless(callId > 0, "[test call][INVITE]Sending INVITE failed. (result = %2d)", callId);
 	/*receive response */
 	result.statusCode = 0;
 	while (result.statusCode < 200) {
@@ -75,7 +75,7 @@ START_TEST(test_sipstack_call) {
 				result.statusCode);
 
 	/*send ACK for OK */
-	i = sipstack_send_acknowledgment(callId);
+	i = sipstack_send_acknowledgment(result.dialogId);
 	fail_unless(i == 0,
 				"[test call][INVITE]Sending ACK failed. (result = %2d)",
 				i);
@@ -83,7 +83,7 @@ START_TEST(test_sipstack_call) {
 	sipstack_event res = sipstack_receive_event(1);
 
 	/*send BYE */
-	i = sipstack_bye(callId);
+	i = sipstack_bye(callId, result.dialogId);
 	fail_unless(i == 0,
 				"[test call][BYE]Sending BYE failed. (result = %2d)", i);
 
@@ -97,14 +97,12 @@ START_TEST(test_sipstack_cancel) {
 
 	sipstack_event result;
 
-	int callId = 2;
-
 	int i = sipstack_init(5065);
 
 	/*send initial INVITE */
-	i = sipstack_send_invite(callId, "sip:321@192.168.0.2", "sip:123@192.168.0.2", "Sip Stack Test");
+	int callId = sipstack_send_invite("sip:321@192.168.0.2", "sip:123@192.168.0.2", "Sip Stack Test");
 
-	fail_unless(i == 0, "[test transaction]Sending INVITE failed. (result = %2d)", i);
+	fail_unless(callId > 0, "[test transaction]Sending INVITE failed. (result = %2d)", i);
 
 	/*
 		wait for provisional answer (e.g. 100)
@@ -116,7 +114,7 @@ START_TEST(test_sipstack_cancel) {
 	}
 
 	/*send CANCEL */
-	i = sipstack_cancel(callId);
+	i = sipstack_cancel(callId, result.dialogId);
 	fail_unless(i == 0, "[test transaction]Sending CANCEL failed. (result = %2d)", i);
 
 	/*receive response for INVITE*/
@@ -130,25 +128,6 @@ START_TEST(test_sipstack_cancel) {
 
 } END_TEST
 
-START_TEST(test_sipstack_threading) {
-	/*
-	 * unit test code
-	 */
-
-	sipstack_event result;
-	int i = sipstack_init(5065);
-
-
-	/*send initial REGISTER */
-	int regId =
-		sipstack_send_register("sip:333@192.168.0.2", "sip:192.168.0.2",
-							   1800);
-	fail_unless(regId > -1, "Sending REGISTER failed. (result = %2d)",
-				regId);
-
-	sleep(20);
-	sipstack_quit();
-} END_TEST
 
 // *INDENT-ON*
 
@@ -157,23 +136,18 @@ Suite *sipstack_suite(void) {
 	TCase *tc_register = tcase_create("Register");
 	TCase *tc_call = tcase_create("Call");
 	TCase *tc_cancel = tcase_create("Cancel");
-	TCase *tc_threading = tcase_create("Threading");
 
 	suite_add_tcase(s, tc_register);
 	suite_add_tcase(s, tc_call);
 	suite_add_tcase(s, tc_cancel);
-	suite_add_tcase(s, tc_threading);
 
-	//tcase_add_test(tc_register, test_sipstack_register);
+	tcase_add_test(tc_register, test_sipstack_register);
 
 	tcase_set_timeout(tc_call, 30);
-	//tcase_add_test(tc_call, test_sipstack_call);
+	tcase_add_test(tc_call, test_sipstack_call);
 
 	tcase_set_timeout(tc_cancel, 30);
-	//tcase_add_test(tc_cancel, test_sipstack_cancel);
-
-	tcase_add_test(tc_threading, test_sipstack_threading);
-	tcase_set_timeout(tc_threading, 30);
+	tcase_add_test(tc_cancel, test_sipstack_cancel);
 
 	//tcase_add_checked_fixture (tc_apt, setup, teardown);
 
