@@ -1,0 +1,446 @@
+accounts/account_client_interface.h
+================================================================================
+
+void account_get_all(int *accountIds, int *length);
+int account_set(int const accountId, char *const attribute,
+				char *const value);
+void account_get(int const accountId, char *const attribute, char *result);
+int account_create();
+int account_delete(int const accountId);
+int account_save();
+
+accounts/account_core_interface.h
+================================================================================
+
+void am_init();
+void am_set_xml_source(char *file);
+account am_get_account(int const accountId);
+void am_get_all_accounts(account* accounts, int length);
+
+accounts/account_management.c
+================================================================================
+
+- implementation of account_core_interface.h and account_core_interface.h
+- account data is managed by config reader / config writer
+
+config/xml/core_config.xml
+================================================================================
+
+- configuration data of logger, thread management, xmlrpc server/callback,
+  sipstack, statemachine
+- account information
+
+core/callIDs/call_id_generator.h
+================================================================================
+
+int cig_init();
+int cig_generate_call_id();
+int cig_destroy();
+
+core/callIDs/call_id_generator.c
+================================================================================
+
+- implementation of call_id_generator
+
+core/events/event_dispatcher.h
+================================================================================
+
+int ed_init();
+int event_dispatch(event evt, void **params);
+int ed_destroy();
+
+- internal structures
+
+core/events/event_dispatcher.c
+================================================================================
+
+- implementation of event_dispatcher.h
+
+core/events/events.h
+================================================================================
+
+- definition of events as enumeration
+
+core/events/statemachine.h
+================================================================================
+
+void *sm_start(void *args);
+- definition of states as enumeration
+
+core/events/statemachine.h
+================================================================================
+
+- implementation of statemachine.h
+
+core/gui_input/accounts_receiver.h
+================================================================================
+
+void gi_account_get_all(int *accountIds, int *length);
+int gi_account_set(int const accountId, char *const attribute,
+				   char *const value);
+void gi_account_get(int const accountId, char *const attribute, char *result);
+int gi_account_create();
+int gi_account_delete(int const accountId);
+int gi_account_register(int const accountId);
+int gi_account_unregister(int const accountId);
+int gi_account_save();
+
+core/gui_input/accounts_receiver.c
+================================================================================
+
+- implementation of accounts_receiver.h
+- bridge to account_management.c and event_dispatcher
+
+core/gui_input/calls_receiver.h
+================================================================================
+
+int gi_make_call(int const accountId, char *const callee);
+int gi_end_call(int const callId);
+int gi_accept_call(int const callId);
+
+core/gui_input/calls_receiver.c
+================================================================================
+
+- implementation of calls_receiver.h
+- method calls will be transformed to events using the event dispatcher
+
+core/gui_input/extras_receiver.h
+================================================================================
+
+int gi_send_dtmf(char *const character, int const callId);
+
+core/gui_input/extras_receiver.c
+================================================================================
+
+- implementation of extras_receiver.h
+- method calls will be transformed to events using the event dispatcher
+
+core/gui_input/registration_receiver.h
+================================================================================
+
+char *gi_register_gui(char *const address, int const port);
+
+core/gui_input/registration_receiver.c
+================================================================================
+
+- implementation of registration_receiver.h
+- callback to gui is invoked from here
+
+core/gui_input/volume_receiver.h
+================================================================================
+
+int set_speaker_volume(double const level);
+double get_speaker_volume();
+int set_micro_volume(double const level);
+double get_micro_volume();
+
+core/gui_input/volume_receiver.c
+================================================================================
+
+- implementation of volume_receiver.h
+- bridge to audio component (not yet designed)
+
+core/gui_output/gui_callback_sender.h
+================================================================================
+
+int go_change_reg_status(int accountId, int registered);
+int go_change_call_status(int callId, char *status);
+int go_show_user_event(int accountId, char *category, char *title,
+					   char *message, char *detailMessage);
+int go_register_core();
+int go_incoming_call(int accountId, int callId, char *callerSipUri,
+				  	 char *callerDisplayName);
+int go_set_speaker_volume_cb(double level);
+int go_set_micro_volume_cb(double level);
+
+core/gui_output/gui_callback_sender.c
+================================================================================
+
+- implementation of gui_callback_sender.h
+- calls are forwarded using interface remote/callback/gui_callback.h
+
+remote/callback/gui_callback.h
+================================================================================
+
+int cb_change_reg_status(int accountId, int registered);
+int cb_change_call_status(int callId, char *status);
+int cb_show_user_event(int accountId, char *category, char *title,
+					   char *message, char *detailMessage);
+int cb_register_core();
+int cb_incoming_call(int accountId, int callId, char *callerSipUri,
+				  	 char *callerDisplayName);
+int cb_set_speaker_volume_cb(double level);
+int cb_set_micro_volume_cb(double level);
+
+remote/callback/xmlrpc/gui_callback.c
+================================================================================
+
+- implementation of gui_callback.h using xmlrpc
+
+remote/callback/xmlrpc/xmlrpc_callback_client.h
+================================================================================
+
+int cb_init();
+int cb_destroy();
+
+remote/server/accounts.h
+================================================================================
+
+void account_get_all(int *accountIds, int *length);
+int account_set(int const accountId, char *const attribute,
+				char *const value);
+void account_get(int const accountId, char *const attribute, char *result);
+int account_create();
+int account_delete(int const accountId);
+int account_register(int const accountId);
+int account_unregister(int const accountId);
+int account_save();
+
+remote/server/accounts.c
+================================================================================
+
+- implementation of accounts.h
+- all procedure calls will be redirected to core/gui_input/accounts_receiver.c
+
+remote/server/calls.h
+================================================================================
+
+int make_call(int const accountId, char *const callee);
+int end_call(int const callId);
+int accept_call(int const callId);
+
+remote/server/calls.c
+================================================================================
+
+- implementation of calls.h
+- all procedure calls will be redirected to core/gui_input/calls_receiver.c
+
+remote/server/extras.h
+================================================================================
+
+int send_dtmf(char *const character, int const callId);
+
+remote/server/extras.c
+================================================================================
+
+- implementation of extras.h
+- all procedure calls will be redirected to core/gui_input/extras_receiver.c
+
+remote/server/registration.h
+================================================================================
+
+char *register_gui(char *const address, int const port);
+
+remote/server/registration.c
+================================================================================
+
+- implementation of registration.h
+- all procedure calls will be redirected to 
+  core/gui_input/registration_receiver.c
+
+remote/server/volume.h
+================================================================================
+
+int set_speaker_volume(double const level);
+double get_speaker_volume();
+int set_micro_volume(double const level);
+double get_micro_volume();
+
+remote/server/volume.c
+================================================================================
+
+- implementation of volume.h
+- all procedure calls will be redirected to core/gui_input/volume_receiver.c
+
+remote/server/xmlrpc/accounts_remote.h
+================================================================================
+
+xmlrpc_value *account_get_all_RP(xmlrpc_env * const env,
+								 xmlrpc_value * const param_array,
+								 void *const server_context);
+xmlrpc_value *account_set_RP(xmlrpc_env * const env,
+							 xmlrpc_value * const param_array,
+							 void *const server_context);
+xmlrpc_value *account_get_RP(xmlrpc_env * const env,
+							 xmlrpc_value * const param_array,
+							 void *const server_context);
+xmlrpc_value *account_create_RP(xmlrpc_env * const env,
+								xmlrpc_value * const param_array,
+								void *const server_context);
+xmlrpc_value *account_delete_RP(xmlrpc_env * const env,
+								xmlrpc_value * const param_array,
+								void *const server_context);
+xmlrpc_value *account_register_RP(xmlrpc_env * const env,
+								  xmlrpc_value * const param_array,
+								  void *const server_context);
+xmlrpc_value *account_unregister_RP(xmlrpc_env * const env,
+									xmlrpc_value * const param_array,
+									void *const server_context);
+xmlrpc_value *account_save_RP(xmlrpc_env * const env,
+							  xmlrpc_value * const param_array,
+							  void *const server_context);
+
+remote/server/xmlrpc/accounts_remote.c
+================================================================================
+
+- implementation of accounts_remote.h
+- all remote procedure calls are directed to remote/server/accounts.c
+
+remote/server/xmlrpc/calls_remote.h
+================================================================================
+
+xmlrpc_value *make_call_RP(xmlrpc_env * const env,
+						   xmlrpc_value * const param_array,
+						   void *const server_context);
+xmlrpc_value *end_call_RP(xmlrpc_env * const env,
+						  xmlrpc_value * const param_array,
+						  void *const server_context);
+xmlrpc_value *accept_call_RP(xmlrpc_env * const env,
+							 xmlrpc_value * const param_array,
+							 void *const server_context);
+							 
+remote/server/xmlrpc/calls_remote.c
+================================================================================
+
+- implementation of calls_remote.h
+- all remote procedure calls are directed to remote/server/calls.c
+
+remote/server/xmlrpc/extras_remote.h
+================================================================================
+
+xmlrpc_value *send_dtmf_RP(xmlrpc_env * const env,
+						   xmlrpc_value * const param_array,
+						   void *const server_context);
+
+remote/server/xmlrpc/extras_remote.c
+================================================================================
+
+- implementation of extras_remote.h
+- all remote procedure calls are directed to remote/server/extras.c
+
+remote/server/xmlrpc/registration_remote.h
+================================================================================
+
+xmlrpc_value *register_gui_RP(xmlrpc_env * const env,
+							  xmlrpc_value * const param_array,
+							  void *const server_context);
+
+remote/server/xmlrpc/registration_remote.c
+================================================================================
+
+- implementation of registration_remote.h
+- all remote procedure calls are directed to remote/server/registration.c
+
+remote/server/xmlrpc/volume_remote.h
+================================================================================
+
+xmlrpc_value *set_speaker_volume_RP(xmlrpc_env * const env,
+									xmlrpc_value * const param_array,
+									void *const server_context);
+xmlrpc_value *get_speaker_volume_RP(xmlrpc_env * const env,
+									xmlrpc_value * const param_array,
+									void *const server_context);
+xmlrpc_value *set_micro_volume_RP(xmlrpc_env * const env,
+								  xmlrpc_value * const param_array,
+								  void *const server_context);
+xmlrpc_value *get_micro_volume_RP(xmlrpc_env * const env,
+								  xmlrpc_value * const param_array,
+								  void *const server_context);
+
+remote/server/xmlrpc/volume_remote.c
+================================================================================
+
+- implementation of volume_remote.h
+- all remote procedure calls are directed to remote/server/volume.c
+
+remote/server/xmlrpc/xmlrpc_server.h
+================================================================================
+
+int start_xmlrpc_server_thread();
+
+remote/server/xmlrpc/xmlrpc_server.c
+================================================================================
+
+- implementation of xmlrpc_server.h using a thread procedure
+
+util/config/xml/config_reader.h
+================================================================================
+
+int cr_init(const char *fileName);
+int cr_destroy();
+
+util/config/xml/config_reader.c
+================================================================================
+
+- implementation of config_reader.h
+
+util/config/xml/config_writer.h
+================================================================================
+
+int cw_init(const char* fileName, int saveCfgOnExit);
+int cw_save_config();
+int cw_destroy();
+
+util/config/xml/config_writer.c
+================================================================================
+
+- implementation of config_writer.h
+
+util/config/globals.h
+================================================================================
+
+- structures holding configuration information
+
+util/logging/logger.h
+================================================================================
+
+int logger_init();
+void log_message(loglevel lvl, const char *fmt, ...);
+int logger_destroy();
+
+- macros
+- loglevel structure
+
+util/logging/simple/logger.c
+================================================================================
+
+- implementation of logger.h using file and console output
+
+util/queue/queue.h
+================================================================================
+
+int queue_is_empty(queue queue);
+int queue_is_full(queue queue);
+queue queue_create_queue(int maxElements);
+void queue_dispose_queue(queue queue);
+void queue_make_empty(queue queue);
+void queue_enqueue(void *element, queue queue);
+void *queue_front(queue queue);
+void queue_dequeue(queue queue);
+void *queue_front_and_dequeue(queue queue);
+int queue_is_element(void *element, queue queue);
+int queue_get_size(queue queue);
+
+util/queue/queue.c
+================================================================================
+
+- implementation of queue.h
+
+util/threads/thread_management.h
+================================================================================
+
+int tm_init();
+int start_thread(void *(*start_routine) (void *), void *args);
+int thread_terminated();
+int tm_join_active_threads();
+int tm_destroy(int forceShutdown);
+
+util/threads/thread_management.c
+================================================================================
+
+- implementation of thread_management.h
+
+util/threads/tm_storage.h
+================================================================================
+
+- structure thread_data
