@@ -119,7 +119,7 @@ rawhead
 
 macro report_start_end [
     start 2005-04-11
-    end 2005-09-30
+    end 2006-03-31
 ]
 
 macro timeformat [
@@ -127,15 +127,15 @@ macro timeformat [
     timeformat "%Y-%m-%d"
 ]
 
-project sipoks05 "PartiSIPation - A Sip User Agent" "1.0" 2005-04-11 2005-09-30 {
-    now 2005-08-24
-    timeformat "%Y-%m-%d"
+project sipoks05 "PartiSIPation - A Sip User Agent" "1.0" 2005-04-11 2006-03-31 {
+	now 2005-10-02
+	timeformat "%Y-%m-%d"
 
-    currency "EUR"
+	currency "EUR"
 
-    scenario plan "Plan" {
-        scenario actual "actual"
-    }
+	scenario plan "Plan" {
+		scenario actual "actual"
+	}
 }
 
 rate 310.0
@@ -143,33 +143,33 @@ rate 310.0
 flags team
 
 resource anton "Anton Huttenlocher" {
-    limits { weeklymax 6h }
+	limits { weeklymax 6h }
 }
 resource enrico "Enrico Hartung" {
-    limits { weeklymax 6h }
-    vacation 2005-09-09 - 2005-09-21
+	limits { weeklymax 6h }
+	vacation 2005-09-09 - 2005-09-21
 }
 resource matthias "Matthias Liebig" {
-    limits { weeklymax 6h }
+	limits { weeklymax 6h }
 }
 resource oleksiy "Oleksiy Reznikov" {
-    limits { weeklymax 6h }
+	limits { weeklymax 6h }
 }
 
 
 task management "Project management" {
-    start 2005-04-11
-    end 2005-09-30
-    allocate enrico {limits {weeklymax 1h}}
+	start 2005-04-11
+	end 2005-12-31
+	allocate enrico {limits {weeklymax 1h}}
 }
 
 task milestones "Milestones" {
-    task ms_end "The End" {
-        milestone
-        end 2005-09-29
-        depends !!GUI.milestones, !!Core.milestones
-        actual:complete 0
-    }
+	task ms_end "The End" {
+		milestone
+		end 2005-12-31
+		depends !!GUI.milestones, !!Core.milestones
+		actual:complete 0
+	}
 }
 
 task GUI "GUI" {
@@ -336,369 +336,419 @@ task GUI "GUI" {
 
 
 task Core "Core" {
-    start 2005-04-11
+	start 2005-04-11
 
-    task milestones "Milestones" {
-        task ms_concept "Concept (incl. UML) ready" {
-            milestone
-            depends !!concept
-        }
-        task ms_environment "Environment ready" {
-            milestone
-            depends !!environment
-        }
-        task ms_testing "Core tests ready" {
-            milestone
-            depends !!testing
-        }
-        task ms_portable "Core portable" {
-            milestone
-            depends !!implementation.portable
-        }
-        task ms_implementation "Core implemented" {
-            milestone
-            depends !!implementation
-        }
+	task milestones "Milestones" {
+		task ms_concept "Concept (incl. UML) ready" {
+			milestone
+			depends !!concept
+		}
+		task ms_environment "Environment ready" {
+			milestone
+			depends !!environment, !!testing.env
+		}
+		task ms_testing "Tests ready" {
+			milestone
+			depends !!testing
+		}
+		task ms_signalling "Signalling ready" {
+			milestone
+			depends !!signalling, !!core.signalling, !!core.statemachine
+		}
+		task ms_audio "Audio transport ready" {
+			milestone
+			depends !!audio, !!core.audio
+		}
+		task ms_guicomm "GUI communication ready" {
+			milestone
+			depends !!gui, !!core.gui
+		}
+		task ms_account "Account management ready" {
+			milestone
+			depends !!account, !!core.account
+		}
+		task ms_core "Core ready" {
+			milestone
+			depends !!core
+		}
+		task ms_alpha "Alpha version ready" {
+			milestone
+			depends !ms_concept, !ms_environment, !ms_testing, !ms_signalling, !ms_guicomm, !ms_account, !!core.config
+		}
+		task ms_beta "Beta version ready" {
+			milestone
+			depends !ms_alpha, !ms_audio, !ms_core, !!core.portable
+		}
+		task ms_final "Final version ready" {
+			milestone
+			depends !ms_beta, !!roadmap
+		}
+	}
+
+	task testing "Testing" {
+		start 2005-06-04
+
+		task env "Test Environment for C" {
+			effort 6h
+			allocate enrico
+			actual:complete 100
+			actual:effort 3h
+		}
+		task rtp_ifapt "Test Interface and adapter for RTP library" {
+			effort 1h
+			allocate matthias
+			actual:complete 0
+		}
+		task audio_ifapt "Test Interface and adapter for audio" {
+			effort 1h
+			allocate enrico, matthias
+			actual:complete 0
+		}
+		task xmlrpc_ifapt "Test Interface and adapter for XML-RPC" {
+			effort 1h
+			allocate matthias
+			actual:complete 0
+		}
+		task sipstack_ifapt "Test Interface and adapter for SIP stack (oSIP)" {
+			effort 1h
+			allocate enrico
+			actual:complete 25
+		}
+		task call "Test making a call" {
+			effort 1 h
+			depends !!environment
+			allocate enrico, matthias
+			actual:complete 0
+		}
+		task called "Test being called" {
+			effort 1 h
+			depends !!environment
+			allocate enrico, matthias
+			actual:complete 0
+		}
+		task account "Test account management" {
+			effort 1 h
+			depends !!environment
+			allocate enrico, matthias
+			actual:complete 0
+		}
+		task register "Test registering gui" {
+			effort 1 h
+			depends !!environment
+			allocate enrico, matthias
+			actual:complete 0
+		}
+		task volumne "Test volumne management" {
+			effort 1 h
+			depends !!environment
+			allocate enrico, matthias
+			actual:complete 0
+		}
+		task dtmf "Test DTMF" {
+			effort 1 h
+			depends !!environment
+			allocate enrico, matthias
+			actual:complete 0
+		}
+	}
+
+	task concept "Core concept" {
+		start 2005-06-04
+
+		task interfaces "Interface Design" {
+			task sipstack "Design of sip stack interface" {
+				effort 4h
+				allocate enrico
+				actual:complete 100
+			}
+			task rtp "Design of rtp interface" {
+				allocate matthias
+				effort 4h
+				actual:complete 0
+			}
+			task codec "Design of codec interface" {
+				allocate enrico, matthias
+				effort 4h
+				actual:complete 0
+			}
+			task audio "Design of audio interface" {
+				allocate enrico, matthias
+				effort 4h
+				actual:complete 0
+			}
+			task xmlrpc "Design of xml-rpc interface" {
+				allocate enrico, matthias
+				effort 2h
+				actual:complete 100
+				actual:effort 3h
+			}
+		}
+
+		task uml "UML" {
+			task update "UML update" {
+				effort 1h
+				actual:complete 100
+				allocate matthias
+			}
+			task statemachine "UML Statemachine" {
+				depends !update
+				allocate enrico
+				allocate matthias
+				task concept "Concept" {
+					effort 8h
+					actual:complete 100
+					actual:effort 10h
+				}
+				task investigation "Investigation" {
+					effort 1h
+					actual:complete 100
+				}
+			}
+			task class "UML components diagram" {
+				allocate enrico
+				effort 2h
+				actual:complete 100
+				depends !!interfaces
+			}
+			task components "UML class diagram" {
+				allocate enrico
+				effort 3h
+				actual:complete 50
+				depends !update
+			}
+			task usecase "UML use cases and sequence diagrams" {
+				allocate enrico
+				effort 3h
+				actual:complete 50
+			}
+		}
     }
 
-    task testing "Testing" {
-        start 2005-06-04
+	task environment "Define and adapt environment (libraries, etc.)" {
+		depends !concept
 
-        task env "Test Environment for C" {
-            effort 6h
-            allocate enrico
-            actual:complete 100
-            actual:effort 3h
-        }
-        task rtp_ifapt "Test Interface and adapter for RTP library" {
-            effort 1h
-            allocate matthias
-            actual:complete 0
-        }
-        task audio_ifapt "Test Interface and adapter for audio" {
-            effort 1h
-            allocate enrico, matthias
-            actual:complete 0
-        }
-        task xmlrpc_ifapt "Test Interface and adapter for XML-RPC" {
-            effort 1h
-            allocate matthias
-            actual:complete 0
-        }
-        task sipstack_ifapt "Test Interface and adapter for SIP stack (oSIP)" {
-            effort 1h
-            allocate enrico
-            actual:complete 25
-        }
-        task call "Test making a call" {
-            effort 1 h
-            depends !!environment
-            allocate enrico, matthias
-            actual:complete 0
-        }
-        task called "Test being called" {
-            effort 1 h
-            depends !!environment
-            allocate enrico, matthias
-            actual:complete 0
-        }
-        task account "Test account management" {
-            effort 1 h
-            depends !!environment
-            allocate enrico, matthias
-            actual:complete 0
-        }
-        task register "Test registering gui" {
-            effort 1 h
-            depends !!environment
-            allocate enrico, matthias
-            actual:complete 0
-        }
-        task volumne "Test volumne management" {
-            effort 1 h
-            depends !!environment
-            allocate enrico, matthias
-            actual:complete 0
-        }
-        task dtmf "Test DTMF" {
-            effort 1 h
-            depends !!environment
-            allocate enrico, matthias
-            actual:complete 0
-        }
+		task style "Coding styles, documentation" {
+			task doxygen "including Doxygen" {
+				effort 2h
+				allocate enrico
+				actual:complete 100
+				actual:effort 4h
+			}
+			task styleguide "Styleguide for new developer" {
+				effort 4h
+				allocate matthias
+				actual:complete 100
+			}
+		}
 
-    }
+		task makefile "Makefile" {
+			allocate enrico
+			effort 1h
+			actual:complete 100
+			actual:effort 6h
+		}
 
-    task concept "Core concept" {
-        start 2005-06-04
-
-        task interfaces "Interface Design" {
-            task sipstack "Design of sip stack interface" {
-                effort 4h
-                allocate enrico
-                actual:complete 100
-            }
-            task rtp "Design of rtp interface" {
-                allocate matthias
-                effort 4h
-                actual:complete 0
-            }
-            task codec "Design of codec interface" {
-                allocate enrico, matthias
-                effort 4h
-                actual:complete 0
-            }
-            task audio "Design of audio interface" {
-                allocate enrico, matthias
-                effort 4h
-                actual:complete 0
-            }
-            task xmlrpc "Design of xml-rpc interface" {
-                allocate enrico, matthias
-                effort 2h
-                actual:complete 100
-                actual:effort 3h
-            }
-
-        }
-
-        task uml "UML" {
-            task update "UML update" {
-                effort 1h
-                actual:complete 100
-                allocate matthias
-            }
-            task statemachine "UML Statemachine" {
-                depends !update
-                allocate enrico
-                allocate matthias
-                task concept "Concept" {
-                    effort 8h
-                    actual:complete 100
-                    actual:effort 10h
-                }
-                task investigation "Investigation" {
-                    effort 1h
-                    actual:complete 100
-                }
-            }
-            task class "UML components diagram" {
-                allocate enrico
-                effort 2h
-                actual:complete 100
-                depends !!interfaces
-            }
-            task components "UML class diagram" {
-                allocate enrico
-                effort 3h
-                actual:complete 50
-                depends !update
-            }
-            task usecase "UML use cases and sequence diagrams" {
-                allocate enrico
-                effort 3h
-                actual:complete 50
-            }
-        }
-        task threads "Threads under c (pthread)" {
-            effort 2h
-            actual:complete 100
-            actual:effort 5h
-            allocate matthias
-        }
-    }
-
-    task environment "Define and adapt environment (libraries, etc.)" {
-        depends !concept
-
-        task style "Coding styles, documentation" {
-            task doxygen "including Doxygen" {
-                effort 2h
-                allocate enrico
-                actual:complete 100
-                actual:effort 4h
-            }
-            task styleguide "Styleguide for new developer" {
-                effort 4h
-                allocate matthias
-                actual:complete 100
-            }
-
-        }
-
-        task config "Configuration with xml or ini" {
-            effort 2h
-            allocate enrico
-        }
+		task threads "Threads under c (pthread)" {
+			effort 2h
+			actual:complete 100
+			actual:effort 5h
+			allocate matthias
+		}
 
 		task logger "Implementation of a logger for c" {
 			effort 1h
 			allocate matthias
 			actual:complete 100
 		}
+	}
 
-        task sipstack "SIP stack" {
-            task libs "Investigation of possible SIP stacks" {
-                effort 12h
-                allocate enrico
-                allocate matthias
-                actual:complete 100
-            }
-            task apt "Implementation of interface and adapter (oSIP)" {
-                effort 6h
-                depends !!!testing.sipstack_ifapt, !!!concept.interfaces.sipstack
-                allocate enrico
-                actual:complete 75
-            }
-        }
+	task signalling "Signalling" {
+		task sipstack "SIP stack" {
+			task libs "Investigation of possible SIP stacks" {
+				effort 12h
+				allocate enrico
+				allocate matthias
+				complete 100
+			}
+			task apt "Implementation of interface and adapter (oSIP)" {
+				effort 6h
+				depends !!!testing.sipstack_ifapt, !!!concept.interfaces.sipstack
+				allocate enrico
+				complete 75
+			}
+		}
+	}
 
-        task rtp "Including of RTP library" {
-            allocate anton
-            allocate oleksiy
-            task invest "RTP library investigation" {
-                effort 6h
-                actual:complete 0
-            }
-            task apt "Implementation of interface and adapter" {
-                effort 6h
-                depends !!!testing.rtp_ifapt, !!!concept.interfaces.rtp
-                actual:complete 0
-            }
-        }
+	task audio "Audio transport" {
+		allocate matthias, enrico, anton, oleksiy
+		task rtp "Including of RTP library" {
+			task invest "RTP library investigation" {
+				effort 6h
+				actual:complete 0
+			}
+			task apt "Implementation of interface and adapter" {
+				effort 6h
+				depends !!!testing.rtp_ifapt, !!!concept.interfaces.rtp
+				actual:complete 0
+			}
+		}
 
-        task audio "Audio control" {
-            allocate anton
-            allocate oleksiy
-            task volumne "Volumne" {
-                effort 6h
-                actual:complete 0
-            }
-            task input "Input" {
-                effort 6h
-                actual:complete 0
-            }
-            task output "Output" {
-                effort 6h
-                actual:complete 0
-            }
-            task codecs "Codecs" {
-                effort 6h
-                actual:complete 0
-            }
-            task codecapt "Implementation of codec interface and adapter" {
-                effort 4h
-                actual:complete 0
-                depends !!!concept.interfaces.codec
-            }
-            task audioapt "Implementation of audio interface and adapter" {
-                effort 4h
-                actual:complete 0
-                depends !!!concept.interfaces.audio
-            }
-        }
+		task control "Audio control" {
+			allocate oleksiy
+			task volumne "Volumne" {
+				effort 6h
+				actual:complete 0
+			}
+			task input "Input" {
+				effort 6h
+				actual:complete 0
+			}
+			task output "Output" {
+				effort 6h
+				actual:complete 0
+			}
+		}
+		task codecs "Codecs" {
+			task codecapt "Implementation of codec interface and adapter" {
+				effort 4h
+				actual:complete 0
+				depends !!!concept.interfaces.codec
+			}
+			task audioapt "Implementation of audio interface and adapter" {
+				effort 4h
+				actual:complete 0
+				depends !!!concept.interfaces.audio
+			}
+			task default "Implementation of default audio codec" {
+				effort 6h
+				actual:complete 0
+				depends !!!concept.interfaces.audio
+			}
+		}
 
-        task xmlrpc "XML-RPC" {
-            allocate matthias
-            task dummy "Dummy Core" {
-                effort 6h
-                actual:complete 100
-            }
-            task apt "Implementation of xml-rpc interface and adapter" {
-                effort 2h
-                actual:complete 100
-                actual:effort 3h
-                depends !!!concept.interfaces.xmlrpc
-            }
-            task array "Correction of array result" {
-                effort 1h
-                actual:complete 100
-                actual:effort 3h
-            }
-            task strings "Implementation of correct string return" {
-                effort 3h
-                actual:complete 0
-            }
-            task threads "Threads for async communication" {
-                effort 4h
-                actual:complete 0
-            }
-        }
+	}
+
+	task gui "GUI communication" {
+		allocate matthias
+		task dummy "Dummy Core" {
+			effort 6h
+			actual:complete 100
+		}
+		task apt "Implementation of xml-rpc interface and adapter" {
+			effort 2h
+			actual:complete 100
+			actual:effort 3h
+			depends !!concept.interfaces.xmlrpc
+		}
+		task todos "Todos" {
+			task array "Correction of array result" {
+				effort 1h
+				actual:complete 100
+				actual:effort 3h
+			}
+		task strings "Implementation of correct string return" {
+				effort 3h
+				actual:complete 0
+			}
+		task threads "Threads for async communication" {
+				effort 4h
+				actual:complete 0
+			}
+		}
+	}
+
+
+	task account "Account management" {
+		depends !testing.account
+		allocate anton
+		allocate oleksiy
+		task storage "Data storage (e.g. with XML)" {
+			effort 2h
+			actual:complete 0
+		}
+		task logic "Data management (e.g. creating, editing, deleting of account data)" {
+			effort 2h
+				actual:complete 0
+			}
+		task error "Error handling" {
+			effort 3h
+			actual:complete 0
+		}
+	}
+
+	task core "Core implementation" {
+
+		task statemachine "Implementation of statemachine" {
+			effort 12h
+			allocate enrico, matthias
+			actual:complete 0
+		}
+		task portable "Portability of core" {
+			effort 6h
+			allocate enrico
+			allocate matthias
+			actual:complete 0
+		}
+
+		task config "Configuration with xml or ini" {
+			effort 4h
+			allocate matthias
+		}
+
+		task gui "Integration of GUI communication" {
+			allocate enrico, matthias
+			depends !!gui
+			effort 2h
+			actual:complete 0
+		}
+
+		task signalling "Integration of signalling" {
+			allocate enrico, matthias
+			depends !!signalling
+			effort 12h
+			actual:complete 0
+		}
+
+		task audio "Integration of audio transport" {
+			allocate enrico, matthias
+			depends !!audio
+			effort 12h
+			actual:complete 0
+		}
+
+		task account "Integration of account management" {
+			allocate enrico, matthias
+			depends !!account
+			effort 12h
+			actual:complete 0
+		}
+
     }
 
-    task implementation "Core implementation" {
-        depends !environment
+	task roadmap "Roadmap to final version (Additional features)" {
+		depends !milestones.ms_beta
+		task dtmf "DTMF" {
+			allocate enrico, matthias
+			depends !!testing.dtmf
+			effort 8h
+			actual:complete 0
+		}
 
-        task statemachine "Implementation of statemachine" {
-            effort 6h
-            allocate enrico, matthias
-            actual:complete 0
-        }
-        task portable "Portability of core" {
-            effort 6h
-            allocate enrico
-            allocate matthias
-            actual:complete 0
-        }
+		task in_call_invite "Multi-level INVITEs" {
+			allocate enrico
+			effort 8h
+			actual:complete 0
+		}
 
-        task callmanagement "implementation of call management" {
-            allocate enrico, matthias
-            task call "Make a call" {
-                depends !!!testing.call
-                effort 3h
-                actual:complete 0
-        }
-
-            task called "Be called" {
-                depends !!!testing.called
-                effort 4h
-            }
-        }
-        task register "GUI registration" {
-            allocate enrico, matthias
-            depends !!testing.register
-            effort 2h
-            actual:complete 0
-        }
-
-        task account "Account management" {
-            depends !!testing.account
-            allocate anton
-            allocate oleksiy
-            task storage "Data storage (e.g. with XML)" {
-                effort 2h
-                actual:complete 0
-            }
-            task logic "Data management (e.g. creating, editing, deleting of account data)" {
-                effort 2h
-                actual:complete 0
-            }
-            task error "Error handling" {
-                effort 3h
-                actual:complete 0
-            }
-        }
-
-        task volumne "Volumne management" {
-            allocate enrico, matthias
-            depends !!testing.volumne
-            effort 3h
-            actual:complete 0
-        }
-
-        task dtmf "DTMF" {
-            allocate enrico, matthias
-            depends !!testing.dtmf
-            effort 2h
-            actual:complete 0
-        }
-        task makefile "Makefile" {
-            allocate enrico
-            effort 1h
-            actual:complete 100
-			actual:effort 6h
-        }
-    }
-
+		task subject "Subject for SIP calls" {
+			allocate enrico
+			allocate matthias
+			allocate anton
+			allocate oleksiy
+			effort 8h
+			actual:complete 0
+		}
+	}
 }
 
 
