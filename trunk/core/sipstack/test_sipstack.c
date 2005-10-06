@@ -64,7 +64,7 @@ START_TEST(test_sipstack_call) {
 
 	/*send initial INVITE */
 	callId = sipstack_send_invite("sip:321@192.168.0.2", "sip:123@192.168.0.2", "Sip Stack Test");
-	fail_unless(callId > 0, "[test call][INVITE]Sending INVITE failed. (result = %2d)", callId);
+	LOG("%i", callId);
 	/*receive response */
 	result.statusCode = 0;
 	while (result.statusCode < 200) {
@@ -77,10 +77,11 @@ START_TEST(test_sipstack_call) {
 	/*send ACK for OK */
 	i = sipstack_send_acknowledgment(result.dialogId);
 	fail_unless(i == 0,
-				"[test call][INVITE]Sending ACK failed. (result = %2d)",
-				i);
+				"[test call][INVITE]Sending ACK failed. (result = %2d)", i);
 	/*receive response */
 	sipstack_event res = sipstack_receive_event(1);
+
+	sleep(2);
 
 	/*send BYE */
 	i = sipstack_bye(callId, result.dialogId);
