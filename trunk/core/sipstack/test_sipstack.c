@@ -64,7 +64,7 @@ START_TEST(test_sipstack_call) {
 
 	/*send initial INVITE */
 	callId = sipstack_send_invite("sip:321@192.168.0.2", "sip:123@192.168.0.2", "Sip Stack Test");
-	LOG("%i", callId);
+	LOG_DEBUG("%i", callId);
 	/*receive response */
 	result.statusCode = 0;
 	while (result.statusCode < 200) {
