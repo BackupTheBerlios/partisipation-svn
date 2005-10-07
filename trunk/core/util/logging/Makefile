@@ -1,14 +1,14 @@
 STYLEDOCDIR_LOCAL = $(STYLEDOCDIR)/logger
 
 compile:
-	find ./ -maxdepth 1 | grep \\.c$$ | grep -v docs/ | xargs $(COMPILE.c) -I../../
-	
+	$(MAKE) -C simple
+
 clean:
-	find ./ -maxdepth 1 | grep \\.o$$ | xargs rm -f
+	$(MAKE) -C simple clean
 
 style:
-	mkdir -p $(STYLEDOCDIR_LOCAL)
-	$(PERL) $(TOOLSDIR)colour-audit/colour-audit -i $(CAINCLUDES) -d $(STYLEDOCDIR_LOCAL) *.c
+	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C simple style
 
 indent:
 	find ./ -maxdepth 1 | grep \\.[ch]$$ | grep -v docs/ | xargs indent
+	$(MAKE) -C simple indent

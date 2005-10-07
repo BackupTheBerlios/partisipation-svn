@@ -29,7 +29,8 @@ style:
 	mkdir -p $(STYLEDOCDIR)
 	$(MAKE) -C util style
 	$(MAKE) -C sipstack style
-	$(MAKE) -C xmlrpc-test style
+	$(MAKE) -C remote style
+	$(MAKE) -C accounts style
 	$(MAKE) -C core style
 
 doxygen:
@@ -42,18 +43,21 @@ doxygen:
 compile: indent
 	$(MAKE) -C util
 	$(MAKE) -C sipstack
-	$(MAKE) -C xmlrpc-test
+	$(MAKE) -C remote
+	$(MAKE) -C accounts
 	$(MAKE) -C core
 
 clean:
 	-rm $(DOCDIR) -r
 	$(MAKE) -C util clean
 	$(MAKE) -C sipstack clean
-	$(MAKE) -C xmlrpc-test clean
+	$(MAKE) -C remote clean
+	$(MAKE) -C accounts clean
 	$(MAKE) -C core clean
 
 indent:
 	$(MAKE) -C util indent
 	$(MAKE) -C sipstack indent
-	$(MAKE) -C xmlrpc-test indent
+	$(MAKE) -C remote indent
+	$(MAKE) -C accounts indent
 	$(MAKE) -C core indent

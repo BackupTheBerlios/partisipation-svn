@@ -1,19 +1,25 @@
 STYLEDOCDIR_LOCAL = $(STYLEDOCDIR)/core
 
 compile:
-	find ./ -maxdepth 1 | grep \\.c$$ | grep -v docs/ | xargs $(COMPILE.c) -I../
-
-	$(MAKE) -C test
+	$(MAKE) -C callIDs
+	$(MAKE) -C events
+	$(MAKE) -C gui_input
+	$(MAKE) -C gui_output
 
 clean:
-	find ./ -maxdepth 1 | grep \\.o$$ | xargs rm -f
-	$(MAKE) -C test clean
+	$(MAKE) -C callIDs clean
+	$(MAKE) -C events clean
+	$(MAKE) -C gui_input clean
+	$(MAKE) -C gui_output clean
 
 style:
-	mkdir -p $(STYLEDOCDIR_LOCAL)
-	$(PERL) $(TOOLSDIR)colour-audit/colour-audit -i $(CAINCLUDES) -d $(STYLEDOCDIR_LOCAL) *.c
-	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C test style
+	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C callIDs style
+	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C events style
+	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C gui_input style
+	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C gui_output style
 
 indent:
-	find ./ -maxdepth 1 | grep \\.[ch]$$ | grep -v docs/ | xargs indent
-	$(MAKE) -C test indent
+	$(MAKE) -C callIDs indent
+	$(MAKE) -C events indent
+	$(MAKE) -C gui_input indent
+	$(MAKE) -C gui_output indent
