@@ -25,7 +25,7 @@ void *sip_listener(void *args) {
 		sipstack_event event = sipstack_receive_event(1);
 
 		/* send sipstack event to listener */
-		sip_listener_throw(event);
+		sip_listener_receive_event(event);
 	}
 	thread_terminated();
 	return NULL;
