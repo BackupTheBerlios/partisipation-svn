@@ -1,0 +1,65 @@
+/**
+ * @mainpage
+ * Project Website: http://www.iptel.org
+ *
+ * @verbinclude README
+ *
+ */
+
+/** 
+ * @defgroup sipstack Sip Stack
+ * @brief API to control communication with a sip stack.
+*
+ * @see http://savannah.gnu.org/projects/exosip
+ *
+ * @section what_is_apt What is a sip stack adapter
+ *
+ * A sip stack adapter is supposed to adapt the API of a sip stack 
+ * to be compatible with the interface used by the core of this
+ * application. 
+ * 
+ * @section what_is_sip What is SIP
+ *
+ * SIP is an IP telephony protocol made by the IETF.
+ * It is an effort to create a simple (telephony is never
+ * simple) and powerfull protocol for next generation
+ * telephony systems.
+ *
+ * @section what_features SIP features
+ *
+ * SIP is not just about telephony. It's much more
+ * that what you expect from phones. SIP means mobility,
+ * video, textual call informations, file exchange,
+ * instant messaging, presence support and much more!
+ */
+
+/**
+ * @defgroup utils Utilities
+ * @brief Utility collection
+ * 
+ */
+
+/** 
+ * @page eXosip2_readme README 
+ * @verbinclude README
+ */
+
+/** 
+ * @page eXosip2_install INSTALL 
+ * @verbinclude INSTALL
+ */
+
+/** 
+ * @page eXosip2_license COPYING 
+ * @verbinclude COPYING
+ */
+
+/** 
+ * @page eXosip2_license ChangeLog 
+ * @verbinclude ChangeLog
+ */
+
+/**
+ * @page eXosip2_faq FAQ
+ * @htmlinclude FAQ.html
+ */
