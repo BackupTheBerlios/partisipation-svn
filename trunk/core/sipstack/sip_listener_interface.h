@@ -25,4 +25,6 @@
 
 void sip_listener_receive_event(sipstack_event event);
 
+#endif
+
 /** @} */
