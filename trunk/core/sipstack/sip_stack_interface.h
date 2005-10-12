@@ -1,16 +1,8 @@
 /**
  * @file sip_stack_interface.h
- * Sip Stack Adapter
+ * @brief Sip Stack Adapter Interface
  *
- * This file provide the API needed to control communication with the sip stack.
- * @author Enrico Hartung <enrico@iptel.org>
- */
-
-/**
- * @defgroup sipstack Sip Stack
- * The API needed to control communication with the sip stack.
- * It is only one dialog per call supported. A call can consist of several transactions
- * but they are queued so that only response for the first transaction in the queue is handled.
+ * This file provide the API needed to control communication with the sip stack. The API is needed to make the sips stack send sip messages.
  *
  * It can be used to:
  *
@@ -21,12 +13,21 @@
  * <li>send an initial INVITE</li>
  * <li>send a reINVITE</li>
  * <li>send a 200 OK</li>
+ * <li>send an ACK</li>
  * <li>terminate a call</li>
  * </ul>
+ *
+ * @author Enrico Hartung <enrico@iptel.org>
+ */
+
+
+/**
+ * @defgroup sipstack_adapter Sip Stack Adapter
+ * @ingroup sipstack
  * @{
  */
-#ifndef HSIPSTACK_INTERFACE_USED
-#define HSIPSTACK_INTERFACE_USED
+#ifndef HSIP_STACK_INTERFACE_USED
+#define HSIP_STACK_INTERFACE_USED
 
 #include <util/logging/logger.h>
 #include <util/config/xml/config_reader.h>
@@ -195,12 +196,6 @@ int sipstack_send_acknowledgment(int dialogId);
  */
 int sipstack_send_status_code(int transactionId, int status_code);
 
-/**
- * Set sip stack listener.
- * @deprecated
- */
-int sipstack_set_listener(int listener);
+#endif
 
 /** @} */
-
-#endif

@@ -1,3 +1,9 @@
+/**
+ * @file osip_adapter.c
+ * A sip stack adapter for the eXosip library.
+ *
+ * @author Enrico Hartung <enrico@iptel.org>
+ */
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -18,12 +24,8 @@ void *sip_listener(void *args) {
 	while (listenerIsActive == 1) {
 		sipstack_event event = sipstack_receive_event(1);
 
-		/* dispatch events */
-		if (event.statusCode == 200) {
-			sip_listener_connect_call(event.callId);
-		} else {
-			sip_listener_throw(event.callId, event.statusCode);
-		}
+		/* send sipstack event to listener */
+		sip_listener_throw(event);
 	}
 	thread_terminated();
 	return NULL;
