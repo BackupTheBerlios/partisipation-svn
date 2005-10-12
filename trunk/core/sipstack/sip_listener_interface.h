@@ -1,20 +1,28 @@
-/*
-  caller: SIP Stack
-  recepient: Core (Statemachine)
-*/
+/**
+ * @file sip_listener_interface.h
+ * @brief Sip Listener Interface
+ *
+ * This file provide the API needed by the sip stack adapter to send events to its caller (call back).
+ *
+ * The API is needed to realize an asynchronus communication.
+ *
+ * caller: SIP Stack
+ * receipient: SIP Listener (e.g. a SIP statemachine)
+ * The sip listener (a class implementing this interface) receives an event of type <i>sipstack_event</i>.
+ *
+ * @author Enrico Hartung <enrico@iptel.org>
+ */
 
-void sip_listener_incoming_call(int callId, const char *username,
-								const char *domain,
-								const char *callerDisplayName,
-								const char *calleeUsername,
-								const char *calleeDomain);
+/**
+ * @defgroup siplistener Sip Listener
+ * @ingroup sipstack
+ * @{
+ */
+#ifndef HSIP_LISTENER_INTERFACE_USED
+#define HSIP_LISTENER_INTERFACE_USED
 
-void sip_listener_cancel_call(int callId);
+#include <sipstack/sip_stack_interface.h>
 
-void sip_listener_decline_call(int callId);
+void sip_listener_receive_event(sipstack_event event);
 
-void sip_listener_quit_call(int callId);
-
-void sip_listener_throw(int callId, int code);
-
-void sip_listener_connect_call(int callId);
+/** @} */
