@@ -20,7 +20,6 @@
  * @author Enrico Hartung <enrico@iptel.org>
  */
 
-
 /**
  * @defgroup sipstack_adapter Sip Stack Adapter
  * @ingroup sipstack
