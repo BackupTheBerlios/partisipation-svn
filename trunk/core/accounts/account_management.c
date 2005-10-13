@@ -396,6 +396,9 @@ int am_account_delete(int const accountId) {
 	return 1;
 }
 
+/**
+ * This function writes data for all accounts from memory to a file on the disk.
+ */
 int am_account_save() {
 	printf("account_management.c - account_save() - enter\n");
 
@@ -403,4 +406,41 @@ int am_account_save() {
 
 	printf("account_management.c - account_save() - exit\n");
 	return 1;
+}
+
+/**
+ * This function filles a given array with pointers to all known accounts. The caller is
+ * responsible to allocate and free memory for this array.
+ *  
+ * @param struct account* accounts[]  array, which will be filled with pointers to all accounts
+ * @param int* length tells, how big this array is
+ */
+void am_get_all_accounts(struct account *accounts[], int *length) {
+
+	*length = get_length();
+
+	if (*length < MAX_ACCOUNTID_AMOUNT) {
+		int i = 0;
+		struct node *tmp = head;
+
+		while (tmp) {
+			accounts[i] = tmp->acc;
+			tmp = tmp->next;
+			i++;
+		}
+	} else {
+		*length = 0;
+		printf("Error: More accounts than memory reserved.");
+	}
+}
+
+/**
+ * This function returns a pointer to the account with a special ID.
+ * 
+ * @param int accountId ID of the account
+ * @return struct account* pointer to the account with this ID
+ */
+struct account *am_get_account(int const accountId) {
+	struct node *n = get_node(accountId);
+	return n->acc;
 }
