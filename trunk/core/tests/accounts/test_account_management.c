@@ -2,8 +2,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <check.h>
-#include "account_management.h"
-#include "list.h"
+
+#include "accounts/account_client_interface.h"
+#include "accounts/account_core_interface.h"
+#include "accounts/list.h"
 
 // *INDENT-OFF*
 
@@ -13,13 +15,13 @@ START_TEST(test_account_management) {
 	
 	int accIds[MAX_ACCOUNT_NUMBER];
 	
-	set_xml_source("./accounts.xml");
+	am_set_xml_source("./accounts.xml");
 	
 	/* Test account_create */
 
 	int len_before = get_length();
 	
-	int acc_id = account_create();
+	int acc_id = am_account_create();
 	
 	int len_after = get_length();
    
@@ -37,14 +39,14 @@ START_TEST(test_account_management) {
 	
 	accIds[0] = acc_id;
 	for (i = 1; i < MAX_ACCOUNT_NUMBER; i++) {
-   		accIds[i] = account_create();
+   		accIds[i] = am_account_create();
 	}
 	
     int *ids;
     int len;
 
     ids = (int *) malloc(MAX_ACCOUNT_NUMBER * sizeof(int));
-    account_get_all(ids, &len);
+    am_account_get_all(ids, &len);
 
     for (i = 0; i < len; i++) {
 		if (ids[i] != accIds[i]) {
@@ -57,7 +59,7 @@ START_TEST(test_account_management) {
    
 	/* Test account_set */
    
-	account_set(acc_id, "name", "Nice new account");
+	am_account_set(acc_id, "name", "Nice new account");
 	
 	if (strcmp(a->name, "Nice new account") != 0) {
 		fail("FAILED: wrong name set.");	
@@ -66,7 +68,7 @@ START_TEST(test_account_management) {
 	/* Test account_get */
 	char *c = (char *) malloc(500 * sizeof(char));
 	
-	account_get(acc_id, "name", c);
+	am_account_get(acc_id, "name", c);
 	
     if (strcmp(c, "Nice new account") != 0) {
 		fail("FAILED: wrong name got.");	
@@ -76,7 +78,7 @@ START_TEST(test_account_management) {
 	
 	/* Test account_delete */
 	len_before = get_length();
-	account_delete(acc_id);
+	am_account_delete(acc_id);
 	
 	len_after = get_length();
 	
@@ -85,7 +87,7 @@ START_TEST(test_account_management) {
 	}
 	
 	ids = (int *) malloc(MAX_ACCOUNT_NUMBER * sizeof(int));
-	account_get_all(ids, &len);
+	am_account_get_all(ids, &len);
 	
 	for (i = 0; i < len; i++) {
 		if (ids[i] == acc_id) {

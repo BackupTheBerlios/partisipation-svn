@@ -32,6 +32,7 @@ style:
 	$(MAKE) -C remote style
 	$(MAKE) -C accounts style
 	$(MAKE) -C core style
+	$(MAKE) -C tests style
 
 doxygen:
 	mkdir -p $(DOCDIR)
@@ -46,6 +47,7 @@ compile: indent
 	$(MAKE) -C remote
 	$(MAKE) -C accounts
 	$(MAKE) -C core
+	$(MAKE) -C tests
 
 clean:
 	-rm $(DOCDIR) -r
@@ -54,6 +56,7 @@ clean:
 	$(MAKE) -C remote clean
 	$(MAKE) -C accounts clean
 	$(MAKE) -C core clean
+	$(MAKE) -C tests clean
 
 indent:
 	$(MAKE) -C util indent
@@ -61,3 +64,4 @@ indent:
 	$(MAKE) -C remote indent
 	$(MAKE) -C accounts indent
 	$(MAKE) -C core indent
+	$(MAKE) -C tests clean

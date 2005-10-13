@@ -10,8 +10,4 @@ int am_account_create();
 
 int am_account_delete(int const accountId);
 
-int am_account_register(int const accountId);
-
-int am_account_unregister(int const accountId);
-
 int am_account_save();

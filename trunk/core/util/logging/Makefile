@@ -1,4 +1,4 @@
-STYLEDOCDIR_LOCAL = $(STYLEDOCDIR)/logger
+STYLEDOCDIR_LOCAL = $(STYLEDOCDIR)/logging
 
 compile:
 	$(MAKE) -C simple

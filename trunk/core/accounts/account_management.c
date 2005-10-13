@@ -12,7 +12,6 @@
 #include <accounts/list.h>
 
 #include <remote/server/constants.h>
-#include <remote/callback/gui_callback.h>
 
 #define BUFFSIZE 1000
 
@@ -393,28 +392,6 @@ int am_account_delete(int const accountId) {
 	account_list_save();
 
 	printf("account_management.c - account_delete() - exit\n");
-
-	return 1;
-}
-
-int am_account_register(int const accountId) {
-
-	printf("account_management.c - account_register() - enter\n");
-	change_reg_status(accountId, 1);
-
-	printf("account_management.c - account_register() - exit\n");
-
-	return 1;
-}
-
-int am_account_unregister(int const accountId) {
-
-	printf("account_management.c - account_unregister() - enter\n");
-	// do something
-	printf("accountId: %d\n", accountId);
-	change_reg_status(accountId, 0);
-
-	printf("account_management.c - account_register() - exit\n");
 
 	return 1;
 }

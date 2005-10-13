@@ -5,10 +5,10 @@
 #include <check.h>
 #include <time.h>
 
-#include <util/thread_management.h>
+#include <util/threads/thread_management.h>
 #include <util/logging/logger.h>
-#include <util/config/config_reader.h>
-#include <core/call_id_generator.h>
+#include <util/config/xml/config_reader.h>
+#include <core/callIDs/call_id_generator.h>
 
 #define MAX_IDS_PLAIN (10)
 #define MAX_IDS_THREADED (10)
@@ -34,7 +34,7 @@ void teardown(void) {
 void setup_with_tm(void) {
 	int rc;
 
-	rc = cr_init("../../cfg/core_config.xml");
+	rc = cr_init("../../../config/xml/core_config.xml");
 	fail_if(rc == 0, "config reader could not be initalized");
 
 	rc = logger_init();

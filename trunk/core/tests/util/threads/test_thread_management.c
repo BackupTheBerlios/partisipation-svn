@@ -4,13 +4,13 @@
 #include <unistd.h>
 #include <check.h>
 
-#include <util/thread_management.h>
-#include <util/config/config_reader.h>
+#include <util/threads/thread_management.h>
+#include <util/config/xml/config_reader.h>
 #include <util/logging/logger.h>
 
 void setup(void) {
 	int rc;
-	rc = cr_init("../../cfg/core_config.xml");
+	rc = cr_init("../../../config/xml/core_config.xml");
 	fail_if(rc == 0, "config reader could not be initalized");
 	rc = logger_init();
 	fail_if(rc == 0, "logging could not be initialized");

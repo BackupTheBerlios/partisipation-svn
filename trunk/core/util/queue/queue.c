@@ -1,8 +1,6 @@
 #include "util/queue/queue.h"
 #include <stdlib.h>
 
-#define MIN_QUEUE_SIZE (5)
-
 struct queue_record {
 	int capacity;
 	int front;
@@ -21,10 +19,6 @@ int queue_is_full(queue queue) {
 
 queue queue_create_queue(int maxElements) {
 	queue queue;
-
-	if (maxElements < MIN_QUEUE_SIZE) {
-		Error("CreateQueue Error: Queue size is too small.");
-	}
 
 	queue = malloc(sizeof(struct queue_record));
 	if (queue == NULL) {

@@ -54,3 +54,10 @@ void sip_listener_connect_call(int callId) {
 	log_message(LOG_INFO,
 				SIP_LISTENER_MSG_PREFIX "Received OK for call %i", callId);
 }
+
+void sip_listener_receive_event(sipstack_event event) {
+	// dummy implementation
+	log_message(LOG_INFO,
+				SIP_LISTENER_MSG_PREFIX
+				"entering sip_listener_receive_event");
+}

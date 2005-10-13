@@ -5,7 +5,7 @@
 
 #include "sipstack/sip_stack_interface.h"
 
-#include <util/thread_management.h>
+#include <util/threads/thread_management.h>
 #include <util/logging/logger.h>
 
 // *INDENT-OFF*
