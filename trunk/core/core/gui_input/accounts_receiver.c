@@ -27,9 +27,11 @@ int gi_account_delete(int const accountId) {
 }
 
 int gi_account_register(int const accountId) {
+	return 0;
 }
 
 int gi_account_unregister(int const accountId) {
+	return 0;
 }
 
 int gi_account_save() {

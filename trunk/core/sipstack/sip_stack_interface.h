@@ -28,9 +28,6 @@
 #ifndef HSIP_STACK_INTERFACE_USED
 #define HSIP_STACK_INTERFACE_USED
 
-#include <util/logging/logger.h>
-#include <util/config/xml/config_reader.h>
-
 /* prefix for debug and error messages */
 #define SIPSTACK_MSG_PREFIX "[sipstack adapter] "
 

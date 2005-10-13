@@ -10,6 +10,7 @@
 #include <netinet/in.h>
 
 #include <util/threads/thread_management.h>
+#include <util/logging/logger.h>
 
 #include <eXosip2/eXosip.h>
 #include <osip2/osip.h>
@@ -37,21 +38,6 @@ int sipstack_init(int port) {
 
 	/* used to get return codes */
 	int rc;
-
-	/* read config */
-	rc = cr_init("../cfg/core_config.xml");
-	if (rc == 0) {
-		fprintf(stderr,
-				SIPSTACK_MSG_PREFIX
-				"Config reader could not be initalized.\n");
-	}
-
-	/* init logger */
-	rc = logger_init();
-	if (rc == 0) {
-		fprintf(stderr,
-				SIPSTACK_MSG_PREFIX "Logging could not be initialized.\n");
-	}
 
 	/* initialize trace */
 	TRACE_INITIALIZE(6, stdout);
@@ -83,13 +69,6 @@ int sipstack_init(int port) {
 					SIPSTACK_MSG_PREFIX "Transport layer initialized.");
 	}
 
-	/* init thread management for the sip listener thread */
-	rc = tm_init();
-	if (rc == 0) {
-		log_message(LOG_ERROR,
-					SIPSTACK_MSG_PREFIX
-					"Thread management could not be initialized.");
-	}
 	/* start the sip listener thread */
 	listenerIsActive = 1;
 	rc = start_thread(sip_listener, NULL);
@@ -109,42 +88,18 @@ int sipstack_init(int port) {
 
 void sipstack_quit() {
 
-	/* used to get return codes */
-	int rc;
-
 	/* shut down sip listener */
 	listenerIsActive = 0;
 
 	/* wait for sip listener thread to terminate */
 	sleep(1);
 
-	/* shut down thread management */
-	rc = tm_destroy(0);
-	if (rc == 0) {
-		log_message(LOG_ERROR,
-					SIPSTACK_MSG_PREFIX
-					"Thread management could not be released.");
-	}
 	log_message(LOG_DEBUG,
 				SIPSTACK_MSG_PREFIX "Sip listener is shut down.");
 
 	/* shut down eXosip */
 	eXosip_quit();
 	log_message(LOG_DEBUG, SIPSTACK_MSG_PREFIX "eXosip is shut down.");
-
-	/* shutdown logger */
-	rc = logger_destroy();
-	if (rc == 0) {
-		fprintf(stderr,
-				SIPSTACK_MSG_PREFIX "logging could not be shut down.");
-	}
-
-	rc = cr_destroy();
-	if (rc == 0) {
-		fprintf(stderr,
-				SIPSTACK_MSG_PREFIX
-				"config reader could not be released.");
-	}
 }
 
 sipstack_event sipstack_map_event(eXosip_event_t * event) {

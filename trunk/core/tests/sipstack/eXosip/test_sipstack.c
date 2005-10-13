@@ -3,10 +3,35 @@
 #include <check.h>
 #include <unistd.h>
 
-#include "sipstack/sip_stack_interface.h"
+#include <sipstack/sip_stack_interface.h>
 
+#include <util/config/xml/config_reader.h>
 #include <util/threads/thread_management.h>
 #include <util/logging/logger.h>
+
+void setup(void) {
+	int rc;
+	rc = cr_init("../../../config/xml/core_config.xml");
+	fail_if(rc == 0, "config reader could not be initialized");
+	
+	rc = logger_init();
+	fail_if(rc == 0, "logger could not be initialized");
+	
+	rc = tm_init();
+	fail_if(rc == 0, "thread management could not be initialized");
+}
+
+void teardown(void) {
+	int rc;
+	rc = tm_destroy(0);
+	fail_if(rc == 0, "thread management could not be released");
+	
+	rc = logger_destroy();
+	fail_if(rc == 0, "logger could not be released");
+	
+	rc = cr_destroy();
+	fail_if(rc == 0, "config reader could not be released");
+}
 
 // *INDENT-OFF*
 
@@ -143,12 +168,15 @@ Suite *sipstack_suite(void) {
 	suite_add_tcase(s, tc_cancel);
 
 	tcase_add_test(tc_register, test_sipstack_register);
+	tcase_add_checked_fixture(tc_register, setup, teardown);
 
 	tcase_set_timeout(tc_call, 30);
 	tcase_add_test(tc_call, test_sipstack_call);
+	tcase_add_checked_fixture(tc_call, setup, teardown);
 
 	tcase_set_timeout(tc_cancel, 30);
 	tcase_add_test(tc_cancel, test_sipstack_cancel);
+	tcase_add_checked_fixture(tc_cancel, setup, teardown);
 
 	//tcase_add_checked_fixture (tc_apt, setup, teardown);
 

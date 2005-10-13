@@ -6,17 +6,21 @@
 #include <xmlrpc_server.h>
 #include <xmlrpc_server_abyss.h>
 
+#include <remote/server/xmlrpc/xmlrpc_server.h>
 #include <remote/server/xmlrpc/registration_remote.h>
 #include <remote/server/xmlrpc/calls_remote.h>
 #include <remote/server/xmlrpc/accounts_remote.h>
 #include <remote/server/xmlrpc/volume_remote.h>
 #include <remote/server/xmlrpc/extras_remote.h>
-#include <remote/callback/gui_callback.h>
-#include <remote/callback/xmlrpc/xmlrpc_callback_client.h>
-#include <accounts/account_core_interface.h>
+#include <util/threads/thread_management.h>
 
 const int SERVER_PORT = 7777;
 const char *REGISTER_PREFIX = "core";
+
+int serverRunning = 0;
+
+void xs_init() {
+}
 
 void generate_method_name(const char *suffix, char *target) {
 	strcpy(target, REGISTER_PREFIX);
@@ -24,27 +28,20 @@ void generate_method_name(const char *suffix, char *target) {
 	strcat(target, suffix);
 }
 
-int main(int const argc, const char **const argv) {
+void *xmlrpc_server_thread(void *param) {
 
 	xmlrpc_server_abyss_parms serverparm;
 	xmlrpc_registry *registryP;
 	xmlrpc_env env;
 	char name[80];
-	int rc;
-
-	/*
-	 * callback client initializiation 
-	 */
-
-	rc = cb_init();
 
 	/*
 	 * server initializiation 
 	 */
 
-	xmlrpc_env_init(&env);
+	xs_init();
 
-	account_management_init();
+	xmlrpc_env_init(&env);
 
 	registryP = xmlrpc_registry_new(&env);
 
@@ -142,5 +139,23 @@ int main(int const argc, const char **const argv) {
 	 * xmlrpc_server_abyss() never returns 
 	 */
 
+	thread_terminated();
 	return 0;
+}
+
+int start_xmlrpc_server_thread() {
+	int rc;
+
+	if (serverRunning) {
+		// xmlrpc server thread is already running
+		return 0;
+	}
+
+	rc = start_thread(xmlrpc_server_thread, NULL);
+	if (rc == 0) {
+		// ERROR
+		return 0;
+	}
+	serverRunning = 1;
+	return 1;
 }

@@ -58,7 +58,7 @@ loglevel parse_loglevel_val(const char *input) {
 	return -1;
 }
 
-void elem_start(void *data, const char *name, const char **attr) {
+void cr_elem_start(void *data, const char *name, const char **attr) {
 	if (strcmp(name, "config") == 0) {
 		withinConfig = 1;
 		return;
@@ -138,7 +138,7 @@ void elem_start(void *data, const char *name, const char **attr) {
 	}
 }
 
-void elem_end(void *data, const char *name) {
+void cr_elem_end(void *data, const char *name) {
 	if (strcmp(name, "config") == 0) {
 		withinConfig = 0;
 		return;
@@ -182,7 +182,7 @@ int cr_init(const char *fileName) {
 	int xmlfile = open(fileName, O_RDONLY);
 	XML_Parser parser = XML_ParserCreate(NULL);
 
-	XML_SetElementHandler(parser, elem_start, elem_end);
+	XML_SetElementHandler(parser, cr_elem_start, cr_elem_end);
 	for (;;) {
 		int bytes_read;
 		void *buf = XML_GetBuffer(parser, BUFFSIZE);
