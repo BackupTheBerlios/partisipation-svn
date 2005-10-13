@@ -574,7 +574,8 @@ task Core "Core" {
 				effort 6h
 				depends !!!testing.sipstack_ifapt, !!!concept.interfaces.sipstack
 				allocate enrico
-				complete 75
+				complete 100
+				actual:effort 24h
 			}
 		}
 	}
