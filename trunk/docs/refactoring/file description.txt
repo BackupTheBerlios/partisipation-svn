@@ -1,13 +1,13 @@
 accounts/account_client_interface.h
 ================================================================================
 
-void account_get_all(int *accountIds, int *length);
-int account_set(int const accountId, char *const attribute,
-				char *const value);
-void account_get(int const accountId, char *const attribute, char *result);
-int account_create();
-int account_delete(int const accountId);
-int account_save();
+void am_account_get_all(int *accountIds, int *length);
+int am_account_set(int const accountId, char *const attribute,
+				   char *const value);
+void am_account_get(int const accountId, char *const attribute, char *result);
+int am_account_create();
+int am_account_delete(int const accountId);
+int am_account_save();
 
 accounts/account_core_interface.h
 ================================================================================

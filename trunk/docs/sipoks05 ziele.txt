@@ -1,0 +1,8 @@
+Ziel:
+- Telefonieren mit SIP ohne Audio, RTP, SDP
+- normale UseCases für Telefonieren (Anrufen, Auflegen, ...)
+- Registrierung mit mehreren Accounts
+- Veröffentlichung (pre alpha)
+- Lizenzauswahl
+- Copyright vermerken
+- Buildumgebung (autoconf, README)

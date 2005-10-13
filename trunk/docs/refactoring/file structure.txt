@@ -45,6 +45,7 @@ remote/
 		xmlrpc/
 			gui_callback.c
 			xmlrpc_callback_client.c
+			xmlrpc_callback_client.h
 		gui_callback.h
 	server/
 		xmlrpc/

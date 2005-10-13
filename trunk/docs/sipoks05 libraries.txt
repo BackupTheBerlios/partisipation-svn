@@ -1,0 +1,34 @@
+Core
+==================
+
+Libraries
+	xmlrpc-c
+	Expat
+	Genx
+	eXosip
+	osip
+	librtp (GPL, http://sourceforge.net/projects/librtp/)
+	
+Source
+	Queue (http://www.idevelopment.info/)
+
+Tools
+	indent (GPL)
+	doxygen
+	colour-audit (GPL)
+	check
+	perl
+
+GUI
+==================
+
+Libraries
+	[apache] xmlrpc-2.0
+	xerces
+	AbsoluteLayout
+	[apache] commons-codec
+
+Tools
+	Checkstyle
+	JUnit
+	Ant
