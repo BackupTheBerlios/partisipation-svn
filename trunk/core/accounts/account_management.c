@@ -11,8 +11,10 @@
 #include <accounts/account_core_interface.h>
 #include <accounts/list.h>
 
+#include <util/logging/logger.h>
 #include <remote/server/constants.h>
 
+#define ACCOUNT_MANAGER_MSG_PREFIX "[account manager]"
 #define BUFFSIZE 1000
 
 char *XMLFILE = "accounts/accounts.xml";
@@ -40,7 +42,9 @@ void am_set_xml_source(char *file) {
   	@param char** attr Array of attributes of the XML element
 */
 void elem_start(void *data, const char *name, const char **attr) {
-	printf("elem_start - enter\n");
+	log_message(LOG_INFO,
+				ACCOUNT_MANAGER_MSG_PREFIX
+				"elem_start - enter");
 	if (strcmp(name, "account") == 0) {
 		cur_acc = (struct account *) malloc(sizeof(struct account));
 		int i;
@@ -84,7 +88,9 @@ void elem_start(void *data, const char *name, const char **attr) {
 			}
 		}
 	}
-	printf("elem_start - exit\n");
+		log_message(LOG_INFO,
+				ACCOUNT_MANAGER_MSG_PREFIX
+				"elem_start - exit");
 }
 
 /**
@@ -95,20 +101,24 @@ void elem_start(void *data, const char *name, const char **attr) {
     @param char* name Name of the XML element
 */
 void elem_end(void *data, const char *name) {
-	printf("elem_end - start\n");
+	log_message(LOG_INFO,
+				ACCOUNT_MANAGER_MSG_PREFIX
+				"elem_end - start");
 	if (strcmp(name, "account") == 0) {
 		add_node(cur_acc);
 	}
-	printf("elem_end - exit\n");
+		log_message(LOG_INFO,
+				ACCOUNT_MANAGER_MSG_PREFIX
+				"elem_end - exit");
 }
 
 /**
 	Initialize list of accounts by parsing an XML file.
 */
 void am_init() {
-
-	printf("account_management.c - account_management_init() - enter\n");
-
+	log_message(LOG_INFO,
+				ACCOUNT_MANAGER_MSG_PREFIX
+				"account_management.c - account_management_init() - enter");
 	int xmlfile = open(XMLFILE, O_RDONLY);
 	XML_Parser parser = XML_ParserCreate(NULL);
 
@@ -119,21 +129,30 @@ void am_init() {
 
 		if (buf == NULL) {
 			// if memory could not be allocated
-			printf("Buffer allocation failed.\n");
+				log_message(LOG_INFO,
+				ACCOUNT_MANAGER_MSG_PREFIX
+				"Buffer allocation failed");
+		
 		}
 
 		bytes_read = read(xmlfile, buf, BUFFSIZE);
 
 		if (bytes_read < 0) {
 			// if file could not be read
-			printf("No file found or file reading error.\n");
+				log_message(LOG_INFO,
+				ACCOUNT_MANAGER_MSG_PREFIX
+				"No file found or file reading error");
+	
 		}
 
 		if (!XML_ParseBuffer(parser, bytes_read, bytes_read == 0)) {
 			// if XML document is not well-formed
-			printf("XML parse error in line %d: %s\n",
+					log_message(LOG_INFO,
+				ACCOUNT_MANAGER_MSG_PREFIX
+				"XML parse error in line %d: %s");
+		
 				   XML_GetCurrentLineNumber(parser),
-				   XML_ErrorString(XML_GetErrorCode(parser)));
+				   XML_ErrorString(XML_GetErrorCode(parser));
 			break;
 		}
 		// if end of file reached
@@ -145,15 +164,20 @@ void am_init() {
 
 	print_list();
 
-	printf("account_management.c - account_management_init() - exit\n");
+	log_message(LOG_INFO,
+				ACCOUNT_MANAGER_MSG_PREFIX
+				"account_management.c - account_management_init() - exit");
 }
 
 /**
 	Save current accounts to an XML file.
 */
 void account_list_save() {
+	log_message(LOG_INFO,
+				ACCOUNT_MANAGER_MSG_PREFIX
+				"accounts_list_save - start");
 
-	printf("accounts_list_save - start\n");
+
 	// open file in write-mode
 	FILE *xmlfile = fopen(XMLFILE, "w");
 
@@ -206,12 +230,18 @@ void account_list_save() {
 		genxEndDocument(w);
 
 	} else {
-		printf("I/O error for file %s\n", XMLFILE);
+	log_message(LOG_INFO,
+				ACCOUNT_MANAGER_MSG_PREFIX
+				"I/O error for file %s",
+				XMLFILE);
+		// printf("I/O error for file %s\n", XMLFILE);												
 	}
 	// close file
 	fclose(xmlfile);
+	log_message(LOG_INFO,
+				ACCOUNT_MANAGER_MSG_PREFIX
+				"accounts_list_save - exit");
 
-	printf("accounts_list_save - exit\n");
 }
 
 /**
@@ -221,8 +251,9 @@ void account_list_save() {
 	@param int* length Pointer to an integer to store length of this array
 */
 void am_account_get_all(int *accountIds, int *length) {
-
-	printf("account_management.c - account_get_all() - enter\n");
+	log_message(LOG_INFO,
+				ACCOUNT_MANAGER_MSG_PREFIX
+				"account_management.c - account_get_all() - enter");
 
 	*length = get_length();
 
@@ -237,9 +268,14 @@ void am_account_get_all(int *accountIds, int *length) {
 		}
 	} else {
 		*length = 0;
-		printf("Error: More accounts than memory reserved.");
+			log_message(LOG_INFO,
+				ACCOUNT_MANAGER_MSG_PREFIX
+				"Error: More accounts than memory reserved");
 	}
-	printf("account_management.c - account_get_all() - exit\n");
+		log_message(LOG_INFO,
+				ACCOUNT_MANAGER_MSG_PREFIX
+				"account_management.c - account_get_all() - exit");
+	
 }
 
 /**
@@ -253,7 +289,9 @@ void am_account_get_all(int *accountIds, int *length) {
 int am_account_set(int const accountId, char *const attribute,
 				   char *const value) {
 
-	printf("account_management.c - account_set() - enter\n");
+			log_message(LOG_INFO,
+				ACCOUNT_MANAGER_MSG_PREFIX
+				"account_management.c - account_set() - enter");	   
 
 	struct account *acc = get_node(accountId)->acc;
 	char *new_val = (char *) malloc(strlen(value));
@@ -295,7 +333,9 @@ int am_account_set(int const accountId, char *const attribute,
 		return 0;
 	}
 
-	printf("account_management.c - account_set() - exit\n");
+		log_message(LOG_INFO,
+				ACCOUNT_MANAGER_MSG_PREFIX
+				"account_management.c - account_set() - exit");	
 
 	return 1;
 }
@@ -313,10 +353,14 @@ int am_account_set(int const accountId, char *const attribute,
 */
 void am_account_get(int const accountId, char *const attribute,
 					char *result) {
+	log_message(LOG_INFO,
+				ACCOUNT_MANAGER_MSG_PREFIX
+				"account_management.c - account_get() - enter");	
 
-	printf("account_management.c - account_get() - enter\n");
-
-	printf("id: %d, att: %s\n", accountId, attribute);
+		log_message(LOG_INFO,
+				ACCOUNT_MANAGER_MSG_PREFIX
+				"id: %d, att: %s", 
+				accountId, attribute);
 	print_list();
 
 	struct account *acc = get_node(accountId)->acc;
@@ -343,7 +387,9 @@ void am_account_get(int const accountId, char *const attribute,
 		snprintf(result, 10, "%d", acc->autoregister);
 	}
 
-	printf("account_management.c - account_get() - exit\n");
+	log_message(LOG_INFO,
+				ACCOUNT_MANAGER_MSG_PREFIX
+				"account_management.c - account_get() - exit");	
 }
 
 /**
@@ -352,8 +398,10 @@ void am_account_get(int const accountId, char *const attribute,
 	@return int ID of the new account
 */
 int am_account_create() {
+	log_message(LOG_INFO,
+				ACCOUNT_MANAGER_MSG_PREFIX
+				"account_management.c - account_create() - enter");	
 
-	printf("account_management.c - account_create() - enter\n");
 
 	struct account *a = (struct account *) malloc(sizeof(struct account));
 
@@ -372,7 +420,9 @@ int am_account_create() {
 
 	add_node(a);
 
-	printf("account_management.c - account_create() - exit\n");
+	log_message(LOG_INFO,
+				ACCOUNT_MANAGER_MSG_PREFIX
+				"account_management.c - account_create() - exit");
 
 	return id;
 }
@@ -384,14 +434,18 @@ int am_account_create() {
 	@return int Always 1
 */
 int am_account_delete(int const accountId) {
+	log_message(LOG_INFO,
+				ACCOUNT_MANAGER_MSG_PREFIX
+				"account_management.c - account_delete() - enter");
 
-	printf("account_management.c - account_delete() - enter\n");
 
 	del_node(accountId);
 
 	account_list_save();
+	log_message(LOG_INFO,
+				ACCOUNT_MANAGER_MSG_PREFIX
+				"account_management.c - account_delete() - exit");
 
-	printf("account_management.c - account_delete() - exit\n");
 
 	return 1;
 }
@@ -400,11 +454,14 @@ int am_account_delete(int const accountId) {
  * This function writes data for all accounts from memory to a file on the disk.
  */
 int am_account_save() {
-	printf("account_management.c - account_save() - enter\n");
+	log_message(LOG_INFO,
+				ACCOUNT_MANAGER_MSG_PREFIX
+				"account_management.c - account_save() - enter");
 
 	account_list_save();
-
-	printf("account_management.c - account_save() - exit\n");
+	log_message(LOG_INFO,
+				ACCOUNT_MANAGER_MSG_PREFIX
+				"account_management.c - account_save() - exit");
 	return 1;
 }
 
@@ -430,7 +487,10 @@ void am_get_all_accounts(struct account *accounts[], int *length) {
 		}
 	} else {
 		*length = 0;
-		printf("Error: More accounts than memory reserved.");
+	log_message(LOG_INFO,
+				ACCOUNT_MANAGER_MSG_PREFIX
+				"Error: More accounts than memory reserved");
+	
 	}
 }
 
