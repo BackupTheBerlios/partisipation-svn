@@ -1,16 +1,37 @@
 /**
  * @mainpage
- * Project Website: http://www.iptel.org
+ * Project Website: http://partisipation.berlios.de/
+ * 
+ * PartiSIPation is a sip user agent which has an easy replaceable 
+ * gui. So it can be used as a softphone as well as it can be
+ * integrated in any kind of application, e.g. online games. It uses
+ * external libraries for signalling and speech transfer which are
+ * called over interfaces and adapters. An adapter capsules the
+ * interface of a library and provides a simpler interface expected by
+ * the user agent. This makes an easy library replacement possible.
+ * Only the adapter has to be edited, no core changes are neccessary.
+ *
+ * Because PartiSIPation comes with its own sip statemachine a GUI or
+ * application can easily place calls by using its simple xml-rpc api.
+ * Xml-rpc is language independent which means that the gui can base on
+ * java, gtk, qt or whatever depending on the preferences of the gui
+ * developer or the purpose to use it.
+ *
+ * Every call has its own statemachine, so parallel calls are no
+ * problem. And together with the account management of PartSIPation
+ * which allows the registration with several accounts it is possible
+ * to use this user agent for complex situations like they are occuring
+ * in gaming.
  *
  * @verbinclude README
  *
  */
 
 /** 
- * @defgroup sipstack Sip Stack
+ * @defgroup sipstack Sip Stack API
  * @brief API to control communication with a sip stack.
-*
- * @see http://savannah.gnu.org/projects/exosip
+ *
+ * @see http://partisipation.berlios.de/
  *
  * @section what_is_apt What is a sip stack adapter
  *
@@ -31,6 +52,17 @@
  * that what you expect from phones. SIP means mobility,
  * video, textual call informations, file exchange,
  * instant messaging, presence support and much more!
+ */
+
+/** 
+ * @defgroup statemachine Sip State Machine
+ * @brief API to control communication with a sip stack.
+ *
+ * @see http://partisipation.berlios.de/
+ *
+ * <a href="statemachine.png">
+ * Click here to view a picture of the state machine
+ * </a>
  */
 
 /**
