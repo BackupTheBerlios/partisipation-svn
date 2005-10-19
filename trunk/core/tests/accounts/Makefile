@@ -5,7 +5,7 @@ STYLEDOCDIR_LOCAL = $(STYLEDOCDIR)/accounts
 
 compile:
 	find ./ -maxdepth 1 | grep \\.c$$ | grep -v docs/ | xargs $(COMPILE.c) -I ../../
-	$(LINK.c) -o test_account_management test_account_management.o ../../accounts/account_management.o ../../accounts/list.o -L../../lib/genx -lpthread -lcheck -lgenx $(LIBS_CLIENT) $(LIBS_ABYSS)
+	$(LINK.c) -o test_account_management test_account_management.o ../../accounts/account_management.o ../../accounts/list.o ../../util/logging/simple/logger.o ../../util/config/xml/config_reader.o -L../../lib/genx -lpthread -lcheck -lgenx $(LIBS_CLIENT) $(LIBS_ABYSS)
 
 clean:
 	find ./ -maxdepth 1 | grep \\.o$$ | xargs rm -f

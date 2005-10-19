@@ -7,6 +7,27 @@
 #include "accounts/account_core_interface.h"
 #include "accounts/list.h"
 
+#include <util/config/xml/config_reader.h>
+#include <util/logging/logger.h>
+
+void setup(void) {
+	int rc;
+	rc = cr_init("../../config/xml/core_config.xml");
+	fail_if(rc == 0, "config reader could not be initialized");
+	
+	rc = logger_init();
+	fail_if(rc == 0, "logger could not be initialized");
+}
+
+void teardown(void) {
+	int rc;
+	rc = logger_destroy();
+	fail_if(rc == 0, "logger could not be released");
+	
+	rc = cr_destroy();
+	fail_if(rc == 0, "config reader could not be released");
+}
+
 // *INDENT-OFF*
 
 START_TEST(test_account_management) {
@@ -108,6 +129,7 @@ Suite *account_management_suite(void) {
 	suite_add_tcase(s, tc_create);
 
 	tcase_add_test(tc_create, test_account_management);
+	tcase_add_checked_fixture(tc_create, setup, teardown);
 
 	return s;
 }
