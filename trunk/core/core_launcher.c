@@ -43,7 +43,6 @@ int init_thread_management() {
 
 int init_account_management() {
 	am_init();
-	am_set_xml_source("./accounts/accounts.xml");
 	return 1;
 }
 
@@ -69,7 +68,7 @@ int init_event_dispatcher() {
 
 int init_sipstack() {
 	int rc;
-	rc = sipstack_init(5065);
+	rc = sipstack_init();
 	if (rc != 0) {
 		// ERROR
 		return 0;

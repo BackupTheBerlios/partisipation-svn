@@ -9,9 +9,7 @@
 #include <core/events/statemachine.h>
 #include <core/callIDs/call_id_generator.h>
 #include <core/events/event_dispatcher.h>
-
-int const MAX_CALLS = 32;
-int const MAX_EVENTS = 16;
+#include <util/config/globals.h>
 
 sm_data **queues;
 pthread_mutex_t queuesLock;
@@ -24,7 +22,9 @@ int ed_init() {
 		return 0;
 	}
 
-	queues = (sm_data **) calloc(MAX_CALLS, sizeof(sm_data *));
+	queues =
+		(sm_data **) calloc(config.core.events.dispatcher.maxCalls,
+							sizeof(sm_data *));
 
 	return 1;
 }
@@ -55,7 +55,7 @@ int create_queue(int *pos, int callId) {
 	while (queues[i] != 0) {
 		i++;
 
-		if (i == MAX_CALLS) {
+		if (i == config.core.events.dispatcher.maxCalls) {
 			// ERROR: too many simultanous calls
 			// unlock:
 			pthread_mutex_unlock(&queuesLock);
@@ -78,7 +78,8 @@ int create_queue(int *pos, int callId) {
 	queues[i]->callId = callId;
 
 	// initialize event queue for specific statemachine:
-	queues[i]->eventPool = queue_create_queue(MAX_EVENTS);
+	queues[i]->eventPool =
+		queue_create_queue(config.core.events.dispatcher.maxEvents);
 
 	// initialize wakeup-condition-variable for specific statemachine:
 	rc = pthread_cond_init(&queues[i]->wakeUp, NULL);
@@ -141,7 +142,7 @@ int find_pos_by_call_id(int callId) {
 	int i;
 
 	i = 0;
-	while (i < MAX_CALLS) {
+	while (i < config.core.events.dispatcher.maxCalls) {
 		if (queues[i]) {
 			if (queues[i]->callId == callId) {
 				return i;

@@ -1,8 +1,12 @@
-<!ELEMENT config (logging)>
+<!ELEMENT config (accounts,core,remote,sipstack,util)>
 
-<!ELEMENT logging (simplelogger+)>
+<!ELEMENT util (logging,threadmanagement)>
 
-<!ELEMENT simplelogger (console+,file+)>
+<!ELEMENT logging (simplelogger)>
+
+<!ELEMENT threadmanagement (threads)>
+
+<!ELEMENT simplelogger (console,file)>
 
 <!ELEMENT console EMPTY>
 
@@ -17,3 +21,60 @@
 <!ATTLIST file withtime (true|false) #REQUIRED>
 <!ATTLIST file verbose (true|false) #REQUIRED>
 <!ATTLIST file threadid (true|false) #REQUIRED>
+
+<!ELEMENT threads EMPTY>
+
+<!ATTLIST threads maxamount CDATA #REQUIRED>
+
+<!ELEMENT accounts (list)>
+
+<!ELEMENT list (account)*>
+
+<!ELEMENT account EMPTY>
+
+<!ATTLIST account id CDATA #REQUIRED>
+<!ATTLIST account name CDATA #REQUIRED>
+<!ATTLIST account username CDATA #REQUIRED>
+<!ATTLIST account domain CDATA #REQUIRED>
+<!ATTLIST account authusername CDATA #REQUIRED>
+<!ATTLIST account password CDATA #REQUIRED>
+<!ATTLIST account displayname CDATA #REQUIRED>
+<!ATTLIST account outboundproxy CDATA #REQUIRED>
+<!ATTLIST account registrar CDATA #REQUIRED>
+<!ATTLIST account autoregister (true|false) #REQUIRED>
+
+<!ELEMENT remote (callback,server)>
+
+<!ELEMENT server (xmlrpcserver)>
+
+<!ELEMENT callback (guicallback,xmlrpcclient)>
+
+<!ELEMENT xmlrpcserver EMPTY>
+
+<!ATTLIST xmlrpcserver port CDATA #REQUIRED>
+<!ATTLIST xmlrpcserver registerprefix CDATA #REQUIRED>
+<!ATTLIST xmlrpcserver logfilename CDATA #REQUIRED>
+
+<!ELEMENT xmlrpcclient EMPTY>
+
+<!ATTLIST xmlrpcclient name CDATA #REQUIRED>
+<!ATTLIST xmlrpcclient version CDATA #REQUIRED>
+
+<!ELEMENT guicallback EMPTY>
+
+<!ATTLIST guicallback guiurl CDATA #REQUIRED>
+
+<!ELEMENT core (events)>
+
+<!ELEMENT events (dispatcher)>
+
+<!ELEMENT dispatcher EMPTY>
+
+<!ATTLIST dispatcher maxcalls CDATA #REQUIRED>
+<!ATTLIST dispatcher maxevents CDATA #REQUIRED>
+
+<!ELEMENT sipstack (exosipadapter)>
+
+<!ELEMENT exosipadapter EMPTY>
+
+<!ATTLIST exosipadapter port CDATA #REQUIRED>

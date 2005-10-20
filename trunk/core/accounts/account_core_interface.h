@@ -1,9 +1,7 @@
 #ifndef HACCOUNT_CORE_INTERFACE_USED
 #define HACCOUNT_CORE_INTERFACE_USED
 
-#include "list.h"
-
-void am_set_xml_source(char *file);
+#include <util/config/globals.h>
 
 void am_init();
 

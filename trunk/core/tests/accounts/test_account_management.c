@@ -5,10 +5,10 @@
 
 #include "accounts/account_client_interface.h"
 #include "accounts/account_core_interface.h"
-#include "accounts/list.h"
 
 #include <util/config/xml/config_reader.h>
 #include <util/logging/logger.h>
+#include <util/list/list.h>
 
 void setup(void) {
 	int rc;
@@ -35,8 +35,6 @@ START_TEST(test_account_management) {
 	int MAX_ACCOUNT_NUMBER = 10;
 	
 	int accIds[MAX_ACCOUNT_NUMBER];
-	
-	am_set_xml_source("./accounts.xml");
 	
 	/* Test account_create */
 

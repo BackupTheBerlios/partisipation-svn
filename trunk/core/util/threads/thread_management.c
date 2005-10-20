@@ -17,11 +17,7 @@
 #include <util/logging/logger.h>
 #include <util/threads/thread_management.h>
 #include <util/threads/tm_storage.h>
-
-/**
- * Amount of threads that can run simultaneously.
- */
-#define MAXTHREADS 64
+#include <util/config/globals.h>
 
 /**
  * global lock for thread references
@@ -59,7 +55,7 @@ int find_pos_by_thread_id(pthread_t tid) {
 	int i = 0;
 	while (threads[i] != tid) {
 		i++;
-		if (i == MAXTHREADS) {
+		if (i == config.util.threadManagement.threads.maxAmount) {
 			return -1;
 		}
 	}
@@ -101,7 +97,7 @@ void *add_thread(void *args) {
 	while (threads[i] != 0) {
 		i++;
 
-		if (i == MAXTHREADS) {
+		if (i == config.util.threadManagement.threads.maxAmount) {
 			// ERROR
 			LOG_ERROR(THREAD_MGMT_MSG_PREFIX "no free position found!\n");
 
@@ -249,9 +245,13 @@ int tm_init() {
 	shuttingDown = 0;
 
 	// reserve memory for thread references:
-	threads = (pthread_t *) calloc(MAXTHREADS, sizeof(pthread_t));
+	threads =
+		(pthread_t *) calloc(config.util.threadManagement.threads.
+							 maxAmount, sizeof(pthread_t));
 
-	haveCleaner = (int *) calloc(MAXTHREADS, sizeof(int));
+	haveCleaner =
+		(int *) calloc(config.util.threadManagement.threads.maxAmount,
+					   sizeof(int));
 	return 1;
 }
 
@@ -267,7 +267,7 @@ int join_threads() {
 	int i;
 
 	int rc;
-	for (i = 0; i < MAXTHREADS; i++) {
+	for (i = 0; i < config.util.threadManagement.threads.maxAmount; i++) {
 		pthread_t tid = threads[i];
 		if (tid) {
 			rc = pthread_join(tid, NULL);

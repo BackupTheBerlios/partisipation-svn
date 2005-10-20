@@ -6,7 +6,7 @@ STYLEDOCDIR_LOCAL = $(STYLEDOCDIR)/threads
 compile:
 	find ./ -maxdepth 1 | grep \\.c$$ | grep -v docs/ | xargs $(COMPILE.c) -I../../../
 
-	$(LINK.c) -o test_thread_management test_thread_management.o ../../../util/threads/thread_management.o ../../../util/logging/simple/logger.o ../../../util/config/xml/config_reader.o -lpthread -lcheck $(LIBS_CLIENT) $(LIBS_ABYSS)
+	$(LINK.c) -o test_thread_management test_thread_management.o ../../../util/threads/thread_management.o ../../../util/logging/simple/logger.o ../../../util/list/list.o ../../../util/config/xml/config_reader.o -lpthread -lcheck $(LIBS_CLIENT) $(LIBS_ABYSS)
 
 clean:
 	find ./ -maxdepth 1 | grep \\.o$$ | xargs rm -f

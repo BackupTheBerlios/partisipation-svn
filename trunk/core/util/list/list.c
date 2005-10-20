@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <accounts/list.h>
+#include <util/list/list.h>
 
 // first element of the list
 struct node *head = NULL;

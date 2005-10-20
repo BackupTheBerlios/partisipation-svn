@@ -13,9 +13,7 @@
 #include <remote/server/xmlrpc/volume_remote.h>
 #include <remote/server/xmlrpc/extras_remote.h>
 #include <util/threads/thread_management.h>
-
-const int SERVER_PORT = 7777;
-const char *REGISTER_PREFIX = "core";
+#include <util/config/globals.h>
 
 int serverRunning = 0;
 
@@ -23,7 +21,7 @@ void xs_init() {
 }
 
 void generate_method_name(const char *suffix, char *target) {
-	strcpy(target, REGISTER_PREFIX);
+	strcpy(target, config.remote.server.xmlrpcServer.registerPrefix);
 	strcat(target, ".");
 	strcat(target, suffix);
 }
@@ -128,8 +126,9 @@ void *xmlrpc_server_thread(void *param) {
 	 */
 	serverparm.config_file_name = NULL;
 	serverparm.registryP = registryP;
-	serverparm.port_number = SERVER_PORT;
-	serverparm.log_file_name = "/tmp/xmlrpc_log";
+	serverparm.port_number = config.remote.server.xmlrpcServer.port;
+	serverparm.log_file_name =
+		config.remote.server.xmlrpcServer.logFileName;
 
 	printf("Running XML-RPC server...\n");
 

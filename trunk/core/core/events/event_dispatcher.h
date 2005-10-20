@@ -4,8 +4,6 @@
 #include <core/events/events.h>
 #include <util/queue/queue.h>
 
-//int const MAX_CALLS = 32;
-
 typedef struct {
 	queue eventPool;
 	pthread_mutex_t poolLock;

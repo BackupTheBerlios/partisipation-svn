@@ -42,10 +42,8 @@ typedef struct {
 
 /**
  * Init sip stack. This method is supposed to be called before using the sip stack.
- *
- * @param port port to listen on
  */
-int sipstack_init(int port);
+int sipstack_init();
 
 /**
  * Shut down sip stack. This method is supposed to be called if the sip stack is no more needed.

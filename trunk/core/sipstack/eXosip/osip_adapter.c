@@ -11,6 +11,7 @@
 
 #include <util/threads/thread_management.h>
 #include <util/logging/logger.h>
+#include <util/config/globals.h>
 
 #include <eXosip2/eXosip.h>
 #include <osip2/osip.h>
@@ -34,7 +35,7 @@ void *sip_listener(void *args) {
 
 /* the following methods are part of the sip stack API */
 
-int sipstack_init(int port) {
+int sipstack_init() {
 
 	/* used to get return codes */
 	int rc;
@@ -54,7 +55,9 @@ int sipstack_init(int port) {
 	}
 
 	/* listen to given port on every interface, use udp */
-	rc = eXosip_listen_addr(IPPROTO_UDP, INADDR_ANY, port, AF_INET, 0);
+	rc = eXosip_listen_addr(IPPROTO_UDP, INADDR_ANY,
+							config.sipstack.eXosipAdapter.port, AF_INET,
+							0);
 	if (rc != 0) {
 		/* shutdown sip stack */
 		eXosip_quit();

@@ -6,8 +6,7 @@
 
 #include <remote/callback/xmlrpc/xmlrpc_callback_client.h>
 #include <remote/callback/gui_callback.h>
-
-const char *guiURL = "http://gungnir:8888/RPC2";
+#include <util/config/globals.h>
 
 void die_if_fault_occurred(xmlrpc_env * env) {
 	if (env->fault_occurred) {
@@ -28,9 +27,11 @@ int change_reg_status(int accountId, int registered) {
 	/*
 	 * Make the remote procedure call 
 	 */
-	result = xmlrpc_client_call(&callbackEnv, guiURL, methodName,
-								"(ib)", (xmlrpc_int32) accountId,
-								(xmlrpc_bool) registered);
+	result =
+		xmlrpc_client_call(&callbackEnv,
+						   config.remote.callback.guiCallback.guiURL,
+						   methodName, "(ib)", (xmlrpc_int32) accountId,
+						   (xmlrpc_bool) registered);
 	die_if_fault_occurred(&callbackEnv);
 
 	xmlrpc_read_bool(&callbackEnv, result, &success);
@@ -58,8 +59,11 @@ int change_call_status(int callId, char *status) {
 	/*
 	 * Make the remote procedure call 
 	 */
-	result = xmlrpc_client_call(&callbackEnv, guiURL, methodName,
-								"(is)", (xmlrpc_int32) callId, status);
+	result =
+		xmlrpc_client_call(&callbackEnv,
+						   config.remote.callback.guiCallback.guiURL,
+						   methodName, "(is)", (xmlrpc_int32) callId,
+						   status);
 	die_if_fault_occurred(&callbackEnv);
 
 	xmlrpc_read_bool(&callbackEnv, result, &success);
@@ -90,9 +94,11 @@ show_user_event(int accountId,
 	/*
 	 * Make the remote procedure call 
 	 */
-	result = xmlrpc_client_call(&callbackEnv, guiURL, methodName,
-								"(issss)", (xmlrpc_int32) accountId,
-								category, title, message, detailMessage);
+	result =
+		xmlrpc_client_call(&callbackEnv,
+						   config.remote.callback.guiCallback.guiURL,
+						   methodName, "(issss)", (xmlrpc_int32) accountId,
+						   category, title, message, detailMessage);
 	die_if_fault_occurred(&callbackEnv);
 
 	xmlrpc_read_bool(&callbackEnv, result, &success);
@@ -120,7 +126,9 @@ int register_core() {
 	 * Make the remote procedure call 
 	 */
 	result =
-		xmlrpc_client_call(&callbackEnv, guiURL, methodName, "()", NULL);
+		xmlrpc_client_call(&callbackEnv,
+						   config.remote.callback.guiCallback.guiURL,
+						   methodName, "()", NULL);
 	die_if_fault_occurred(&callbackEnv);
 
 	xmlrpc_read_bool(&callbackEnv, result, &success);
@@ -149,10 +157,12 @@ incoming_call(int accountId,
 	/*
 	 * Make the remote procedure call 
 	 */
-	result = xmlrpc_client_call(&callbackEnv, guiURL, methodName,
-								"(iiss)", (xmlrpc_int32) accountId,
-								(xmlrpc_int32) callId, callerSipUri,
-								callerDisplayName);
+	result =
+		xmlrpc_client_call(&callbackEnv,
+						   config.remote.callback.guiCallback.guiURL,
+						   methodName, "(iiss)", (xmlrpc_int32) accountId,
+						   (xmlrpc_int32) callId, callerSipUri,
+						   callerDisplayName);
 	die_if_fault_occurred(&callbackEnv);
 
 	xmlrpc_read_bool(&callbackEnv, result, &success);
@@ -179,8 +189,10 @@ int set_speaker_volume_cb(double level) {
 	/*
 	 * Make the remote procedure call 
 	 */
-	result = xmlrpc_client_call(&callbackEnv, guiURL, methodName,
-								"(d)", (xmlrpc_double) level);
+	result =
+		xmlrpc_client_call(&callbackEnv,
+						   config.remote.callback.guiCallback.guiURL,
+						   methodName, "(d)", (xmlrpc_double) level);
 	die_if_fault_occurred(&callbackEnv);
 
 	xmlrpc_read_bool(&callbackEnv, result, &success);
@@ -207,8 +219,10 @@ int set_micro_volume_cb(double level) {
 	/*
 	 * Make the remote procedure call 
 	 */
-	result = xmlrpc_client_call(&callbackEnv, guiURL, methodName,
-								"(d)", (xmlrpc_double) level);
+	result =
+		xmlrpc_client_call(&callbackEnv,
+						   config.remote.callback.guiCallback.guiURL,
+						   methodName, "(d)", (xmlrpc_double) level);
 	die_if_fault_occurred(&callbackEnv);
 
 	xmlrpc_read_bool(&callbackEnv, result, &success);

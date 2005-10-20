@@ -79,24 +79,25 @@ void log_message(loglevel lvl, const char *fmt, ...) {
 		fprintf(stderr, LOGGER_MSG_PREFIX "failed to ensure newline\n");
 	}
 
-	if (config.logging.simpleLogger.console.enabled
-		&& lvl >= config.logging.simpleLogger.console.logLevel) {
+	if (config.util.logging.simpleLogger.console.enabled
+		&& lvl >= config.util.logging.simpleLogger.console.logLevel) {
 
 		printf(strtmp);
 	}
 
-	if (config.logging.simpleLogger.file.enabled
-		&& lvl >= config.logging.simpleLogger.file.logLevel) {
+	if (config.util.logging.simpleLogger.file.enabled
+		&& lvl >= config.util.logging.simpleLogger.file.logLevel) {
 
 		pthread_mutex_lock(&logFileLock);
-		FILE *f = fopen(config.logging.simpleLogger.file.fileName, "a");
+		FILE *f =
+			fopen(config.util.logging.simpleLogger.file.fileName, "a");
 		if (f == NULL) {
 			fprintf(stderr, LOGGER_MSG_PREFIX "error opening %s\n",
-					config.logging.simpleLogger.file.fileName);
+					config.util.logging.simpleLogger.file.fileName);
 			return;
 		}
 
-		if (config.logging.simpleLogger.file.withTime) {
+		if (config.util.logging.simpleLogger.file.withTime) {
 			char timebuf[100];
 			time_t t = time(NULL);
 			strftime(timebuf, 100, "%d.%m.%Y - %H:%M:%S : ",
@@ -104,7 +105,7 @@ void log_message(loglevel lvl, const char *fmt, ...) {
 			fprintf(f, "%s", timebuf);
 		}
 
-		if (config.logging.simpleLogger.file.verbose) {
+		if (config.util.logging.simpleLogger.file.verbose) {
 			switch (lvl) {
 				case LOG_DEBUG:
 					fprintf(f, "%s", "[DBG] : ");
@@ -130,7 +131,7 @@ void log_message(loglevel lvl, const char *fmt, ...) {
 			}
 		}
 
-		if (config.logging.simpleLogger.file.threadId) {
+		if (config.util.logging.simpleLogger.file.threadId) {
 			fprintf(f, "Thread ID <%d> : ", (int) pthread_self());
 		}
 
@@ -139,7 +140,7 @@ void log_message(loglevel lvl, const char *fmt, ...) {
 		rc = fclose(f);
 		if (rc) {
 			fprintf(stderr, LOGGER_MSG_PREFIX "failed to close %s\n",
-					config.logging.simpleLogger.file.fileName);
+					config.util.logging.simpleLogger.file.fileName);
 		}
 
 		pthread_mutex_unlock(&logFileLock);

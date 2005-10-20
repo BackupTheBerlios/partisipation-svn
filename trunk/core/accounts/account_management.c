@@ -5,157 +5,27 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include <expat.h>
 #include <lib/genx/genx.h>
 #include <accounts/account_client_interface.h>
 #include <accounts/account_core_interface.h>
-#include <accounts/list.h>
+#include <util/list/list.h>
 
 #include <util/logging/logger.h>
 #include <remote/server/constants.h>
 
 #define ACCOUNT_MANAGER_MSG_PREFIX "[account manager]"
-#define BUFFSIZE 1000
 
 char *XMLFILE = "accounts/accounts.xml";
 int id = 0;
 struct account *cur_acc;
 
 /**
-	This function changes the path to XML file with the account list. Default 
-	path is "account.xml" in the same directory, where account_management.c 
-	is located. 
-*/
-void am_set_xml_source(char *file) {
-	XMLFILE = file;
-}
-
-/**
-	This function is called by the eXpat parser, if an XML element opening tag 
-  	has been discovered.
-  	
-  	Each attribute within the array of attributes occupies 2 consecutive places
-  	like this - array[n]: <attribute name>, array[n+1]: <attribute value>
-  	
-  	@param void* data User data
-  	@param char* name Name of the XML element
-  	@param char** attr Array of attributes of the XML element
-*/
-void elem_start(void *data, const char *name, const char **attr) {
-	log_message(LOG_INFO, ACCOUNT_MANAGER_MSG_PREFIX "elem_start - enter");
-	if (strcmp(name, "account") == 0) {
-		cur_acc = (struct account *) malloc(sizeof(struct account));
-		int i;
-		char *val;
-
-		for (i = 0; i < 20; i += 2) {
-
-			int len = strlen(attr[i + 1]);
-			const char *s = attr[i + 1];
-
-			val = (char *) malloc(len);
-			strcpy(val, s);
-
-			if (strcmp(attr[i], "name") == 0) {
-				cur_acc->name = val;
-			} else if (strcmp(attr[i], "username") == 0) {
-				cur_acc->username = val;
-			} else if (strcmp(attr[i], "domain") == 0) {
-				cur_acc->domain = val;
-			} else if (strcmp(attr[i], "authusername") == 0) {
-				cur_acc->authusername = val;
-			} else if (strcmp(attr[i], "password") == 0) {
-				cur_acc->password = val;
-			} else if (strcmp(attr[i], "displayname") == 0) {
-				cur_acc->displayname = val;
-			} else if (strcmp(attr[i], "outboundproxy") == 0) {
-				cur_acc->outboundproxy = val;
-			} else if (strcmp(attr[i], "registrar") == 0) {
-				cur_acc->registrar = val;
-			} else if (strcmp(attr[i], "autoregister") == 0) {
-				cur_acc->autoregister = atoi(val);
-				free(val);
-			} else if (strcmp(attr[i], "id") == 0) {
-				int cur_id = atoi(val);
-
-				cur_acc->id = cur_id;
-				// set ID counter to the highest value
-				if (cur_id > id)
-					id = cur_id;
-				free(val);
-			}
-		}
-	}
-	log_message(LOG_INFO, ACCOUNT_MANAGER_MSG_PREFIX "elem_start - exit");
-}
-
-/**
-	This function is called by the eXpat parser, if an XML element closing tag 
-	has been discovered. 
-    
-    @param void* data User data
-    @param char* name Name of the XML element
-*/
-void elem_end(void *data, const char *name) {
-	log_message(LOG_INFO, ACCOUNT_MANAGER_MSG_PREFIX "elem_end - start");
-	if (strcmp(name, "account") == 0) {
-		add_node(cur_acc);
-	}
-	log_message(LOG_INFO, ACCOUNT_MANAGER_MSG_PREFIX "elem_end - exit");
-}
-
-/**
-	Initialize list of accounts by parsing an XML file.
+	Initialize list of accounts.
 */
 void am_init() {
 	log_message(LOG_INFO,
 				ACCOUNT_MANAGER_MSG_PREFIX
 				"account_management.c - account_management_init() - enter");
-	int xmlfile = open(XMLFILE, O_RDONLY);
-	XML_Parser parser = XML_ParserCreate(NULL);
-
-	XML_SetElementHandler(parser, elem_start, elem_end);
-	for (;;) {
-		int bytes_read;
-		void *buf = XML_GetBuffer(parser, BUFFSIZE);
-
-		if (buf == NULL) {
-			// if memory could not be allocated
-			log_message(LOG_INFO,
-						ACCOUNT_MANAGER_MSG_PREFIX
-						"Buffer allocation failed");
-
-		}
-
-		bytes_read = read(xmlfile, buf, BUFFSIZE);
-
-		if (bytes_read < 0) {
-			// if file could not be read
-			log_message(LOG_INFO,
-						ACCOUNT_MANAGER_MSG_PREFIX
-						"No file found or file reading error");
-
-		}
-
-		if (!XML_ParseBuffer(parser, bytes_read, bytes_read == 0)) {
-			// if XML document is not well-formed
-			log_message(LOG_INFO,
-						ACCOUNT_MANAGER_MSG_PREFIX
-						"XML parse error in line %d: %s");
-
-			XML_GetCurrentLineNumber(parser),
-				XML_ErrorString(XML_GetErrorCode(parser));
-			break;
-		}
-		// if end of file reached
-		if (bytes_read == 0)
-			break;
-	}
-	XML_ParserFree(parser);
-	close(xmlfile);
-
-	print_list();
-
 	log_message(LOG_INFO,
 				ACCOUNT_MANAGER_MSG_PREFIX
 				"account_management.c - account_management_init() - exit");

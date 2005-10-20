@@ -5,7 +5,7 @@ STYLEDOCDIR_LOCAL = $(STYLEDOCDIR)/eXosip
 
 compile:
 	find ./ | grep \\.c$$ | grep -v tests/ | xargs $(COMPILE.c) -I../../../
-	$(LINK.c) -o check_sipstack_adapter test_sipstack.o ../../../sipstack/eXosip/osip_adapter.o ../../../sipstack/eXosip/sip_listener.o ../../../util/threads/thread_management.o ../../../util/logging/simple/logger.o ../../../util/config/xml/config_reader.o ../../../util/queue/queue.o -L/usr/local/lib -lcheck -leXosip2 -losip2 -losipparser2 -lpthread $(LIBS_CLIENT) $(LIBS_ABYSS)
+	$(LINK.c) -o check_sipstack_adapter test_sipstack.o ../../../sipstack/eXosip/osip_adapter.o ../../../sipstack/eXosip/sip_listener.o ../../../util/threads/thread_management.o ../../../util/logging/simple/logger.o ../../../util/list/list.o  ../../../util/config/xml/config_reader.o ../../../util/queue/queue.o -L/usr/local/lib -lcheck -leXosip2 -losip2 -losipparser2 -lpthread $(LIBS_CLIENT) $(LIBS_ABYSS)
 
 clean:
 	find ./ -maxdepth 1 | grep \\.o$$ | xargs rm -f
