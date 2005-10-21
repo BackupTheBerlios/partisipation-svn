@@ -81,11 +81,17 @@
 	<!-- NOTE: You must provide a scenario file with following command line option:
 		-Dfile=/path/to/your/scenario/file.xml
 	-->
-	<target name="guitest">
+	<target name="guitest" depends="build">
 		<java classname="gui.Tester" fork="true">
 			<classpath refid="classpath"/>
 			<arg value="${file}"/>
 		</java>
+		<java classname="gui.Gui" fork="true">
+			<classpath refid="classpath"/>
+		</java>
+	</target>
+
+	<target name="run" depends="build">
 		<java classname="gui.Gui" fork="true">
 			<classpath refid="classpath"/>
 		</java>
