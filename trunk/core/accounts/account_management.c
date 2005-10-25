@@ -9,13 +9,12 @@
 #include <accounts/account_client_interface.h>
 #include <accounts/account_core_interface.h>
 #include <util/list/list.h>
-
+#include <util/config/xml/config_writer.h>
 #include <util/logging/logger.h>
 #include <remote/server/constants.h>
 
 #define ACCOUNT_MANAGER_MSG_PREFIX "[account manager]"
 
-char *XMLFILE = "accounts/accounts.xml";
 int id = 0;
 struct account *cur_acc;
 
@@ -23,83 +22,15 @@ struct account *cur_acc;
 	Initialize list of accounts.
 */
 void am_init() {
-	log_message(LOG_INFO,
+	log_message(LOG_DEBUG,
 				ACCOUNT_MANAGER_MSG_PREFIX
-				"account_management.c - account_management_init() - enter");
-	log_message(LOG_INFO,
+				"account_management_init() - enter");
+
+	id = am_get_max_id();
+
+	log_message(LOG_DEBUG,
 				ACCOUNT_MANAGER_MSG_PREFIX
-				"account_management.c - account_management_init() - exit");
-}
-
-/**
-	Save current accounts to an XML file.
-*/
-void account_list_save() {
-	log_message(LOG_INFO,
-				ACCOUNT_MANAGER_MSG_PREFIX "accounts_list_save - start");
-
-	// open file in write-mode
-	FILE *xmlfile = fopen(XMLFILE, "w");
-
-	if (xmlfile) {
-
-		struct node *tmp = head;
-
-		genxWriter w = genxNew(NULL, NULL, NULL);
-
-		genxStartDocFile(w, xmlfile);
-		genxStartElementLiteral(w, NULL, "list");
-
-		// continue until the end of the list
-		while (tmp) {
-
-			// get current account
-			struct account *acc = tmp->acc;
-
-			genxStartElementLiteral(w, NULL, "account");
-
-			char *str_id = (char *) malloc(20);
-			snprintf(str_id, 10, "%d", acc->id);
-			genxAddAttributeLiteral(w, NULL, "id", str_id);
-			free(str_id);
-
-			genxAddAttributeLiteral(w, NULL, "name", acc->name);
-			genxAddAttributeLiteral(w, NULL, "username", acc->username);
-			genxAddAttributeLiteral(w, NULL, "domain", acc->domain);
-			genxAddAttributeLiteral(w, NULL, "authusername",
-									acc->authusername);
-			genxAddAttributeLiteral(w, NULL, "password", acc->password);
-			genxAddAttributeLiteral(w, NULL, "displayname",
-									acc->displayname);
-			genxAddAttributeLiteral(w, NULL, "outboundproxy",
-									acc->outboundproxy);
-			genxAddAttributeLiteral(w, NULL, "registrar", acc->registrar);
-
-			char *str_autoreg = (char *) malloc(20);
-			snprintf(str_autoreg, 10, "%d", acc->autoregister);
-			genxAddAttributeLiteral(w, NULL, "autoregister", str_autoreg);
-			free(str_autoreg);
-
-			genxEndElement(w);
-
-			tmp = tmp->next;
-
-		}
-
-		genxEndElement(w);
-		genxEndDocument(w);
-
-	} else {
-		log_message(LOG_INFO,
-					ACCOUNT_MANAGER_MSG_PREFIX
-					"I/O error for file %s", XMLFILE);
-		// printf("I/O error for file %s\n", XMLFILE);                                              
-	}
-	// close file
-	fclose(xmlfile);
-	log_message(LOG_INFO,
-				ACCOUNT_MANAGER_MSG_PREFIX "accounts_list_save - exit");
-
+				"account_management_init() - exit");
 }
 
 /**
@@ -109,9 +40,8 @@ void account_list_save() {
 	@param int* length Pointer to an integer to store length of this array
 */
 void am_account_get_all(int *accountIds, int *length) {
-	log_message(LOG_INFO,
-				ACCOUNT_MANAGER_MSG_PREFIX
-				"account_management.c - account_get_all() - enter");
+	log_message(LOG_DEBUG,
+				ACCOUNT_MANAGER_MSG_PREFIX "am_get_all() - enter");
 
 	*length = get_length();
 
@@ -126,13 +56,12 @@ void am_account_get_all(int *accountIds, int *length) {
 		}
 	} else {
 		*length = 0;
-		log_message(LOG_INFO,
+		log_message(LOG_ERROR,
 					ACCOUNT_MANAGER_MSG_PREFIX
 					"Error: More accounts than memory reserved");
 	}
-	log_message(LOG_INFO,
-				ACCOUNT_MANAGER_MSG_PREFIX
-				"account_management.c - account_get_all() - exit");
+	log_message(LOG_DEBUG,
+				ACCOUNT_MANAGER_MSG_PREFIX "am_get_all() - exit");
 
 }
 
@@ -147,9 +76,8 @@ void am_account_get_all(int *accountIds, int *length) {
 int am_account_set(int const accountId, char *const attribute,
 				   char *const value) {
 
-	log_message(LOG_INFO,
-				ACCOUNT_MANAGER_MSG_PREFIX
-				"account_management.c - account_set() - enter");
+	log_message(LOG_DEBUG,
+				ACCOUNT_MANAGER_MSG_PREFIX "am_account_set() - enter");
 
 	struct account *acc = get_node(accountId)->acc;
 	char *new_val = (char *) malloc(strlen(value));
@@ -191,9 +119,8 @@ int am_account_set(int const accountId, char *const attribute,
 		return 0;
 	}
 
-	log_message(LOG_INFO,
-				ACCOUNT_MANAGER_MSG_PREFIX
-				"account_management.c - account_set() - exit");
+	log_message(LOG_DEBUG,
+				ACCOUNT_MANAGER_MSG_PREFIX "am_account_set() - exit");
 
 	return 1;
 }
@@ -211,14 +138,12 @@ int am_account_set(int const accountId, char *const attribute,
 */
 void am_account_get(int const accountId, char *const attribute,
 					char *result) {
-	log_message(LOG_INFO,
-				ACCOUNT_MANAGER_MSG_PREFIX
-				"account_management.c - account_get() - enter");
+	log_message(LOG_DEBUG,
+				ACCOUNT_MANAGER_MSG_PREFIX "am_account_get() - enter");
 
-	log_message(LOG_INFO,
+	log_message(LOG_DEBUG,
 				ACCOUNT_MANAGER_MSG_PREFIX
 				"id: %d, att: %s", accountId, attribute);
-	print_list();
 
 	struct account *acc = get_node(accountId)->acc;
 
@@ -244,9 +169,8 @@ void am_account_get(int const accountId, char *const attribute,
 		snprintf(result, 10, "%d", acc->autoregister);
 	}
 
-	log_message(LOG_INFO,
-				ACCOUNT_MANAGER_MSG_PREFIX
-				"account_management.c - account_get() - exit");
+	log_message(LOG_DEBUG,
+				ACCOUNT_MANAGER_MSG_PREFIX "am_account_get() - exit");
 }
 
 /**
@@ -255,9 +179,8 @@ void am_account_get(int const accountId, char *const attribute,
 	@return int ID of the new account
 */
 int am_account_create() {
-	log_message(LOG_INFO,
-				ACCOUNT_MANAGER_MSG_PREFIX
-				"account_management.c - account_create() - enter");
+	log_message(LOG_DEBUG,
+				ACCOUNT_MANAGER_MSG_PREFIX "am_account_create() - enter");
 
 	struct account *a = (struct account *) malloc(sizeof(struct account));
 
@@ -276,9 +199,10 @@ int am_account_create() {
 
 	add_node(a);
 
-	log_message(LOG_INFO,
-				ACCOUNT_MANAGER_MSG_PREFIX
-				"account_management.c - account_create() - exit");
+	cw_save_config();
+
+	log_message(LOG_DEBUG,
+				ACCOUNT_MANAGER_MSG_PREFIX "am_account_create() - exit");
 
 	return id;
 }
@@ -290,16 +214,15 @@ int am_account_create() {
 	@return int Always 1
 */
 int am_account_delete(int const accountId) {
-	log_message(LOG_INFO,
-				ACCOUNT_MANAGER_MSG_PREFIX
-				"account_management.c - account_delete() - enter");
+	log_message(LOG_DEBUG,
+				ACCOUNT_MANAGER_MSG_PREFIX "am_account_delete() - enter");
 
 	del_node(accountId);
 
-	account_list_save();
-	log_message(LOG_INFO,
-				ACCOUNT_MANAGER_MSG_PREFIX
-				"account_management.c - account_delete() - exit");
+	cw_save_config();
+
+	log_message(LOG_DEBUG,
+				ACCOUNT_MANAGER_MSG_PREFIX "account_delete() - exit");
 
 	return 1;
 }
@@ -308,14 +231,13 @@ int am_account_delete(int const accountId) {
  * This function writes data for all accounts from memory to a file on the disk.
  */
 int am_account_save() {
-	log_message(LOG_INFO,
-				ACCOUNT_MANAGER_MSG_PREFIX
-				"account_management.c - account_save() - enter");
+	log_message(LOG_DEBUG,
+				ACCOUNT_MANAGER_MSG_PREFIX "am_account_save() - enter");
 
-	account_list_save();
-	log_message(LOG_INFO,
-				ACCOUNT_MANAGER_MSG_PREFIX
-				"account_management.c - account_save() - exit");
+	cw_save_config();
+
+	log_message(LOG_DEBUG,
+				ACCOUNT_MANAGER_MSG_PREFIX "am_account_save() - exit");
 	return 1;
 }
 
@@ -341,7 +263,7 @@ void am_get_all_accounts(struct account *accounts[], int *length) {
 		}
 	} else {
 		*length = 0;
-		log_message(LOG_INFO,
+		log_message(LOG_ERROR,
 					ACCOUNT_MANAGER_MSG_PREFIX
 					"Error: More accounts than memory reserved");
 
@@ -357,4 +279,25 @@ void am_get_all_accounts(struct account *accounts[], int *length) {
 struct account *am_get_account(int const accountId) {
 	struct node *n = get_node(accountId);
 	return n->acc;
+}
+
+/**
+ * This function goes through the list of accounts to find maximal ID.
+ * 
+ * @return maximal ID value
+ */
+int am_get_max_id() {
+	int max = 0;
+
+	struct node *tmp = head;
+
+	while (tmp) {
+		struct account *acc = tmp->acc;
+
+		if (acc->id > max)
+			max = acc->id;
+
+		tmp = tmp->next;
+	}
+	return max;
 }
