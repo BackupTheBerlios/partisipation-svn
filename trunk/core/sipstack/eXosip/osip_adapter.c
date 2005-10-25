@@ -24,7 +24,7 @@ int listenerIsActive = 0;
 
 void *sip_listener(void *args) {
 	while (listenerIsActive == 1) {
-		sipstack_event event = sipstack_receive_event(1);
+		sipstack_event *event = sipstack_receive_event(1);
 
 		/* send sipstack event to listener */
 		sip_listener_receive_event(event);
@@ -105,40 +105,40 @@ void sipstack_quit() {
 	log_message(LOG_DEBUG, SIPSTACK_MSG_PREFIX "eXosip is shut down.");
 }
 
-sipstack_event sipstack_map_event(eXosip_event_t * event) {
+sipstack_event *sipstack_map_event(eXosip_event_t * event) {
 
 	/* sip stack event which will be returned */
-	sipstack_event sse;
+	sipstack_event *sse;
 
 	/* get response status code */
-	sse.statusCode = event->response->status_code;
+	sse->statusCode = event->response->status_code;
 	/* get response message */
-	sse.message = event->textinfo;
+	sse->message = event->textinfo;
 	/* get call id */
-	sse.callId = event->cid;
+	sse->callId = event->cid;
 	/* get dialog id */
-	sse.dialogId = event->did;
+	sse->dialogId = event->did;
 	/* get transaction id */
-	sse.dialogId = event->tid;
+	sse->dialogId = event->tid;
 
 	/* is event an acknowledgment */
 	if (event->ack != NULL) {
-		sse.ack = 1;
+		sse->ack = 1;
 	} else {
-		sse.ack = 0;
+		sse->ack = 0;
 	}
 
 	/* return event */
 	return sse;
 }
 
-sipstack_event sipstack_receive_event(int timeout) {
+sipstack_event *sipstack_receive_event(int timeout) {
 
 	/* response */
 	eXosip_event_t *je;
 
 	/* sip stack event which will be returned */
-	sipstack_event sse;
+	sipstack_event *sse;
 
 	/* wait for response in seconds */
 	je = eXosip_event_wait(timeout, 0);
@@ -149,7 +149,7 @@ sipstack_event sipstack_receive_event(int timeout) {
 	if (je == NULL) {
 		/* no response received in time */
 		/* return error code */
-		sse.statusCode = -1;
+		sse->statusCode = -1;
 		return sse;
 	} else {
 		/* get sip stack event */

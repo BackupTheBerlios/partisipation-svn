@@ -23,7 +23,7 @@
 
 #include <sipstack/sip_stack_interface.h>
 
-void sip_listener_receive_event(sipstack_event event);
+void sip_listener_receive_event(sipstack_event * event);
 
 #endif
 

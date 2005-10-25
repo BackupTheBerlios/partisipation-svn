@@ -63,7 +63,7 @@ void sipstack_quit();
  * @param timeout time to wait for response in seconds
  * @return response event
  */
-sipstack_event sipstack_receive_event(int timeout);
+sipstack_event *sipstack_receive_event(int timeout);
 
 /**
  * Send initial register to start a registration.
