@@ -21,6 +21,20 @@ int init_config_reader() {
 	return 1;
 }
 
+int init_config_writer() {
+	int rc;
+	/* 
+	 * ATTENTION: this path must be the same as for config_reader. At the moment, it is different
+	 * for the sake of safety.
+	*/
+	rc = cw_init("./config/xml/core_config_by_writer.xml", 0);
+	if (rc == 0) {
+		// ERROR
+		return 0;
+	}
+	return 1;
+}
+
 int init_logger() {
 	int rc;
 	rc = logger_init();
@@ -99,6 +113,11 @@ int init_xmlrpc_server() {
 int init_utils() {
 	int rc;
 	rc = init_config_reader();
+	if (rc == 0) {
+		// ERROR
+		return 0;
+	}
+	rc = init_config_writer();
 	if (rc == 0) {
 		// ERROR
 		return 0;
