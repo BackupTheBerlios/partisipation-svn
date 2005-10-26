@@ -23,8 +23,19 @@
 int listenerIsActive = 0;
 
 void *sip_listener(void *args) {
+	LOG_INFO(SIPSTACK_MSG_PREFIX "Sip listener started");
 	while (listenerIsActive == 1) {
 		sipstack_event *event = sipstack_receive_event(1);
+
+		/* create debug message on receiving an event */
+		if (event->statusCode > -1) {
+			if (event->ack == 1) {
+				LOG_INFO(SIPSTACK_MSG_PREFIX "Received sip event (ACK).");
+			} else {
+				LOG_INFO(SIPSTACK_MSG_PREFIX "Received sip event (%i).",
+						 event->statusCode);
+			}
+		}
 
 		/* send sipstack event to listener */
 		sip_listener_receive_event(event);
@@ -81,8 +92,7 @@ int sipstack_init() {
 					"Sip listener thread could not be started");
 	} else {
 		log_message(LOG_DEBUG,
-					SIPSTACK_MSG_PREFIX
-					"Sip listener thread started: id = %i", rc);
+					SIPSTACK_MSG_PREFIX "Sip listener thread started");
 	}
 
 	/* return success code */
@@ -109,11 +119,13 @@ sipstack_event *sipstack_map_event(eXosip_event_t * event) {
 
 	/* sip stack event which will be returned */
 	sipstack_event *sse;
+	sse = (sipstack_event *) malloc(sizeof(sipstack_event));
 
 	/* get response status code */
 	sse->statusCode = event->response->status_code;
 	/* get response message */
-	sse->message = event->textinfo;
+	sse->message = (char *) malloc(strlen(event->textinfo) * sizeof(char));
+	strcpy(sse->message, event->textinfo);
 	/* get call id */
 	sse->callId = event->cid;
 	/* get dialog id */
@@ -127,6 +139,9 @@ sipstack_event *sipstack_map_event(eXosip_event_t * event) {
 	} else {
 		sse->ack = 0;
 	}
+
+	/* free memory of eXosip event */
+	eXosip_event_free(event);
 
 	/* return event */
 	return sse;
@@ -154,7 +169,6 @@ sipstack_event *sipstack_receive_event(int timeout) {
 	} else {
 		/* get sip stack event */
 		sse = sipstack_map_event(je);
-
 		/* return sip stack event */
 		return sse;
 	}
