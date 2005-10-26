@@ -9,6 +9,7 @@
 #include <util/config/xml/config_reader.h>
 #include <util/logging/logger.h>
 #include <util/queue/queue.h>
+#include <util/threads/thread_management.h>
 
 #define TEST_SIPSTACK_PREFIX "[sipstack test] "
 
@@ -16,8 +17,6 @@ queue event_queue;
 
 void sip_listener_receive_event(sipstack_event *event) {
 	queue_enqueue((void *)event, event_queue);
-	//LOG_DEBUG("Received event...");
-	LOG_DEBUG(TEST_SIPSTACK_PREFIX "Received event...\n");
 }
 
 void setup(void) {
@@ -27,16 +26,27 @@ void setup(void) {
 	
 	rc = logger_init();
 	fail_if(rc == 0, "logger could not be initialized");
+	
+	//init thread management
+	rc = tm_init();
+	if (rc == 0) {
+		// ERROR
+		LOG_ERROR(TEST_SIPSTACK_PREFIX "Thread management could not be initialized.\n");
+	}else {
+		LOG_DEBUG(TEST_SIPSTACK_PREFIX "Thread management  initialized.\n");
+	}
 
-	LOG_DEBUG(TEST_SIPSTACK_PREFIX "Creating event queue.");
 	//init event queue
 	event_queue = queue_create_queue(30);
-	//LOG_DEBUG(TEST_SIPSTACK_PREFIX,"Event queue created successfully.");
-	LOG_DEBUG(TEST_SIPSTACK_PREFIX "Event queue created successfully.");
+	LOG_DEBUG(TEST_SIPSTACK_PREFIX "Event queue created.");
 }
 
 void teardown(void) {
 	int rc;
+
+	rc = tm_destroy(0);
+	fail_if(rc == 0, "thread management could not be released");
+
 	rc = logger_destroy();
 	fail_if(rc == 0, "logger could not be released");
 	
@@ -45,7 +55,6 @@ void teardown(void) {
 
 	//empty event queue
 	queue_make_empty(event_queue);
-	//LOG_DEBUG("[sipstack test] Event queue emptied successfully.");
 	LOG_DEBUG(TEST_SIPSTACK_PREFIX "Event queue emptied successfully.");
 }
 
@@ -58,26 +67,27 @@ START_TEST(test_sipstack_register) {
 
 	sipstack_event *event;
 	int i = sipstack_init(5065);
-	
+	LOG_DEBUG(TEST_SIPSTACK_PREFIX "Sip stack initialized.");
+
 	int counter = 0;
 
 	/*send initial REGISTER */
 	int regId =
 		sipstack_send_register("sip:333@192.168.0.2", "sip:192.168.0.2", 1800);
-	fail_unless(regId > -1, "Sending REGISTER failed. (result = %2d)", regId);
+	fail_unless(regId > -1, "Sending REGISTER failed. (result = %i)", regId);
 
 	/*receive response */
-	counter = 0;
 	while (queue_is_empty(event_queue) && counter < 10) {
 		sleep(1);
 		counter++;
 	}
-	fail_unless(queue_is_empty(event_queue) == 0, TEST_SIPSTACK_PREFIX "No response received.");
+
+	fail_unless(!queue_is_empty(event_queue), TEST_SIPSTACK_PREFIX "No response for registering received.");
 
 	event = queue_front_and_dequeue(event_queue);
 
 	fail_unless(event->statusCode == 200,
-				"No 200 response received. (result = %i)", event->statusCode);
+				"No 200 response for registering received. (result = %i)", event->statusCode);
 
 	/*update registration */
 	i = sipstack_send_update_register(regId, 1800);
@@ -89,21 +99,30 @@ START_TEST(test_sipstack_register) {
 		sleep(1);
 		counter++;
 	}
-	fail_unless(queue_is_empty(event_queue) == 0, TEST_SIPSTACK_PREFIX "No response received.");
+	fail_unless(!queue_is_empty(event_queue), TEST_SIPSTACK_PREFIX "No response for updating registration received.");
 
 	event = queue_front_and_dequeue(event_queue);
 
 	fail_unless(event->statusCode == 200, TEST_SIPSTACK_PREFIX
-				"No 200 response received. (result = %i)",
+				"No 200 response for updating registration received. (result = %i)",
 				event->statusCode);
 
 	/*unregister */
 	i = sipstack_send_unregister(regId);
 	fail_unless(i == 0, "Unregistering failed. (result = %2d)", i);
+
 	/*receive response */
+	counter = 0;
+	while (queue_is_empty(event_queue) && counter < 10) {
+		sleep(1);
+		counter++;
+	}
+	fail_unless(!queue_is_empty(event_queue), TEST_SIPSTACK_PREFIX "No response for unregistering received.");
+
 	event = queue_front_and_dequeue(event_queue);
-	fail_unless(event->statusCode == 200,
-				"No 200 response received. (result = %i)",
+
+	fail_unless(event->statusCode == 200, TEST_SIPSTACK_PREFIX
+				"No 200 response for unregistering received. (result = %i)",
 				event->statusCode);
 
 	sipstack_quit();
@@ -198,6 +217,7 @@ Suite *sipstack_suite(void) {
 	//suite_add_tcase(s, tc_call);
 	//suite_add_tcase(s, tc_cancel);
 
+	tcase_set_timeout(tc_register, 30);
 	tcase_add_test(tc_register, test_sipstack_register);
 	tcase_add_checked_fixture(tc_register, setup, teardown);
 
