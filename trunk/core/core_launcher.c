@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include <util/config/xml/config_reader.h>
+#include <util/config/xml/config_writer.h>
 #include <util/logging/logger.h>
 #include <util/threads/thread_management.h>
 #include <accounts/account_core_interface.h>
@@ -175,6 +176,16 @@ int destroy_config_reader() {
 	return 1;
 }
 
+int destroy_config_writer() {
+	int rc;
+	rc = cw_destroy(0);
+	if (rc == 0) {
+		// ERROR
+		return 0;
+	}
+	return 1;
+}
+
 int destroy_logger() {
 	int rc;
 	rc = logger_destroy();
@@ -250,6 +261,12 @@ int destroy_utils() {
 		// ERROR
 		return 0;
 	}
+	rc = destroy_config_writer();
+	if (rc == 0) {
+		// ERROR
+		return 0;
+	}
+	return 1;
 	rc = destroy_config_reader();
 	if (rc == 0) {
 		// ERROR
@@ -305,16 +322,25 @@ int main(int const argc, const char **const argv) {
 		// ERROR
 		return -1;
 	}
+
 	rc = init_sipstack();
 	if (rc == 0) {
 		// ERROR
 		return -1;
 	}
+
 	rc = init_remote();
 	if (rc == 0) {
 		// ERROR
 		return -1;
 	}
+
+	rc = tm_join_active_threads();
+	if (rc == 0) {
+		// ERROR
+		return -1;
+	}
+
 	rc = destroy_remote();
 	if (rc == 0) {
 		// ERROR
@@ -335,6 +361,7 @@ int main(int const argc, const char **const argv) {
 		// ERROR
 		return -1;
 	}
+
 	rc = destroy_utils();
 	if (rc == 0) {
 		// ERROR
