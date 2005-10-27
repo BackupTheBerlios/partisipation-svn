@@ -44,6 +44,10 @@ void setup(void) {
 void teardown(void) {
 	int rc;
 
+	//empty event queue
+	queue_make_empty(event_queue);
+	LOG_DEBUG(TEST_SIPSTACK_PREFIX "Event queue emptied successfully.");
+
 	rc = tm_destroy(0);
 	fail_if(rc == 0, "thread management could not be released");
 
@@ -53,9 +57,6 @@ void teardown(void) {
 	rc = cr_destroy();
 	fail_if(rc == 0, "config reader could not be released");
 
-	//empty event queue
-	queue_make_empty(event_queue);
-	LOG_DEBUG(TEST_SIPSTACK_PREFIX "Event queue emptied successfully.");
 }
 
 // *INDENT-OFF*
@@ -66,7 +67,7 @@ START_TEST(test_sipstack_register) {
 	 */
 
 	sipstack_event *event;
-	int i = sipstack_init(5065);
+	int i = sipstack_init();
 	LOG_DEBUG(TEST_SIPSTACK_PREFIX "Sip stack initialized.");
 
 	int counter = 0;
@@ -137,15 +138,18 @@ START_TEST(test_sipstack_call) {
 
 	int callId = 2;
 
-	int i = sipstack_init(5065);
+	int i = sipstack_init();
 
 	/*send initial INVITE */
 	callId = sipstack_send_invite("sip:321@192.168.0.2", "sip:123@192.168.0.2", "Sip Stack Test");
-	LOG_DEBUG("%i", callId);
+	LOG_DEBUG("INVITE send (callId=%i)", callId);
 	/*receive response */
 	event->statusCode = 0;
 	while (event->statusCode < 200) {
-		event = queue_front_and_dequeue(event_queue);
+		if (!queue_is_empty(event_queue)) {
+			event = queue_front_and_dequeue(event_queue);
+		}
+		sleep(1);
 	}
 	fail_unless(event->statusCode == 200,
 				"[test call][INVITE]No 200 response for INVITE received. (result = %i)\n",
@@ -153,14 +157,13 @@ START_TEST(test_sipstack_call) {
 
 	/*send ACK for OK */
 	i = sipstack_send_acknowledgment(event->dialogId);
-	fail_unless(i == 0,
-				"[test call][INVITE]Sending ACK failed. (result = %2d)", i);
+	fail_unless(i == 1, "[test call][INVITE]Sending ACK failed.");
 
 	sleep(2);
 
 	/*send BYE */
 	i = sipstack_bye(callId, event->dialogId);
-	fail_unless(i == 0,
+	fail_unless(i == 1,
 				"[test call][BYE]Sending BYE failed. (result = %2d)", i);
 
 	sipstack_quit();
@@ -173,7 +176,7 @@ START_TEST(test_sipstack_cancel) {
 
 	sipstack_event * event;
 
-	int i = sipstack_init(5065);
+	int i = sipstack_init();
 
 	/*send initial INVITE */
 	int callId = sipstack_send_invite("sip:321@192.168.0.2", "sip:123@192.168.0.2", "Sip Stack Test");
@@ -186,22 +189,30 @@ START_TEST(test_sipstack_cancel) {
 	*/
 	event->statusCode = 0;
 	while (event->statusCode < 99) {
-		event = queue_front_and_dequeue(event_queue);
+		if (!queue_is_empty(event_queue)) {
+			event = queue_front_and_dequeue(event_queue);
+		}
+		sleep(1);
 	}
 
 	/*send CANCEL */
 	i = sipstack_cancel(callId, event->dialogId);
-	fail_unless(i == 0, "[test transaction]Sending CANCEL failed. (result = %2d)", i);
+	fail_unless(i == 1, "[test transaction]Sending CANCEL failed.");
 
 	/*receive response for INVITE*/
 	event->statusCode = 0;
 	while (event->statusCode < 487) {
-		event = queue_front_and_dequeue(event_queue);
+		if (!queue_is_empty(event_queue)) {
+			event = queue_front_and_dequeue(event_queue);
+		}
+		sleep(1);
 	}
 	fail_unless(event->statusCode == 487,
-				"[test call][CANCEL]No 487 response for INVITE received. (result = %i)\n",
+				"[test call][CANCEL]No 487 response for INVITE received. (received %i event)",
 				event->statusCode);
-
+	/*send ACK for 487 */
+	i = sipstack_send_acknowledgment(event->dialogId);
+	fail_unless(i == 1, "[test call][CANCEL]Sending ACK failed.");
 } END_TEST
 
 
@@ -210,24 +221,24 @@ START_TEST(test_sipstack_cancel) {
 Suite *sipstack_suite(void) {
 	Suite *s = suite_create("Sipstack (register, call, cancel call)\n");
 	TCase *tc_register = tcase_create("Register");
-	//TCase *tc_call = tcase_create("Call");
-	//TCase *tc_cancel = tcase_create("Cancel");
+	TCase *tc_call = tcase_create("Call");
+	TCase *tc_cancel = tcase_create("Cancel");
 
 	suite_add_tcase(s, tc_register);
-	//suite_add_tcase(s, tc_call);
-	//suite_add_tcase(s, tc_cancel);
+	suite_add_tcase(s, tc_call);
+	suite_add_tcase(s, tc_cancel);
 
 	tcase_set_timeout(tc_register, 30);
 	tcase_add_test(tc_register, test_sipstack_register);
 	tcase_add_checked_fixture(tc_register, setup, teardown);
 
-	//tcase_set_timeout(tc_call, 30);
-	//tcase_add_test(tc_call, test_sipstack_call);
-	//tcase_add_checked_fixture(tc_call, setup, teardown);
+	tcase_set_timeout(tc_call, 30);
+	tcase_add_test(tc_call, test_sipstack_call);
+	tcase_add_checked_fixture(tc_call, setup, teardown);
 
-	//tcase_set_timeout(tc_cancel, 30);
-	//tcase_add_test(tc_cancel, test_sipstack_cancel);
-	//tcase_add_checked_fixture(tc_cancel, setup, teardown);
+	tcase_set_timeout(tc_cancel, 30);
+	tcase_add_test(tc_cancel, test_sipstack_cancel);
+	tcase_add_checked_fixture(tc_cancel, setup, teardown);
 
 	//tcase_add_checked_fixture (tc_apt, setup, teardown);
 
