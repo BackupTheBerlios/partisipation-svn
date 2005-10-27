@@ -26,7 +26,7 @@ int init_config_writer() {
 	/* 
 	 * ATTENTION: this path must be the same as for config_reader. At the moment, it is different
 	 * for the sake of safety.
-	*/
+	 */
 	rc = cw_init("./config/xml/core_config_by_writer.xml", 0);
 	if (rc == 0) {
 		// ERROR

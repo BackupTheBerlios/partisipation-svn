@@ -33,7 +33,7 @@ char *int_to_str(int n) {
 	@param loglevel lev log level to be converted
 	@return string representation of this log level
  */
-char *loglevel_to_str(loglevel lev) {
+const char *loglevel_to_str(loglevel lev) {
 
 	if (lev == LOG_DEBUG)
 		return "LOG_DEBUG";
@@ -46,7 +46,7 @@ char *loglevel_to_str(loglevel lev) {
 	else if (lev == LOG_ERROR)
 		return "LOG_ERROR";
 	else
-		return LOG_FAILURE;
+		return "LOG_FAILURE";
 }
 
 /**
@@ -307,6 +307,9 @@ int cw_destroy() {
 	if (save_on_exit) {
 		cw_save_config();
 	}
+	if (xml_file_name) {
+		free(xml_file_name);
+	}
 	return 1;
 }
 
@@ -318,8 +321,8 @@ int cw_destroy() {
 	@return always 1
 */
 int cw_init(const char *fileName, int saveCfgOnExit) {
-
-	xml_file_name = fileName;
+	xml_file_name = (char *) malloc(strlen(fileName) * sizeof(char));
+	strcpy(xml_file_name, fileName);
 	save_on_exit = saveCfgOnExit;
 
 	return 1;
