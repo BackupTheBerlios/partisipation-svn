@@ -1,50 +1,57 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <core/gui_input/calls_receiver.h>
 #include <remote/callback/gui_callback.h>
+#include <core/events/events.h>
+#include <core/events/event_dispatcher.h>
 
 int gi_make_call(int const accountId, char *const callee) {
+	int callId, rc;
+	int len;
+	void **params;
+	char *s;
 
-	// do something
+	len = strlen(callee);
+	s = (char *) malloc(len * sizeof(char));
+	strcpy(s, callee);
 
-	printf("accountId: %d\n", accountId);
-	printf("callee: %s\n", callee);
-
-	return 4711;
+	params = (void **) malloc(2 * sizeof(void *));
+	params[0] = (void *) accountId;
+	params[1] = (void *) s;
+	rc = event_dispatch(GUI_MAKE_CALL, params, &callId);
+	if (!rc) {
+		// ERROR
+		return -1;
+	}
+	return callId;
 }
 
 int gi_end_call(int const callId) {
+	int rc;
+	void **params;
 
-	// do something
-
-	/*
-	 * Complete GUI Test 
-	 */
-	int test;
-
-	test = change_reg_status(1, 0);
-	test = change_call_status(2727, "TRYING");
-	test = show_user_event(7, "INFO", "some title", "some message",
-						   "some detail message");
-	test = register_core();
-	test = incoming_call(5, 9090, "some callee", "john doe");
-	test = set_speaker_volume_cb(0.5);
-	test = set_micro_volume_cb(0.25);
-	/*
-	 * end of GUI Test 
-	 */
-
-	printf("callId: %d\n", callId);
-
+	params = (void **) malloc(1 * sizeof(void *));
+	params[0] = (void *) callId;
+	rc = event_dispatch(GUI_END_CALL, params, NULL);
+	if (!rc) {
+		// ERROR
+		return 0;
+	}
 	return 1;
 }
 
 int gi_accept_call(int const callId) {
+	int rc;
+	void **params;
 
-	// do something
-
-	printf("callId: %d\n", callId);
-
+	params = (void **) malloc(1 * sizeof(void *));
+	params[0] = (void *) callId;
+	rc = event_dispatch(GUI_ACCEPT_CALL, params, NULL);
+	if (!rc) {
+		// ERROR
+		return 0;
+	}
 	return 1;
 }

@@ -279,21 +279,20 @@ void *dispatch(void *args) {
 	return NULL;
 }
 
-int event_dispatch(event evt, void **params) {
+int event_dispatch(event evt, void **params, int *callId) {
 
 	call_trigger *threadParam;
-	int result;
+	int rc;
 
 	threadParam = (call_trigger *) malloc(sizeof(call_trigger));
-	result = -1;
 
 	if (evt == GUI_MAKE_CALL) {
 		// no callId is known - has to be generated, returned to gui and
 		// passed to the new statemachine
-		int callId, accountId;
+		int accountId;
 		char *callee;
 
-		callId = cig_generate_call_id();
+		*callId = cig_generate_call_id();
 		accountId = (int) params[0];
 		callee = (char *) params[1];
 
@@ -304,13 +303,15 @@ int event_dispatch(event evt, void **params) {
 		threadParam->params[2] = (void *) callId;
 		threadParam->trigger = evt;
 
-		result = callId;
 	} else {
 		threadParam->trigger = evt;
 		threadParam->params = params;
 	}
 
-	start_thread(dispatch, (void *) threadParam);
+	rc = start_thread(dispatch, (void *) threadParam);
+	if (!rc) {
+		return 0;
+	}
 
-	return result;
+	return 1;
 }

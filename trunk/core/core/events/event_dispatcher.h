@@ -21,6 +21,6 @@ int ed_init();
 
 int ed_destroy();
 
-int event_dispatch(event evt, void **params);
+int event_dispatch(event evt, void **params, int *callId);
 
 #endif

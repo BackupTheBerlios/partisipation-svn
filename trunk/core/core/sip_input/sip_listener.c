@@ -11,9 +11,9 @@
 void sip_listener_receive_event(sipstack_event * event) {
 	int rc;
 	void **params;
-	params = (void **) malloc(sizeof(sipstack_event *));
+	params = (void **) malloc(1 * sizeof(void *));
 	params[0] = (void *) event;
-	rc = event_dispatch(SIPLISTENER_RECEIVE, params);
+	rc = event_dispatch(SIPLISTENER_RECEIVE, params, NULL);
 	if (!rc) {
 		// ERROR
 	}

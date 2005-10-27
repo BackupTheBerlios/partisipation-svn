@@ -18,8 +18,8 @@ int main() {
 	void **params2;
 	params2 = (void **) malloc(sizeof(int));
 	params2[0] = (void *) 99;
-	event_dispatch(GUI_MAKE_CALL, params1);
-	event_dispatch(GUI_MAKE_CALL, params2);
+	event_dispatch(GUI_MAKE_CALL, params1, NULL);
+	event_dispatch(GUI_MAKE_CALL, params2, NULL);
 	scanf("%d", &x);
 	ed_destroy();
 	tm_destroy(0);
