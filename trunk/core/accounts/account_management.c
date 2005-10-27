@@ -18,6 +18,9 @@
 int id = 0;
 struct account *cur_acc;
 
+// forward declaration to prevent warning:
+int am_get_max_id();
+
 /**
 	Initialize list of accounts.
 */
