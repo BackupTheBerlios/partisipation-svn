@@ -91,7 +91,7 @@ START_TEST(test_sipstack_register) {
 
 	/*update registration */
 	i = sipstack_send_update_register(regId, 1800);
-	fail_unless(i == 0, "Updating REGISTER failed. (result = %2d)", i);
+	fail_unless(i == 1, "Updating registration failed.");
 
 	/*receive response */
 	counter = 0;
@@ -109,7 +109,7 @@ START_TEST(test_sipstack_register) {
 
 	/*unregister */
 	i = sipstack_send_unregister(regId);
-	fail_unless(i == 0, "Unregistering failed. (result = %2d)", i);
+	fail_unless(i == 1, "Unregistering failed.");
 
 	/*receive response */
 	counter = 0;
