@@ -5,10 +5,12 @@ typedef enum {
 	INITIAL,
 	CHECKING,
 	INVITING,
-	INVITED,
+	// INVITED,
 	CONNECTED,
 	TERMINATING,
-	FINAL
+	FINAL,
+	RINGING,
+	CONNECTING
 } sm_state;
 
 void *sm_start(void *args);

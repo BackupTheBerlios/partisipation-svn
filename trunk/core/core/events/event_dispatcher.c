@@ -218,7 +218,7 @@ void *dispatch(void *args) {
 			start_thread(sm_start, (void *) pos);
 
 			break;
-		case SIPLISTENER_INCOMING_CALL:
+		case SIPLISTENER_RECEIVE:
 			callId = (int) param->params[0];
 			res = create_queue(&pos, callId);
 			if (res == 0) {
@@ -259,41 +259,6 @@ void *dispatch(void *args) {
 			}
 			break;
 		case GUI_ACCEPT_CALL:
-			callId = (int) param->params[0];
-			res = enqueue_and_wake(callId, param);
-			if (!res) {
-				// ERROR
-			}
-			break;
-		case SIPLISTENER_CANCEL_CALL:
-			callId = (int) param->params[0];
-			res = enqueue_and_wake(callId, param);
-			if (!res) {
-				// ERROR
-			}
-			break;
-		case SIPLISTENER_QUIT_CALL:
-			callId = (int) param->params[0];
-			res = enqueue_and_wake(callId, param);
-			if (!res) {
-				// ERROR
-			}
-			break;
-		case SIPLISTENER_DECLINE_CALL:
-			callId = (int) param->params[0];
-			res = enqueue_and_wake(callId, param);
-			if (!res) {
-				// ERROR
-			}
-			break;
-		case SIPLISTENER_THROW:
-			callId = (int) param->params[0];
-			res = enqueue_and_wake(callId, param);
-			if (!res) {
-				// ERROR
-			}
-			break;
-		case SIPLISTENER_CONNECT_CALL:
 			callId = (int) param->params[0];
 			res = enqueue_and_wake(callId, param);
 			if (!res) {
