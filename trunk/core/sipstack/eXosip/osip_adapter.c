@@ -28,17 +28,18 @@ void *sip_listener(void *args) {
 		sipstack_event *event = sipstack_receive_event(1);
 
 		/* create debug message on receiving an event */
-		if (event->statusCode > -1) {
+		if (event) {
 			if (event->ack == 1) {
 				LOG_INFO(SIPSTACK_MSG_PREFIX "Received sip event (ACK).");
 			} else {
 				LOG_INFO(SIPSTACK_MSG_PREFIX "Received sip event (%i).",
 						 event->statusCode);
 			}
+			/* send sipstack event to listener */
+			sip_listener_receive_event(event);
+
 		}
 
-		/* send sipstack event to listener */
-		sip_listener_receive_event(event);
 	}
 	thread_terminated();
 	return NULL;
@@ -163,9 +164,7 @@ sipstack_event *sipstack_receive_event(int timeout) {
 
 	if (je == NULL) {
 		/* no response received in time */
-		/* return error code */
-		sse->statusCode = -1;
-		return sse;
+		return NULL;
 	} else {
 		/* get sip stack event */
 		sse = sipstack_map_event(je);
