@@ -45,7 +45,7 @@ int sm_terminating_state_on_exit(local_call_info * callInfo) {
 int sm_ringing_state_on_entry(local_call_info * callInfo) {
 	int rc;
 	rc = sipstack_send_status_code(callInfo->transactionId, 180);
-	if (rc != 0) {
+	if (!rc) {
 		// ERROR
 		return 0;
 	}
@@ -144,42 +144,54 @@ int sm_inviting_state(sm_state * curState, event trigger, void **params,
 				// don't leave current state, we're still inviting callee:
 				*curState = INVITING;
 			} else if ((sipEvt->statusCode >= 200)
-					&& (sipEvt->statusCode <= 299)) {
+						&& (sipEvt->statusCode <= 299)) {
 				int rc;
 				rc = sipstack_send_acknowledgment(callInfo->dialogId);
-				if (rc != 0) {
-				// ERROR
-				break;}
+				if (!rc) {
+					// ERROR
+					break;
+				}
 
 				// invite transaction was successfull, invoke on entry routine
 				// of connected state:
-				rc = sm_connected_state_on_entry(callInfo); if (!rc) {
-				// ERROR
-				break;}
+				rc = sm_connected_state_on_entry(callInfo); 
+				if (!rc) {
+					// ERROR
+					break;
+				}
 
-				*curState = CONNECTED; break;}
-				else
-				if ((sipEvt->statusCode >= 300)
-					&& (sipEvt->statusCode <= 699)) {
+				*curState = CONNECTED; 
+				break;
+			} else if ((sipEvt->statusCode >= 300)
+						&& (sipEvt->statusCode <= 699)) {
 				int rc;
 				rc = sipstack_send_acknowledgment(callInfo->dialogId);
-				if (rc != 0) {
-				// ERROR
-				break;}
+				if (!rc) {
+					// ERROR
+					break;
+				}
 
-				*curState = TERMINATING; break;}
+				*curState = TERMINATING; 
+				break;
+			}
 
-				// ignore event, no transition
-		break; case GUI_END_CALL:
-				rc =
-				sipstack_terminate(callInfo->sipCallId,
-								   callInfo->dialogId); if (rc != 0) {
+			// ignore event, no transition
+			break; 
+		case GUI_END_CALL:
+			rc = sipstack_terminate(callInfo->sipCallId, callInfo->dialogId);
+			if (!rc) {
 				// ERROR
-				break;}
-		*curState = TERMINATING; break; default:
-				// ignore event, no transition
-				break;}
-				return 1;}
+				break;
+			}
+				
+			*curState = TERMINATING; 
+			break; 
+		default:
+			// ignore event, no transition
+			break;
+		}
+	return 1;
+}
 
 // *INDENT-ON*
 
@@ -191,7 +203,7 @@ int sm_ringing_state(sm_state * curState, event trigger,
 		case GUI_ACCEPT_CALL:
 			rc = sipstack_send_ok(callInfo->dialogId,
 								  callInfo->transactionId);
-			if (rc != 0) {
+			if (!rc) {
 				// ERROR
 				break;
 			}
@@ -200,7 +212,7 @@ int sm_ringing_state(sm_state * curState, event trigger,
 		case GUI_END_CALL:
 			rc = sipstack_terminate(callInfo->sipCallId,
 									callInfo->dialogId);
-			if (rc != 0) {
+			if (!rc) {
 				// ERROR
 				break;
 			}
@@ -213,14 +225,14 @@ int sm_ringing_state(sm_state * curState, event trigger,
 			}
 			// INVITE
 			rc = sipstack_send_status_code(callInfo->transactionId, 487);
-			if (rc != 0) {
+			if (!rc) {
 				// ERROR
 				break;
 			}
 			// CANCEL
 			rc = sipstack_send_ok(callInfo->dialogId,
 								  callInfo->transactionId);
-			if (rc != 0) {
+			if (!rc) {
 				// ERROR
 				break;
 			}
@@ -247,7 +259,7 @@ int sm_connecting_state(sm_state * curState, event trigger,
 		case GUI_ACCEPT_CALL:
 			rc = sipstack_send_ok(callInfo->dialogId,
 								  callInfo->transactionId);
-			if (rc != 0) {
+			if (!rc) {
 				// ERROR
 				break;
 			}
@@ -256,7 +268,7 @@ int sm_connecting_state(sm_state * curState, event trigger,
 		case GUI_END_CALL:
 			rc = sipstack_terminate(callInfo->sipCallId,
 									callInfo->dialogId);
-			if (rc != 0) {
+			if (!rc) {
 				// ERROR
 				break;
 			}
@@ -276,14 +288,14 @@ int sm_connecting_state(sm_state * curState, event trigger,
 				// INVITE
 				rc = sipstack_send_status_code(callInfo->transactionId,
 											   487);
-				if (rc != 0) {
+				if (!rc) {
 					// ERROR
 					return 0;
 				}
 				// CANCEL
 				rc = sipstack_send_ok(callInfo->dialogId,
 									  callInfo->transactionId);
-				if (rc != 0) {
+				if (!rc) {
 					// ERROR
 					break;
 				}
@@ -316,7 +328,7 @@ int sm_connected_state(sm_state * curState, event trigger,
 		case GUI_END_CALL:
 			rc = sipstack_terminate(callInfo->sipCallId,
 									callInfo->dialogId);
-			if (rc != 0) {
+			if (!rc) {
 				// ERROR
 				break;
 			}
@@ -331,7 +343,7 @@ int sm_connected_state(sm_state * curState, event trigger,
 
 			rc = sipstack_send_ok(callInfo->dialogId,
 								  callInfo->transactionId);
-			if (rc != 0) {
+			if (!rc) {
 				// ERROR
 				break;
 			}
@@ -379,49 +391,49 @@ void *sm_start(void *args) {
 				case INITIAL:
 					rc = sm_initial_state(&curState, elem.trigger,
 										  elem.params, callInfo);
-					if (rc != 0) {
+					if (!rc) {
 						// ERROR
 					}
 					break;
 				case CHECKING:
 					rc = sm_checking_state(&curState, elem.trigger,
 										   elem.params, callInfo);
-					if (rc != 0) {
+					if (!rc) {
 						// ERROR
 					}
 					break;
 				case INVITING:
 					rc = sm_inviting_state(&curState, elem.trigger,
 										   elem.params, callInfo);
-					if (rc != 0) {
+					if (!rc) {
 						// ERROR
 					}
 					break;
 				case RINGING:
 					rc = sm_ringing_state(&curState, elem.trigger,
 										  elem.params, callInfo);
-					if (rc != 0) {
+					if (!rc) {
 						// ERROR
 					}
 					break;
 				case CONNECTING:
 					rc = sm_ringing_state(&curState, elem.trigger,
 										  elem.params, callInfo);
-					if (rc != 0) {
+					if (!rc) {
 						// ERROR
 					}
 					break;
 				case CONNECTED:
 					rc = sm_connected_state(&curState, elem.trigger,
 											elem.params, callInfo);
-					if (rc != 0) {
+					if (!rc) {
 						// ERROR
 					}
 					break;
 				case TERMINATING:
 					rc = sm_terminating_state(&curState, elem.trigger,
 											  elem.params, callInfo);
-					if (rc != 0) {
+					if (!rc) {
 						// ERROR
 					}
 					break;

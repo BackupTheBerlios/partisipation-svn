@@ -84,7 +84,7 @@ int init_event_dispatcher() {
 int init_sipstack() {
 	int rc;
 	rc = sipstack_init();
-	if (rc != 0) {
+	if (rc == 0) {
 		// ERROR
 		return 0;
 	}
