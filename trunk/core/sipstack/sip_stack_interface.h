@@ -17,14 +17,19 @@
  * <li>terminate a call</li>
  * </ul>
  *
+ * All methods that have no explicite return value do return a pseudo boolean (int) value that indicates whether the method failed (1=OK, 0=Failure).
+ *
  * @author Enrico Hartung <enrico@iptel.org>
  */
 
 /**
  * @defgroup sipstack_adapter Sip Stack Adapter
  * @ingroup sipstack
+ * @TODO sipstack_event_type to map eXosip events
  * @{
  */
+#include <eXosip2/eXosip.h>
+
 #ifndef HSIP_STACK_INTERFACE_USED
 #define HSIP_STACK_INTERFACE_USED
 
@@ -33,15 +38,16 @@
 
 typedef struct {
 	int statusCode;
+	eXosip_event_type_t type;
 	char *message;
 	int callId;
 	int dialogId;
 	int transactionId;
-	int ack;
 } sipstack_event;
 
 /**
  * Init sip stack. This method is supposed to be called before using the sip stack.
+ * @return boolean
  */
 int sipstack_init();
 
@@ -73,18 +79,19 @@ sipstack_event *sipstack_receive_event(int timeout);
  * @param identity identity of user (e.g. abc@domain.org)
  * @param registrar server where to register
  * @param expire time to live of registration in seconds
- * @return registration id which can be used to update the registration or to unregister
+ * @todo registration with authentication
+ * @return registration id which can be used to update the registration or to unregister or -1 if registration failed
  */
 int sipstack_send_register(char *const identity, char *const registrar,
 						   int expire);
 /**
  * Updates a registration and sets its expiration time to a given value.
  * After sending the REGISTER this method waits for a response.
- * If no response is received in 5 seconds or an error is received this methode returns -1.
+ * If no response is received in 5 seconds or an error is received this methode FALSE.
  *
  * @param regId registration id returned by sipstack_send_register()
  * @param expire new expiration time
- * @return result code
+ * @return boolean
  */
 int sipstack_send_update_register(int regId, int expire);
 
@@ -94,7 +101,7 @@ int sipstack_send_update_register(int regId, int expire);
  * If no response is received in 5 seconds or an error is received this methode returns -1.
  *
  * @param regId registration id returned by sipstack_send_register()
- * @return result code
+ * @return boolean
  */
 int sipstack_send_unregister(int regId);
 
@@ -114,7 +121,7 @@ int sipstack_send_invite(char *to, char *from, char *subject);
  * to identify the call this reINVITE belongs to.
  *
  * @param dialogId dialog id
- * @return return code (-1 if sending of reINVITE failed)
+ * @return boolean
  */
 int sipstack_send_reinvite(int dialogId);
 
@@ -125,7 +132,7 @@ int sipstack_send_reinvite(int dialogId);
  *
  * @param callId call id
  * @param dialogId dialog id
- * @return method result code
+ * @return boolean
  */
 int sipstack_terminate(int callId, int dialogId);
 
@@ -136,7 +143,7 @@ int sipstack_terminate(int callId, int dialogId);
  *
  * @param callId call id
  * @param dialogId dialog id
- * @return method result code
+ * @return boolean
  */
 int sipstack_bye(int callId, int dialogId);
 
@@ -147,7 +154,7 @@ int sipstack_bye(int callId, int dialogId);
  *
  * @param callId call id
  * @param dialogId dialog id
- * @return method result code
+ * @return boolean
  */
 int sipstack_cancel(int callId, int dialogId);
 
@@ -158,7 +165,7 @@ int sipstack_cancel(int callId, int dialogId);
  *
  * @param callId call id
  * @param dialogId dialog id
- * @return method result code
+ * @return boolean
  */
 int sipstack_decline(int callId, int dialogId);
 
@@ -168,7 +175,7 @@ int sipstack_decline(int callId, int dialogId);
  *
  * @param dialogId dialog id
  * @param transactionId transaction id
- * @return method result code
+ * @return boolean
  */
 int sipstack_send_ok(int dialogId, int transactionId);
 
@@ -177,7 +184,7 @@ int sipstack_send_ok(int dialogId, int transactionId);
  * This method sends a 200 OK as a response to an INVITE or BYE.
  *
  * @param dialogId call id
- * @return method result code
+ * @return boolean
  */
 int sipstack_send_acknowledgment(int dialogId);
 
@@ -186,9 +193,17 @@ int sipstack_send_acknowledgment(int dialogId);
  *
  * @param transactionId call id
  * @param status_code status code to send in message
- * @return method result code
+ * @return boolean
  */
 int sipstack_send_status_code(int transactionId, int status_code);
+
+/**
+ * Free memory allocated for the sipstack event.
+ *
+ * @param event pointer to the event
+ * @return boolean
+ */
+int sipstack_event_free(sipstack_event * event);
 
 #endif
 

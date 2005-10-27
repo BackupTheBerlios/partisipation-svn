@@ -20,6 +20,10 @@
 #include "sipstack/sip_stack_interface.h"
 #include "sipstack/sip_listener_interface.h"
 
+/* define boolean */
+#define TRUE 1
+#define FALSE 0
+
 int listenerIsActive = 0;
 
 void *sip_listener(void *args) {
@@ -29,7 +33,7 @@ void *sip_listener(void *args) {
 
 		/* create debug message on receiving an event */
 		if (event) {
-			if (event->ack == 1) {
+			if (event->type == EXOSIP_CALL_ACK) {
 				LOG_INFO(SIPSTACK_MSG_PREFIX "Received sip event (ACK).");
 			} else {
 				LOG_INFO(SIPSTACK_MSG_PREFIX "Received sip event (%i).",
@@ -62,8 +66,8 @@ int sipstack_init() {
 		/* print error message */
 		log_message(LOG_ERROR,
 					SIPSTACK_MSG_PREFIX "Could not initialize eXosip.");
-		/* return error code */
-		return -1;
+		/* return error */
+		return FALSE;
 	}
 
 	/* listen to given port on every interface, use udp */
@@ -77,8 +81,8 @@ int sipstack_init() {
 		log_message(LOG_ERROR,
 					SIPSTACK_MSG_PREFIX
 					"Could not initialize transport layer.");
-		/* return error code */
-		return -1;
+		/* return error */
+		return FALSE;
 	} else {
 		log_message(LOG_DEBUG,
 					SIPSTACK_MSG_PREFIX "Transport layer initialized.");
@@ -96,8 +100,8 @@ int sipstack_init() {
 					SIPSTACK_MSG_PREFIX "Sip listener thread started");
 	}
 
-	/* return success code */
-	return 0;
+	/* return success */
+	return TRUE;
 }
 
 void sipstack_quit() {
@@ -132,14 +136,9 @@ sipstack_event *sipstack_map_event(eXosip_event_t * event) {
 	/* get dialog id */
 	sse->dialogId = event->did;
 	/* get transaction id */
-	sse->dialogId = event->tid;
-
-	/* is event an acknowledgment */
-	if (event->ack != NULL) {
-		sse->ack = 1;
-	} else {
-		sse->ack = 0;
-	}
+	sse->transactionId = event->tid;
+	/* get event type */
+	sse->type = event->type;
 
 	/* free memory of eXosip event */
 	eXosip_event_free(event);
@@ -235,8 +234,8 @@ int sipstack_send_unregister(int regId) {
 		/* building of REGISTER failed */
 		/* unlock sip stack for further use */
 		eXosip_unlock();
-		/* return error code */
-		return -1;
+		/* return error */
+		return FALSE;
 	}
 
 	/* send REGISTER message */
@@ -246,12 +245,12 @@ int sipstack_send_unregister(int regId) {
 
 	if (i < 0) {
 		/* sending of REGISTER message failed */
-		/* return error code */
-		return -1;
+		/* return error */
+		return FALSE;
 	}
 
-	/* return success code */
-	return 0;
+	/* return success */
+	return TRUE;
 }
 
 int sipstack_send_update_register(int regId, int expire) {
@@ -273,8 +272,8 @@ int sipstack_send_update_register(int regId, int expire) {
 		/* unlock sip stack for further use */
 		eXosip_unlock();
 
-		/* return error code */
-		return -1;
+		/* return error */
+		return FALSE;
 	}
 	/* send REGISTER message */
 	i = eXosip_register_send_register(regId, reg);
@@ -283,12 +282,12 @@ int sipstack_send_update_register(int regId, int expire) {
 	eXosip_unlock();
 	if (i < 0) {
 		/* sending REGISTER message failed */
-		/* return error code */
-		return -1;
+		/* return error */
+		return FALSE;
 	}
 
 	/* return success code */
-	return 0;
+	return TRUE;
 }
 
 int sipstack_send_invite(char *to, char *from, char *subject) {
@@ -302,7 +301,7 @@ int sipstack_send_invite(char *to, char *from, char *subject) {
 	i = eXosip_call_build_initial_invite(&invite, to, from, NULL, subject);
 	if (i != 0) {
 		/* building of INVITE message failed */
-		/* return error code */
+		/* return error */
 		return -1;
 	}
 
@@ -356,8 +355,8 @@ int sipstack_send_reinvite(int dialogId) {
 
 	if (i != 0) {
 		/* building of message failed */
-		/* return error code */
-		return -1;
+		/* return error */
+		return FALSE;
 	}
 
 	/* lock sip stack to avoid conflicts */
@@ -369,8 +368,14 @@ int sipstack_send_reinvite(int dialogId) {
 	/* unlock sip stack for further use */
 	eXosip_unlock();
 
-	/* return return code of message sending */
-	return i;
+	if (i != 0) {
+		/* sending of message failed */
+		/* return error */
+		return FALSE;
+	}
+
+	/* return success */
+	return TRUE;
 }
 
 /**
@@ -396,8 +401,14 @@ int sipstack_terminate(int callId, int dialogId) {
 	/* unlock sip stack for further use */
 	eXosip_unlock();
 
-	/* return return code of message sending */
-	return i;
+	if (i != 0) {
+		/* sending of message failed */
+		/* return error */
+		return FALSE;
+	}
+
+	/* return success */
+	return TRUE;
 }
 
 int sipstack_bye(int callId, int dialogId) {
@@ -450,8 +461,14 @@ int sipstack_send_ok(int dialogId, int transactionId) {
 	/* unlock sip stack for further use */
 	eXosip_unlock();
 
-	/* return return code of message sending */
-	return i;
+	if (i != 0) {
+		/* sending of message failed */
+		/* return error */
+		return FALSE;
+	}
+
+	/* return success */
+	return TRUE;
 }
 
 int sipstack_send_acknowledgment(int dialogId) {
@@ -465,7 +482,7 @@ int sipstack_send_acknowledgment(int dialogId) {
 	if (i != 0) {
 		/* building of message failed */
 		/* return error code */
-		return -1;
+		return FALSE;
 	}
 	/* lock sip stack to avoid conflicts */
 	eXosip_lock();
@@ -476,8 +493,14 @@ int sipstack_send_acknowledgment(int dialogId) {
 	/* unlock sip stack for further use */
 	eXosip_unlock();
 
-	/* return return code of message sending */
-	return i;
+	if (i != 0) {
+		/* sending of message failed */
+		/* return error */
+		return FALSE;
+	}
+
+	/* return success */
+	return TRUE;
 }
 
 int sipstack_send_status_code(int transactionId, int status_code) {
@@ -497,10 +520,23 @@ int sipstack_send_status_code(int transactionId, int status_code) {
 	/* unlock sip stack for further use */
 	eXosip_unlock();
 
-	/* return return code of message sending */
-	return i;
+	if (i != 0) {
+		/* sending of message failed */
+		/* return error */
+		return FALSE;
+	}
+
+	/* return success */
+	return TRUE;
 }
 
-int sipstack_set_listener(int listener) {
-	return 0;
+int sipstack_event_free(sipstack_event * event) {
+	if (event == NULL) {
+		return TRUE;
+	}
+	if (event->message != NULL) {
+		free(event->message);
+	}
+	free(event);
+	return TRUE;
 }
