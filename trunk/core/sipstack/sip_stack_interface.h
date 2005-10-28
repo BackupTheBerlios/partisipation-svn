@@ -45,6 +45,7 @@ typedef struct {
 	int callId;
 	int dialogId;
 	int transactionId;
+	int regId;
 } sipstack_event;
 
 /**

@@ -139,6 +139,8 @@ sipstack_event *sipstack_map_event(eXosip_event_t * event) {
 	sse->transactionId = event->tid;
 	/* get event type */
 	sse->type = event->type;
+	/* get registration id */
+	sse->regId = event->rid;
 
 	/* free memory of eXosip event */
 	eXosip_event_free(event);
