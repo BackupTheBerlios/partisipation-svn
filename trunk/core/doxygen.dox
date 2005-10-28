@@ -60,6 +60,7 @@
  *
  * @see http://partisipation.berlios.de/
  *
+ * PartiSIPation comes with an abstract state manchine
  * <a href="statemachine.png">
  * Click here to view a picture of the state machine
  * </a>
