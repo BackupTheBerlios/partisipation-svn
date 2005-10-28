@@ -20,12 +20,14 @@
  * All methods that have no explicite return value do return a pseudo boolean (int) value that indicates whether the method failed (1=OK, 0=Failure).
  *
  * @author Enrico Hartung <enrico@iptel.org>
+ *
+ * @todo sipstack_event_type to map eXosip events
+ * @todo Accept ACK for 487 although eXosip sends it automatically because this is more compatible with the rfc.
  */
 
 /**
  * @defgroup sipstack_adapter Sip Stack Adapter
  * @ingroup sipstack
- * @TODO sipstack_event_type to map eXosip events
  * @{
  */
 #include <eXosip2/eXosip.h>
@@ -58,14 +60,8 @@ int sipstack_init();
 void sipstack_quit();
 
 /**
- * Receive the response of a request. An event of following structure is returned:
- * int event->status_code  the status code of the response
- * char* event->message    the message the response contains
+ * Receive the response of a request. An event with type sipstack_event is returned.
  *
- * @todo Implement transaction termination to support transactions. Transactions shall be
- *			dequeued if their end is reached. Therefore it must be differed between INVITE and
- *			non-INVITE transactions. An INVITE transaction ends with an ACK and a non-INVITE
- 			transaction with the OK.
  * @param timeout time to wait for response in seconds
  * @return response event
  */
@@ -76,10 +72,11 @@ sipstack_event *sipstack_receive_event(int timeout);
  * After sending the REGISTER this method waits for a response.
  * If no response is received in 5 seconds or an error is received this methode returns -1.
  *
+ * @todo registration with authentication
+ *
  * @param identity identity of user (e.g. abc@domain.org)
  * @param registrar server where to register
  * @param expire time to live of registration in seconds
- * @todo registration with authentication
  * @return registration id which can be used to update the registration or to unregister or -1 if registration failed
  */
 int sipstack_send_register(char *const identity, char *const registrar,
@@ -108,6 +105,9 @@ int sipstack_send_unregister(int regId);
 /**
  * Send an initial INVITE. It returns a dialog id which is supposed to be used for
  * further messages of this call.
+ *
+ * @todo add possibility to add sdp 
+ * @todo support authentication header
  *
  * @param to sip url of callee
  * @param from sip url of caller
