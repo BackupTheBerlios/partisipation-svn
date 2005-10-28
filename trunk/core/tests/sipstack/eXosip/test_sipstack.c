@@ -67,6 +67,8 @@ START_TEST(test_sipstack_register) {
 	 */
 
 	sipstack_event *event;
+	event = (sipstack_event *) malloc(sizeof(sipstack_event));
+
 	int i = sipstack_init();
 	LOG_DEBUG(TEST_SIPSTACK_PREFIX "Sip stack initialized.");
 
@@ -135,6 +137,7 @@ START_TEST(test_sipstack_call) {
 	 */
 
 	sipstack_event * event;
+	event = (sipstack_event *) malloc(sizeof(sipstack_event));
 
 	int callId = 2;
 
@@ -152,7 +155,7 @@ START_TEST(test_sipstack_call) {
 		sleep(1);
 	}
 	fail_unless(event->statusCode == 200,
-				"[test call][INVITE]No 200 response for INVITE received. (result = %i)\n",
+				"[test call][INVITE]No 200 response for INVITE received. (result = %i)",
 				event->statusCode);
 
 	/*send ACK for OK */
@@ -175,6 +178,7 @@ START_TEST(test_sipstack_cancel) {
 	 */
 
 	sipstack_event * event;
+	event = (sipstack_event *) malloc(sizeof(sipstack_event));
 
 	int i = sipstack_init();
 
@@ -210,9 +214,9 @@ START_TEST(test_sipstack_cancel) {
 	fail_unless(event->statusCode == 487,
 				"[test call][CANCEL]No 487 response for INVITE received. (received %i event)",
 				event->statusCode);
-	/*send ACK for 487 */
-	i = sipstack_send_acknowledgment(event->dialogId);
-	fail_unless(i == 1, "[test call][CANCEL]Sending ACK failed.");
+	/*send no ACK for 487 because eXosip already did*/
+	sipstack_quit();
+
 } END_TEST
 
 
