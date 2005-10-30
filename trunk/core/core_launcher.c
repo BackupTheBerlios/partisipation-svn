@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #include <util/config/xml/config_reader.h>
 #include <util/config/xml/config_writer.h>
@@ -334,7 +335,10 @@ int main(int const argc, const char **const argv) {
 		// ERROR
 		return -1;
 	}
+	// wait until threads are actually started (prevent rare bug):
+	sleep(3);
 
+	// wait until main threads are finished:
 	rc = tm_join_active_threads();
 	if (rc == 0) {
 		// ERROR
