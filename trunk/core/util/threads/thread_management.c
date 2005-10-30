@@ -111,7 +111,7 @@ void *add_thread(void *args) {
 		}
 	}
 
-	LOG_INFO(THREAD_MGMT_MSG_PREFIX "found free pos: %d\n", i);
+	LOG_DEBUG(THREAD_MGMT_MSG_PREFIX "found free pos: %d\n", i);
 
 	// initialize and set thread detached attribute
 	pthread_attr_init(&attr);
@@ -126,7 +126,7 @@ void *add_thread(void *args) {
 	// free attribute
 	pthread_attr_destroy(&attr);
 
-	LOG_INFO(THREAD_MGMT_MSG_PREFIX "created thread\n");
+	LOG_DEBUG(THREAD_MGMT_MSG_PREFIX "created thread\n");
 
 	activeThreads++;
 	if (activeThreads > peak) {
@@ -188,8 +188,9 @@ int thread_terminated() {
 		return 0;
 	}
 
-	LOG_INFO(THREAD_MGMT_MSG_PREFIX "found thread No. %d at position %d\n",
-			 (int) threads[pos], pos);
+	LOG_DEBUG(THREAD_MGMT_MSG_PREFIX
+			  "found thread No. %d at position %d\n", (int) threads[pos],
+			  pos);
 
 	// enter lock to prevent concurring access to thread references
 	pthread_mutex_lock(&thrManLock);
@@ -199,7 +200,7 @@ int thread_terminated() {
 
 	activeThreads--;
 
-	LOG_INFO(THREAD_MGMT_MSG_PREFIX "thread removed\n");
+	LOG_DEBUG(THREAD_MGMT_MSG_PREFIX "thread removed\n");
 
 	// unlock:
 	pthread_mutex_unlock(&thrManLock);
