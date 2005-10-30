@@ -5,7 +5,7 @@ STYLEDOCDIR_LOCAL = $(STYLEDOCDIR)/events
 
 compile:
 	find ./ -maxdepth 1 | grep \\.c$$ | grep -v docs/ | xargs $(COMPILE.c) -I../../../
-	$(LINK.c) -o test_dispatcher test_dispatcher.o ../../../core/events/event_dispatcher.o ../../../core/events/statemachine.o ../../../util/threads/thread_management.o ../../../util/logging/simple/logger.o ../../../util/list/list.o ../../../util/config/xml/config_reader.o ../../../util/queue/queue.o ../../../core/callIDs/call_id_generator.o ../../../remote/callback/xmlrpc/gui_callback.o ../../../remote/callback/xmlrpc/xmlrpc_callback_client.o ../../../sipstack/eXosip/osip_adapter.o ../../../sipstack/eXosip/sip_listener.o ../../../core/gui_output/gui_callback_sender.o -lpthread $(LIBS_CLIENT) $(LIBS_ABYSS) -leXosip2 -losip2 -losipparser2
+	$(LINK.c) -o test_dispatcher test_dispatcher.o ../../../core/events/event_dispatcher.o ../../../core/events/statemachine.o ../../../util/threads/thread_management.o ../../../util/logging/simple/logger.o ../../../util/list/list.o ../../../util/config/xml/config_reader.o ../../../util/queue/queue.o ../../../core/callIDs/call_id_generator.o ../../../remote/callback/xmlrpc/gui_callback.o ../../../remote/callback/xmlrpc/xmlrpc_callback_client.o ../../../sipstack/eXosip/osip_adapter.o ../../../core/sip_input/sip_listener.o ../../../core/gui_output/gui_callback_sender.o -lpthread $(LIBS_CLIENT) $(LIBS_ABYSS) -leXosip2 -losip2 -losipparser2
 
 clean:
 	find ./ -maxdepth 1 | grep \\.o$$ | xargs rm -f

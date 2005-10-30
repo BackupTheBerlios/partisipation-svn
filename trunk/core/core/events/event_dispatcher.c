@@ -10,6 +10,7 @@
 #include <core/callIDs/call_id_generator.h>
 #include <core/events/event_dispatcher.h>
 #include <util/config/globals.h>
+#include <sipstack/sip_stack_interface.h>
 
 sm_data **queues;
 pthread_mutex_t queuesLock;
@@ -199,6 +200,8 @@ void *dispatch(void *args) {
 
 	int res, pos, callId;
 
+	sipstack_event *sipEvt;
+
 	switch (param->trigger) {
 		case GUI_MAKE_CALL:
 			callId = (int) param->params[2];
@@ -219,22 +222,32 @@ void *dispatch(void *args) {
 
 			break;
 		case SIPLISTENER_RECEIVE:
-			callId = (int) param->params[0];
-			res = create_queue(&pos, callId);
-			if (res == 0) {
-				// ERROR
-				printf("no free position found!\n");
+			sipEvt = (sipstack_event *) param->params[0];
+			if (sipEvt->type == EXOSIP_REGISTRATION_NEW
+				|| sipEvt->type == EXOSIP_REGISTRATION_SUCCESS
+				|| sipEvt->type == EXOSIP_REGISTRATION_FAILURE
+				|| sipEvt->type == EXOSIP_REGISTRATION_REFRESHED
+				|| sipEvt->type == EXOSIP_REGISTRATION_TERMINATED) {
 
-				free(param);
-
-				thread_terminated();
-				return NULL;
 			}
 
-			queue_enqueue((void *) param, queues[pos]->eventPool);
+			/*
+			   callId = (int) param->params[0];
+			   res = create_queue(&pos, callId);
+			   if (res == 0) {
+			   // ERROR
+			   printf("no free position found!\n");
 
-			start_thread(sm_start, (void *) pos);
+			   free(param);
 
+			   thread_terminated();
+			   return NULL;
+			   }
+
+			   queue_enqueue((void *) param, queues[pos]->eventPool);
+
+			   start_thread(sm_start, (void *) pos);
+			 */
 			// <TEST>
 			/*
 			 * sleep(4);
