@@ -9,6 +9,7 @@
 #include <accounts/account_core_interface.h>
 #include <core/callIDs/call_id_generator.h>
 #include <core/events/event_dispatcher.h>
+#include <core/sip_output/registrar_manager.h>
 #include <sipstack/sip_stack_interface.h>
 #include <remote/callback/xmlrpc/xmlrpc_callback_client.h>
 #include <remote/server/xmlrpc/xmlrpc_server.h>
@@ -82,6 +83,16 @@ int init_event_dispatcher() {
 	return 1;
 }
 
+int init_registrar_manager() {
+	int rc;
+	rc = rm_init();
+	if (rc == 0) {
+		// ERROR
+		return 0;
+	}
+	return 1;
+}
+
 int init_sipstack() {
 	int rc;
 	rc = sipstack_init();
@@ -145,6 +156,11 @@ int init_core() {
 		return 0;
 	}
 	rc = init_event_dispatcher();
+	if (rc == 0) {
+		// ERROR
+		return 0;
+	}
+	rc = init_registrar_manager();
 	if (rc == 0) {
 		// ERROR
 		return 0;
@@ -231,6 +247,16 @@ int destroy_event_dispatcher() {
 	return 1;
 }
 
+int destroy_registrar_manager() {
+	int rc;
+	rc = rm_destroy();
+	if (rc == 0) {
+		// ERROR
+		return 0;
+	}
+	return 1;
+}
+
 int destroy_sipstack() {
 	sipstack_quit();
 	return 1;
@@ -278,6 +304,11 @@ int destroy_utils() {
 
 int destroy_core() {
 	int rc;
+	rc = destroy_registrar_manager();
+	if (rc == 0) {
+		// ERROR
+		return 0;
+	}
 	rc = destroy_event_dispatcher();
 	if (rc == 0) {
 		// ERROR

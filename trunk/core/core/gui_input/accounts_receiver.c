@@ -3,6 +3,7 @@
 
 #include <core/gui_input/accounts_receiver.h>
 #include <accounts/account_client_interface.h>
+#include <core/sip_output/registrar_manager.h>
 
 void gi_account_get_all(int *accountIds, int *length) {
 	am_account_get_all(accountIds, length);
@@ -27,11 +28,11 @@ int gi_account_delete(int const accountId) {
 }
 
 int gi_account_register(int const accountId) {
-	return 0;
+	return rm_register_account(accountId);
 }
 
 int gi_account_unregister(int const accountId) {
-	return 0;
+	return rm_unregister_account(accountId);
 }
 
 int gi_account_save() {

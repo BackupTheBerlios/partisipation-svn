@@ -11,6 +11,7 @@
 #include <core/events/event_dispatcher.h>
 #include <util/config/globals.h>
 #include <sipstack/sip_stack_interface.h>
+#include <core/sip_output/registrar_manager.h>
 
 sm_data **queues;
 pthread_mutex_t queuesLock;
@@ -229,6 +230,10 @@ void *dispatch(void *args) {
 				|| sipEvt->type == EXOSIP_REGISTRATION_REFRESHED
 				|| sipEvt->type == EXOSIP_REGISTRATION_TERMINATED) {
 
+				res = rm_receive_register_event(sipEvt);
+				if (!res) {
+					// ERROR
+				}
 			}
 
 			/*
@@ -288,6 +293,12 @@ void *dispatch(void *args) {
 
 	// free(param); ?
 
+	if (param->params) {
+		free(param->params);
+	}
+	if (param) {
+		free(param);
+	}
 	thread_terminated();
 	return NULL;
 }
