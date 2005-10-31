@@ -9,9 +9,12 @@
 #include <sipstack/sip_stack_interface.h>
 #include <util/logging/logger.h>
 #include <core/gui_output/gui_callback_sender.h>
+#include <core/sip_output/registrar_manager.h>
+#include <remote/server/constants.h>
 
 #define MAX_REGISTRAR_ACCOUNTS 64
-#define EXPIRE 10
+#define EXPIRE 1800
+#define REFRESH_N_SEC_BEFORE_EXPIRE 10
 #define REGISTRAR_MGR_MSG_PREFIX "[registrar manager] "
 #define REGISTRATION_TIMEOUT 10
 
@@ -22,6 +25,10 @@ typedef struct {
 	int regId;
 	int eventArrived;
 	int doShutdown;
+	int isShutdown;
+	int waitingOnRegOK;
+	int waitingOnRefreshOK;
+	int waitingOnUnregOK;
 } accountstatus;
 
 accountstatus *accInfos;
@@ -35,6 +42,10 @@ void clear_account_info(int pos) {
 	accInfos[pos].regId = -1;
 	accInfos[pos].eventArrived = 0;
 	accInfos[pos].doShutdown = 0;
+	accInfos[pos].isShutdown = 0;
+	accInfos[pos].waitingOnRegOK = 0;
+	accInfos[pos].waitingOnRefreshOK = 0;
+	accInfos[pos].waitingOnUnregOK = 0;
 }
 
 int rm_init() {
@@ -72,12 +83,12 @@ int rm_destroy() {
 	return 1;
 }
 
-int find_acc_by_id(int accountId, accountstatus * result) {
+int find_acc_by_id(int accountId, int *pos) {
 	int i;
 	for (i = 0; i < MAX_REGISTRAR_ACCOUNTS; i++) {
 		if (accInfos[i].accountId == accountId) {
-			if (result) {
-				*result = accInfos[i];
+			if (pos) {
+				*pos = i;
 			}
 			return 1;
 		}
@@ -237,6 +248,7 @@ void *registration_thread(void *args) {
 			  "send register succeeded, regId: %d", regId);
 
 	accInfos[pos].regId = regId;
+	accInfos[pos].waitingOnRegOK = 1;
 
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "now waiting on OK");
 
@@ -256,6 +268,7 @@ void *registration_thread(void *args) {
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "done waiting");
 
 	accInfos[pos].eventArrived = 0;
+	accInfos[pos].waitingOnRegOK = 0;
 
 	if (from) {
 		free(from);
@@ -285,8 +298,10 @@ void *registration_thread(void *args) {
 	while (!accInfos[pos].doShutdown) {
 		sleep(1);
 		counter++;
-		if (counter == EXPIRE) {
+		if (counter == EXPIRE - REFRESH_N_SEC_BEFORE_EXPIRE) {
 			counter = 0;
+
+			accInfos[pos].waitingOnRefreshOK = 1;
 
 			rc = sipstack_send_update_register(regId, EXPIRE);
 			if (rc == 0) {
@@ -322,21 +337,140 @@ void *registration_thread(void *args) {
 
 			accInfos[pos].isRefreshed = 0;
 			accInfos[pos].eventArrived = 0;
+			accInfos[pos].waitingOnRefreshOK = 0;
 
 			LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "registration updated for "
 					  "account: %d", accountId);
 		}
 	}
 
+	accInfos[pos].doShutdown = 0;
+	accInfos[pos].isShutdown = 1;
 	thread_terminated();
 	return NULL;
 }
 
 void *unregistration_thread(void *args) {
+	int accountId;
+	int pos;
+	int rc;
+	int timeoutCtr;
+
+	accountId = (int) args;
+
+	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "unregistration thread entered, "
+			  "accountId: %d", accountId);
+
+	rc = pthread_mutex_lock(&accInfoLock);
+	if (rc != 0) {
+		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "mutex lock could not be"
+				  "acquired, error: %d", rc);
+		thread_terminated();
+		return NULL;
+	}
+
+	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "mutex lock acquired");
+
+	rc = find_acc_by_id(accountId, &pos);
+	if (!rc) {
+		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "account not in use");
+		// ERROR: account already in use
+		pthread_mutex_unlock(&accInfoLock);
+		thread_terminated();
+		return NULL;
+	}
+
+	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "account is in use");
+
+	// shutdown registration thread:
+	accInfos[pos].doShutdown = 1;
+
+	pthread_mutex_unlock(&accInfoLock);
+
+	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "wait for registration thread "
+			  "to finish");
+
+	// now wait on registration thread:
+	// isShutdown == 1 means regular shutdown
+	// accountId == -1 means the account status info was cleared because 
+	// of an error
+	while (!accInfos[pos].isShutdown || accInfos[pos].accountId == -1) {
+		sched_yield();
+		usleep(100000);			// 0.1 seconds
+	}
+	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "done waiting");
+
+	// we should not send an unregister if account is not registered
+	if (!accInfos[pos].isRegistered || accInfos[pos].accountId == -1) {
+		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "unregister failed: account "
+				  "is not registered");
+		thread_terminated();
+		return NULL;
+	}
+
+	accInfos[pos].eventArrived = 0;
+	accInfos[pos].waitingOnUnregOK = 1;
+
+	rc = sipstack_send_unregister(accInfos[pos].regId);
+	if (!rc) {
+		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "send unregister failed");
+		// ERROR 
+		thread_terminated();
+		return NULL;
+	}
+	// now wait on response:
+	timeoutCtr = 0;
+	while (!accInfos[pos].eventArrived) {
+		sched_yield();
+		usleep(100000);			// 0.1 seconds
+		timeoutCtr++;
+		if (timeoutCtr == REGISTRATION_TIMEOUT * 10) {
+			break;
+		}
+	}
+	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "done waiting");
+
+	accInfos[pos].eventArrived = 0;
+	accInfos[pos].waitingOnUnregOK = 0;
+
+	if (accInfos[pos].isRegistered) {
+		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "unregister failed: account "
+				  "is still registered");
+		thread_terminated();
+		return NULL;
+	}
+
+	rc = go_change_reg_status(accountId, 0);
+	if (!rc) {
+		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "GUI registration status update"
+				  " failed");
+		thread_terminated();
+		return NULL;
+	}
+
+	clear_account_info(pos);
+
+	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
+			  "unregister of account %d succeeded", accountId);
+	thread_terminated();
 	return NULL;
 }
 
 void *autoregistration_thread(void *args) {
+	struct account *accounts[MAX_ACCOUNTID_AMOUNT];
+	int len;
+	int i;
+	int rc;
+	am_get_all_accounts(accounts, &len);
+	for (i = 0; i < len; i++) {
+		if (accounts[i]->autoregister) {
+			rc = rm_register_account(accounts[i]->id);
+			if (!rc) {
+				LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "starting registering "
+						  "thread for account %d failed", accounts[i]->id);
+			}
+		}
+	}
 	return NULL;
 }
 
@@ -356,22 +490,30 @@ int rm_register_account(int accountId) {
 }
 
 int rm_unregister_account(int accountId) {
+	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "entering rm_unregister_account()");
 	int rc;
 	rc = start_thread(unregistration_thread, (void *) accountId);
 	if (!rc) {
 		// ERROR
+		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
+				  "leaving rm_unregister_account(): ERROR");
 		return 0;
 	}
+	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX " leaving rm_unregister_account()");
 	return 1;
 }
 
 int rm_register_auto() {
+	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "entering rm_register_auto()");
 	int rc;
 	rc = start_thread(autoregistration_thread, NULL);
 	if (!rc) {
 		// ERROR
+		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
+				  "leaving rm_register_auto(): ERROR");
 		return 0;
 	}
+	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX " leaving rm_register_auto()");
 	return 1;
 }
 
@@ -414,26 +556,37 @@ int rm_receive_register_event(sipstack_event * event) {
 
 	switch (event->type) {
 		case EXOSIP_REGISTRATION_NEW:
-			// ?
+			// never used by eXosip atm
 			break;
 		case EXOSIP_REGISTRATION_SUCCESS:
-			accInfos[pos].isRegistered = 1;
-			accInfos[pos].isRefreshed = 1;
+			// eXosip does not distinguish between OK types
+			if (accInfos[pos].waitingOnRegOK) {
+				accInfos[pos].isRegistered = 1;
+			} else if (accInfos[pos].waitingOnRefreshOK) {
+				accInfos[pos].isRefreshed = 1;
+			} else if (accInfos[pos].waitingOnUnregOK) {
+				accInfos[pos].isRegistered = 0;
+			} else {
+				// ERROR
+			}
 			break;
 		case EXOSIP_REGISTRATION_FAILURE:
 			accInfos[pos].isRegistered = 0;
 			accInfos[pos].isRefreshed = 0;
 			break;
 		case EXOSIP_REGISTRATION_REFRESHED:
+			// never used by eXosip atm
 			accInfos[pos].isRegistered = 1;
 			accInfos[pos].isRefreshed = 1;
 			break;
 		case EXOSIP_REGISTRATION_TERMINATED:
+			// never used by eXosip atm
 			accInfos[pos].isRegistered = 0;
 			accInfos[pos].isRefreshed = 0;
 			break;
 		default:
-			// wrong event type, only REGISTRATION events allowed
+			LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "wrong event type, only "
+					  "REGISTRATION events allowed");
 			break;
 	}
 	accInfos[pos].eventArrived = 1;
@@ -442,6 +595,8 @@ int rm_receive_register_event(sipstack_event * event) {
 
 	rc = sipstack_event_free(event);
 	if (!rc) {
+		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
+				  "failed to release sipstack event");
 		return 0;
 	}
 	return 1;

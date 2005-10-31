@@ -6,6 +6,7 @@
 #include <core/gui_output/gui_callback_sender.h>
 #include <util/logging/logger.h>
 #include <util/config/globals.h>
+#include <core/sip_output/registrar_manager.h>
 
 #define REG_RCVR_MSG_PREFIX "[registration receiver] "
 
@@ -34,6 +35,12 @@ char *gi_register_gui(char *const address, int const port) {
 	if (!rc) {
 		LOG_DEBUG(REG_RCVR_MSG_PREFIX "register_gui result=ERROR");
 		return "ERROR";
+	}
+
+	rc = rm_register_auto();
+	if (!rc) {
+		LOG_DEBUG(REG_RCVR_MSG_PREFIX "auto registering failed");
+		// ERROR
 	}
 
 	LOG_DEBUG(REG_RCVR_MSG_PREFIX "register_gui result=OK");
