@@ -89,6 +89,21 @@ int cw_save_config() {
 		// -------------- ACCOUNTS configuration ----------------
 
 		genxStartElementLiteral(w, NULL, "accounts");
+
+		genxAddText(w, "\n\t\t");
+		genxStartElementLiteral(w, NULL, "accountmanagement");
+		char *maxAccountIdAmount =
+			int_to_str(config.accounts.accountManagement.
+					   maxAccountIdAmount);
+		genxAddAttributeLiteral(w, NULL, "maxaccountidamount",
+								maxAccountIdAmount);
+		free(maxAccountIdAmount);
+		char *maxValueLength =
+			int_to_str(config.accounts.accountManagement.maxValueLength);
+		genxAddAttributeLiteral(w, NULL, "maxvaluelength", maxValueLength);
+		free(maxValueLength);
+		genxEndElement(w);		// </accountmanagement>
+
 		genxAddText(w, "\n\t\t");
 		genxStartElementLiteral(w, NULL, "list");
 
@@ -119,11 +134,8 @@ int cw_save_config() {
 			genxAddAttributeLiteral(w, NULL, "outboundproxy",
 									acc->outboundproxy);
 			genxAddAttributeLiteral(w, NULL, "registrar", acc->registrar);
-
-			char *str_autoreg = (char *) malloc(20);
-			snprintf(str_autoreg, 10, "%d", acc->autoregister);
-			genxAddAttributeLiteral(w, NULL, "autoregister", str_autoreg);
-			free(str_autoreg);
+			genxAddAttributeLiteral(w, NULL, "autoregister",
+									bool_to_str(acc->autoregister));
 
 			genxEndElement(w);	// </account>
 
@@ -156,6 +168,30 @@ int cw_save_config() {
 		genxEndElement(w);		// </dispatcher>
 		genxAddText(w, "\n\t\t");
 		genxEndElement(w);		// </events>
+
+		genxAddText(w, "\n\t\t");
+		genxStartElementLiteral(w, NULL, "sipoutput");
+
+		genxAddText(w, "\n\t\t\t");
+		genxStartElementLiteral(w, NULL, "registrarmanager");
+		char *expire =
+			int_to_str(config.core.sipOutput.registrarManager.expire);
+		genxAddAttributeLiteral(w, NULL, "expire", expire);
+		free(expire);
+		char *preExpireRange =
+			int_to_str(config.core.sipOutput.registrarManager.
+					   preExpireRange);
+		genxAddAttributeLiteral(w, NULL, "preexpirerange", preExpireRange);
+		free(preExpireRange);
+		char *timeout =
+			int_to_str(config.core.sipOutput.registrarManager.timeout);
+		genxAddAttributeLiteral(w, NULL, "timeout", timeout);
+		free(timeout);
+		genxEndElement(w);		// </registrarmanager>
+
+		genxAddText(w, "\n\t\t");
+		genxEndElement(w);		// </sipoutput>
+
 		genxAddText(w, "\n\t");
 		genxEndElement(w);		// </core>
 
@@ -165,12 +201,6 @@ int cw_save_config() {
 		genxStartElementLiteral(w, NULL, "remote");
 		genxAddText(w, "\n\t\t");
 		genxStartElementLiteral(w, NULL, "callback");
-
-		genxAddText(w, "\n\t\t\t");
-		genxStartElementLiteral(w, NULL, "guicallback");
-		genxAddAttributeLiteral(w, NULL, "guiurl",
-								config.remote.callback.guiCallback.guiURL);
-		genxEndElement(w);		// </guicallback>
 
 		genxAddText(w, "\n\t\t\t");
 		genxStartElementLiteral(w, NULL, "xmlrpcclient");

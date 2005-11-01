@@ -11,7 +11,6 @@
 #include <util/list/list.h>
 #include <util/config/xml/config_writer.h>
 #include <util/logging/logger.h>
-#include <remote/server/constants.h>
 
 #define ACCOUNT_MANAGER_MSG_PREFIX "[account manager]"
 
@@ -48,7 +47,7 @@ void am_account_get_all(int *accountIds, int *length) {
 
 	*length = get_length();
 
-	if (*length < MAX_ACCOUNTID_AMOUNT) {
+	if (*length < config.accounts.accountManagement.maxAccountIdAmount) {
 		int i = 0;
 		struct node *tmp = head;
 
@@ -131,7 +130,7 @@ int am_account_set(int const accountId, char *const attribute,
 /**
 	This function delivers certain attribute value for the specified account.
 	
-	Note that only as much characters are read as defined by MAX_VALUE_LENGTH
+	Note that only as much characters are read as defined by config.accounts.accountManagement.maxValueLength
 	from <constants.h>. Anything else is cut away, but this length ought be
 	enough for any convenient value. 
 	
@@ -153,21 +152,29 @@ void am_account_get(int const accountId, char *const attribute,
 	if (strcmp(attribute, "id") == 0) {
 		snprintf(result, 10, "%d", acc->id);
 	} else if (strcmp(attribute, "name") == 0) {
-		strncpy(result, acc->name, MAX_VALUE_LENGTH);
+		strncpy(result, acc->name,
+				config.accounts.accountManagement.maxValueLength);
 	} else if (strcmp(attribute, "username") == 0) {
-		strncpy(result, acc->username, MAX_VALUE_LENGTH);
+		strncpy(result, acc->username,
+				config.accounts.accountManagement.maxValueLength);
 	} else if (strcmp(attribute, "domain") == 0) {
-		strncpy(result, acc->domain, MAX_VALUE_LENGTH);
+		strncpy(result, acc->domain,
+				config.accounts.accountManagement.maxValueLength);
 	} else if (strcmp(attribute, "authusername") == 0) {
-		strncpy(result, acc->authusername, MAX_VALUE_LENGTH);
+		strncpy(result, acc->authusername,
+				config.accounts.accountManagement.maxValueLength);
 	} else if (strcmp(attribute, "password") == 0) {
-		strncpy(result, acc->password, MAX_VALUE_LENGTH);
+		strncpy(result, acc->password,
+				config.accounts.accountManagement.maxValueLength);
 	} else if (strcmp(attribute, "displayname") == 0) {
-		strncpy(result, acc->displayname, MAX_VALUE_LENGTH);
+		strncpy(result, acc->displayname,
+				config.accounts.accountManagement.maxValueLength);
 	} else if (strcmp(attribute, "outboundproxy") == 0) {
-		strncpy(result, acc->outboundproxy, MAX_VALUE_LENGTH);
+		strncpy(result, acc->outboundproxy,
+				config.accounts.accountManagement.maxValueLength);
 	} else if (strcmp(attribute, "registrar") == 0) {
-		strncpy(result, acc->registrar, MAX_VALUE_LENGTH);
+		strncpy(result, acc->registrar,
+				config.accounts.accountManagement.maxValueLength);
 	} else if (strcmp(attribute, "autoregister") == 0) {
 		snprintf(result, 10, "%d", acc->autoregister);
 	}
@@ -255,7 +262,7 @@ void am_get_all_accounts(struct account *accounts[], int *length) {
 
 	*length = get_length();
 
-	if (*length < MAX_ACCOUNTID_AMOUNT) {
+	if (*length < config.accounts.accountManagement.maxAccountIdAmount) {
 		int i = 0;
 		struct node *tmp = head;
 

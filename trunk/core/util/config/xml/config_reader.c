@@ -28,12 +28,14 @@ int withinThreads;
 int withinServer;
 int withinCallback;
 int withinXmlrpcServer;
-int withinGuiCallback;
 int withinXmlrpcClient;
 int withinEvents;
 int withinDispatcher;
 int withinList;
 int withinExosipAdapter;
+int withinAccountManagement;
+int withinSipOutput;
+int withinRegistrarManager;
 
 int parse_bool(const char *input) {
 	if (strcmp(input, "true") == 0) {
@@ -170,18 +172,6 @@ void parse_core_events_dispatcher(const char **attr) {
 	}
 }
 
-void parse_remote_gui_callback(const char **attr) {
-	int i = 0;
-	while (attr[i] && attr[i + 1]) {
-		if (strcmp(attr[i], "guiurl") == 0) {
-			parse_string(attr[i + 1],
-						 &config.remote.callback.guiCallback.guiURL);
-		}
-
-		i = i + 2;
-	}
-}
-
 void parse_remote_xmlrpc_client(const char **attr) {
 	int i = 0;
 	while (attr[i] && attr[i + 1]) {
@@ -286,6 +276,45 @@ void parse_account(const char **attr) {
 	add_node(cur_acc);
 }
 
+void parse_core_sipoutput_registrar_mgr(const char **attr) {
+	int i = 0;
+	while (attr[i] && attr[i + 1]) {
+		if (strcmp(attr[i], "expire") == 0) {
+			config.core.sipOutput.registrarManager.expire =
+				parse_int(attr[i + 1]);
+		}
+
+		if (strcmp(attr[i], "preexpirerange") == 0) {
+			config.core.sipOutput.registrarManager.preExpireRange =
+				parse_int(attr[i + 1]);
+		}
+
+		if (strcmp(attr[i], "timeout") == 0) {
+			config.core.sipOutput.registrarManager.timeout =
+				parse_int(attr[i + 1]);
+		}
+
+		i = i + 2;
+	}
+}
+
+void parse_accounts_account_mgmt(const char **attr) {
+	int i = 0;
+	while (attr[i] && attr[i + 1]) {
+		if (strcmp(attr[i], "maxaccountidamount") == 0) {
+			config.accounts.accountManagement.maxAccountIdAmount =
+				parse_int(attr[i + 1]);
+		}
+
+		if (strcmp(attr[i], "maxvaluelength") == 0) {
+			config.accounts.accountManagement.maxValueLength =
+				parse_int(attr[i + 1]);
+		}
+
+		i = i + 2;
+	}
+}
+
 /**
 	This function is called by the eXpat parser, if an XML element opening tag 
   	has been discovered.
@@ -362,6 +391,18 @@ void cr_elem_start(void *data, const char *name, const char **attr) {
 		return;
 	}
 
+	if (withinCore && strcmp(name, "sipoutput") == 0) {
+		withinSipOutput = 1;
+		return;
+	}
+
+	if (withinSipOutput && strcmp(name, "registrarmanager") == 0) {
+		withinRegistrarManager = 1;
+
+		parse_core_sipoutput_registrar_mgr(attr);
+		return;
+	}
+
 	if (withinConfig && strcmp(name, "remote") == 0) {
 		withinRemote = 1;
 		return;
@@ -369,13 +410,6 @@ void cr_elem_start(void *data, const char *name, const char **attr) {
 
 	if (withinRemote && strcmp(name, "callback") == 0) {
 		withinCallback = 1;
-		return;
-	}
-
-	if (withinCallback && strcmp(name, "guicallback") == 0) {
-		withinGuiCallback = 1;
-
-		parse_remote_gui_callback(attr);
 		return;
 	}
 
@@ -422,6 +456,13 @@ void cr_elem_start(void *data, const char *name, const char **attr) {
 
 	if (withinList && strcmp(name, "account") == 0) {
 		parse_account(attr);
+		return;
+	}
+
+	if (withinAccounts && strcmp(name, "accountmanagement") == 0) {
+		withinAccountManagement = 1;
+
+		parse_accounts_account_mgmt(attr);
 		return;
 	}
 
@@ -490,6 +531,16 @@ void cr_elem_end(void *data, const char *name) {
 		return;
 	}
 
+	if (withinCore && strcmp(name, "sipoutput") == 0) {
+		withinSipOutput = 0;
+		return;
+	}
+
+	if (withinSipOutput && strcmp(name, "registrarmanager") == 0) {
+		withinRegistrarManager = 0;
+		return;
+	}
+
 	if (withinConfig && strcmp(name, "remote") == 0) {
 		withinRemote = 0;
 		return;
@@ -497,11 +548,6 @@ void cr_elem_end(void *data, const char *name) {
 
 	if (withinRemote && strcmp(name, "callback") == 0) {
 		withinCallback = 0;
-		return;
-	}
-
-	if (withinCallback && strcmp(name, "guicallback") == 0) {
-		withinGuiCallback = 0;
 		return;
 	}
 
@@ -540,6 +586,11 @@ void cr_elem_end(void *data, const char *name) {
 		return;
 	}
 
+	if (withinAccounts && strcmp(name, "accountmanagement") == 0) {
+		withinAccountManagement = 0;
+		return;
+	}
+
 }
 
 /**
@@ -562,12 +613,14 @@ int cr_init(const char *fileName) {
 	withinServer = 0;
 	withinCallback = 0;
 	withinXmlrpcServer = 0;
-	withinGuiCallback = 0;
 	withinXmlrpcClient = 0;
 	withinEvents = 0;
 	withinDispatcher = 0;
 	withinList = 0;
 	withinExosipAdapter = 0;
+	withinAccountManagement = 0;
+	withinSipOutput = 0;
+	withinRegistrarManager = 0;
 
 //  printf(CONFIG_MSG_PREFIX "entering cr_init\n");
 
@@ -623,9 +676,6 @@ int cr_init(const char *fileName) {
 int cr_destroy() {
 	if (config.util.logging.simpleLogger.file.fileName) {
 		free(config.util.logging.simpleLogger.file.fileName);
-	}
-	if (config.remote.callback.guiCallback.guiURL) {
-		free(config.remote.callback.guiCallback.guiURL);
 	}
 	if (config.remote.callback.xmlrpcClient.name) {
 		free(config.remote.callback.xmlrpcClient.name);

@@ -69,6 +69,16 @@ typedef struct {
 } remotecfg;
 
 typedef struct {
+	int expire;
+	int preExpireRange;
+	int timeout;
+} registrarmanagercfg;
+
+typedef struct {
+	registrarmanagercfg registrarManager;
+} sipoutputcfg;
+
+typedef struct {
 	int maxCalls;
 	int maxEvents;
 } dispatchercfg;
@@ -79,7 +89,13 @@ typedef struct {
 
 typedef struct {
 	eventscfg events;
+	sipoutputcfg sipOutput;
 } corecfg;
+
+typedef struct {
+	int maxAccountIdAmount;
+	int maxValueLength;
+} accountmanagementcfg;
 
 typedef struct account {
 	int id;
@@ -102,6 +118,7 @@ typedef struct node {
 
 typedef struct {
 	struct node list;
+	accountmanagementcfg accountManagement;
 } accountscfg;
 
 typedef struct {

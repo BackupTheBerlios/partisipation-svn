@@ -10,13 +10,8 @@
 #include <util/logging/logger.h>
 #include <core/gui_output/gui_callback_sender.h>
 #include <core/sip_output/registrar_manager.h>
-#include <remote/server/constants.h>
 
-#define MAX_REGISTRAR_ACCOUNTS 64
-#define EXPIRE 1800
-#define REFRESH_N_SEC_BEFORE_EXPIRE 10
 #define REGISTRAR_MGR_MSG_PREFIX "[registrar manager] "
-#define REGISTRATION_TIMEOUT 10
 
 typedef struct {
 	int accountId;
@@ -59,9 +54,11 @@ int rm_init() {
 	}
 
 	accInfos =
-		(accountstatus *) malloc(MAX_REGISTRAR_ACCOUNTS *
+		(accountstatus *) malloc(config.accounts.accountManagement.
+								 maxAccountIdAmount *
 								 sizeof(accountstatus));
-	for (i = 0; i < MAX_REGISTRAR_ACCOUNTS; i++) {
+	for (i = 0; i < config.accounts.accountManagement.maxAccountIdAmount;
+		 i++) {
 		clear_account_info(i);
 	}
 	return 1;
@@ -85,7 +82,8 @@ int rm_destroy() {
 
 int find_acc_by_id(int accountId, int *pos) {
 	int i;
-	for (i = 0; i < MAX_REGISTRAR_ACCOUNTS; i++) {
+	for (i = 0; i < config.accounts.accountManagement.maxAccountIdAmount;
+		 i++) {
 		if (accInfos[i].accountId == accountId) {
 			if (pos) {
 				*pos = i;
@@ -99,7 +97,8 @@ int find_acc_by_id(int accountId, int *pos) {
 
 int find_empty_acc_info() {
 	int i;
-	for (i = 0; i < MAX_REGISTRAR_ACCOUNTS; i++) {
+	for (i = 0; i < config.accounts.accountManagement.maxAccountIdAmount;
+		 i++) {
 		if (accInfos[i].accountId == -1) {
 			return i;
 		}
@@ -111,7 +110,8 @@ int find_empty_acc_info() {
 
 int find_acc_by_regid(int regId) {
 	int i;
-	for (i = 0; i < MAX_REGISTRAR_ACCOUNTS; i++) {
+	for (i = 0; i < config.accounts.accountManagement.maxAccountIdAmount;
+		 i++) {
 		if (accInfos[i].regId == regId) {
 			return i;
 		}
@@ -233,7 +233,9 @@ void *registration_thread(void *args) {
 			  registrar);
 
 	// now send initial REGISTER
-	int regId = sipstack_send_register(from, registrar, EXPIRE);
+	int regId = sipstack_send_register(from, registrar,
+									   config.core.sipOutput.
+									   registrarManager.expire);
 	if (regId == -1) {
 		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "send register failed");
 		// ERROR 
@@ -261,7 +263,8 @@ void *registration_thread(void *args) {
 		sched_yield();
 		usleep(100000);			// 0.1 seconds
 		timeoutCtr++;
-		if (timeoutCtr == REGISTRATION_TIMEOUT * 10) {
+		if (timeoutCtr ==
+			config.core.sipOutput.registrarManager.timeout * 10) {
 			break;
 		}
 	}
@@ -298,12 +301,17 @@ void *registration_thread(void *args) {
 	while (!accInfos[pos].doShutdown) {
 		sleep(1);
 		counter++;
-		if (counter == EXPIRE - REFRESH_N_SEC_BEFORE_EXPIRE) {
+		if (counter ==
+			config.core.sipOutput.registrarManager.expire -
+			config.core.sipOutput.registrarManager.preExpireRange) {
+
 			counter = 0;
 
 			accInfos[pos].waitingOnRefreshOK = 1;
 
-			rc = sipstack_send_update_register(regId, EXPIRE);
+			rc = sipstack_send_update_register(regId,
+											   config.core.sipOutput.
+											   registrarManager.expire);
 			if (rc == 0) {
 				LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "send update register"
 						  " failed");
@@ -320,7 +328,8 @@ void *registration_thread(void *args) {
 				sched_yield();
 				usleep(100000);	// 0.1 seconds
 				timeoutCtr++;
-				if (timeoutCtr == REGISTRATION_TIMEOUT * 10) {
+				if (timeoutCtr ==
+					config.core.sipOutput.registrarManager.timeout * 10) {
 					break;
 				}
 			}
@@ -424,7 +433,8 @@ void *unregistration_thread(void *args) {
 		sched_yield();
 		usleep(100000);			// 0.1 seconds
 		timeoutCtr++;
-		if (timeoutCtr == REGISTRATION_TIMEOUT * 10) {
+		if (timeoutCtr ==
+			config.core.sipOutput.registrarManager.timeout * 10) {
 			break;
 		}
 	}
@@ -457,7 +467,8 @@ void *unregistration_thread(void *args) {
 }
 
 void *autoregistration_thread(void *args) {
-	struct account *accounts[MAX_ACCOUNTID_AMOUNT];
+	struct account *accounts[config.accounts.accountManagement.
+							 maxAccountIdAmount];
 	int len;
 	int i;
 	int rc;

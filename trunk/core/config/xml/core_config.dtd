@@ -26,7 +26,12 @@
 
 <!ATTLIST threads maxamount CDATA #REQUIRED>
 
-<!ELEMENT accounts (list)>
+<!ELEMENT accounts (accountmanagement,list)>
+
+<!ELEMENT accountmanagement EMPTY>
+
+<!ATTLIST accountmanagement maxaccountidamount CDATA #REQUIRED>
+<!ATTLIST accountmanagement maxvaluelength CDATA #REQUIRED>
 
 <!ELEMENT list (account)*>
 
@@ -47,7 +52,7 @@
 
 <!ELEMENT server (xmlrpcserver)>
 
-<!ELEMENT callback (guicallback,xmlrpcclient)>
+<!ELEMENT callback (xmlrpcclient)>
 
 <!ELEMENT xmlrpcserver EMPTY>
 
@@ -60,11 +65,7 @@
 <!ATTLIST xmlrpcclient name CDATA #REQUIRED>
 <!ATTLIST xmlrpcclient version CDATA #REQUIRED>
 
-<!ELEMENT guicallback EMPTY>
-
-<!ATTLIST guicallback guiurl CDATA #REQUIRED>
-
-<!ELEMENT core (events)>
+<!ELEMENT core (events,sipoutput)>
 
 <!ELEMENT events (dispatcher)>
 
@@ -72,6 +73,14 @@
 
 <!ATTLIST dispatcher maxcalls CDATA #REQUIRED>
 <!ATTLIST dispatcher maxevents CDATA #REQUIRED>
+
+<!ELEMENT sipoutput (registrarmanager)>
+
+<!ELEMENT registrarmanager EMPTY>
+
+<!ATTLIST registrarmanager expire CDATA #REQUIRED>
+<!ATTLIST registrarmanager preexpirerange CDATA #REQUIRED>
+<!ATTLIST registrarmanager timeout CDATA #REQUIRED>
 
 <!ELEMENT sipstack (exosipadapter)>
 

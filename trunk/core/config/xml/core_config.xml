@@ -2,17 +2,21 @@
 <!DOCTYPE config SYSTEM "./core_config.dtd">
 <config>
 	<accounts>
+		<accountmanagement
+			maxaccountidamount="128"
+			maxvaluelength="500"
+		/>
 		<list>
 			<account
 				id="1"
-				name="NAMEx 1"
-				username="USERNAME #1"
-				domain="DOMAIN #1"
-				authusername="AUTHUSERNAME #1"
-				password="PASSWORD #1"
-				displayname="DISPLAYNAME #1"
-				outboundproxy="OUTBOUNDPROXY #1"
-				registrar="PASSWORD #1"
+				name="Test"
+				username="test"
+				domain="192.168.2.101"
+				authusername=""
+				password=""
+				displayname=""
+				outboundproxy=""
+				registrar="192.168.2.101"
 				autoregister="false"
 			/>
 			<account
@@ -37,7 +41,7 @@
 				displayname="DISPLAYNAME #3"
 				outboundproxy="OUTBOUNDPROXY #3"
 				registrar="PASSWORD #3"
-				autoregister="true"
+				autoregister="false"
 			/>
 			<account
 				id="4"
@@ -49,7 +53,7 @@
 				displayname="DISPLAYNAME #4"
 				outboundproxy="OUTBOUNDPROXY #4"
 				registrar="PASSWORD #4"
-				autoregister="true"
+				autoregister="false"
 			/>
 			<account
 				id="5"
@@ -84,12 +88,16 @@
 				maxevents="16"
 			/>
 		</events>
+		<sipoutput>
+			<registrarmanager
+				expire="1800"
+				preexpirerange="10"
+				timeout="10"
+			/>
+		</sipoutput>
 	</core>
 	<remote>
 		<callback>
-			<guicallback
-				guiurl="http://gungnir:8888/RPC2"
-			/>
 			<xmlrpcclient
 				name="Core CallbackClient"
 				version="1.0"

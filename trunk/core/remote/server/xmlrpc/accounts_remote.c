@@ -4,7 +4,7 @@
 #include <xmlrpc.h>
 #include <remote/server/xmlrpc/accounts_remote.h>
 #include <remote/server/accounts.h>
-#include <remote/server/constants.h>
+#include <util/config/globals.h>
 
 xmlrpc_value *account_get_all_RP(xmlrpc_env * const env,
 								 xmlrpc_value * const param_array,
@@ -16,7 +16,9 @@ xmlrpc_value *account_get_all_RP(xmlrpc_env * const env,
 	int len;
 	int i;
 
-	ids = (int *) malloc(MAX_ACCOUNTID_AMOUNT * sizeof(int));
+	ids =
+		(int *) malloc(config.accounts.accountManagement.
+					   maxAccountIdAmount * sizeof(int));
 	account_get_all(ids, &len);
 
 	xmlrpc_value *result = xmlrpc_array_new(env);
@@ -64,7 +66,9 @@ xmlrpc_value *account_get_RP(xmlrpc_env * const env,
 	xmlrpc_int32 accountId;
 	char *attribute;
 
-	char *result = (char *) malloc(MAX_VALUE_LENGTH * sizeof(char));
+	char *result =
+		(char *) malloc(config.accounts.accountManagement.maxValueLength *
+						sizeof(char));
 
 	xmlrpc_decompose_value(env, param_array, "(is)", &accountId,
 						   &attribute);
