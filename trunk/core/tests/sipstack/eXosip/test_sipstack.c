@@ -128,6 +128,7 @@ START_TEST(test_sipstack_register) {
 				"No 200 response for unregistering received. (result = %i)",
 				event->statusCode);
 
+	sipstack_event_free(event);
 	sipstack_quit();
 } END_TEST
 
@@ -169,6 +170,7 @@ START_TEST(test_sipstack_call) {
 	fail_unless(i == 1,
 				"[test call][BYE]Sending BYE failed. (result = %2d)", i);
 
+	sipstack_event_free(event);
 	sipstack_quit();
 } END_TEST
 
@@ -215,22 +217,147 @@ START_TEST(test_sipstack_cancel) {
 				"[test call][CANCEL]No 487 response for INVITE received. (received %i event)",
 				event->statusCode);
 	/*send no ACK for 487 because eXosip already did*/
+	sipstack_event_free(event);
+	sipstack_quit();
+
+} END_TEST
+
+START_TEST(test_sipstack_incoming_call) {
+	/*
+	 * unit test code
+	 */
+	sipstack_event * event;
+	event = (sipstack_event *) malloc(sizeof(sipstack_event));
+
+	int i = sipstack_init();
+	int counter;
+
+	
+	/*registering at registrar*/
+	
+	/*send initial REGISTER */
+	int regId =
+		sipstack_send_register("sip:333@192.168.0.2", "sip:192.168.0.2", 1800);
+	fail_unless(regId > -1, "Sending REGISTER failed. (result = %i)", regId);
+
+	/*receive response */
+	while (queue_is_empty(event_queue) && counter < 10) {
+		sleep(1);
+		counter++;
+	}
+
+	fail_unless(!queue_is_empty(event_queue), TEST_SIPSTACK_PREFIX "No response for registering received.");
+
+	event = queue_front_and_dequeue(event_queue);
+
+	fail_unless(event->statusCode == 200,
+				"No 200 response for registering received. (result = %i)", event->statusCode);
+
+
+
+	printf("Please send INVITE now.\n");
+
+	/*wait for an INVITE*/
+	counter = 0;
+	while (event->type != EXOSIP_CALL_INVITE && counter < 20) {
+		if (!queue_is_empty(event_queue)) {
+			event = queue_front_and_dequeue(event_queue);
+		}
+		sleep(1);
+		counter++;
+	}
+
+	fail_unless(event->type == EXOSIP_CALL_INVITE, "[test incoming call]No INVITE received.");
+
+	/*send OK for INVITE */
+	i = sipstack_send_ok(event->dialogId, event->transactionId);
+
+	fail_unless(i == 1, "[test incoming call]Sending of OK failed.");
+
+	/*wait for ACK*/
+	counter = 0;
+	while (event->type != EXOSIP_CALL_ACK && counter < 10) {
+		if (!queue_is_empty(event_queue)) {
+			event = queue_front_and_dequeue(event_queue);
+		}
+		sleep(1);
+		counter++;
+	}
+
+	fail_unless(event->type == EXOSIP_CALL_ACK,
+				"[test incoming call]No ACK received.");
+
+	sleep(2);
+
+	/*send BYE */
+	i = sipstack_bye(event->callId, event->dialogId);
+	fail_unless(i == 1,
+				"[test incoming call][BYE]Sending BYE failed");
+	
+	sipstack_event_free(event);
 	sipstack_quit();
 
 } END_TEST
 
 
+/* ************************************************************ */
+/* bug tests                                                    */
+/* ************************************************************ */
+START_TEST(test_bug0001) {
+	/*
+	 * BUG 0001: Segfault after sending REGISTER to an invalid address (no registrar aat this address) and waiting >30sec
+	 */
+
+	sipstack_event *event;
+	event = (sipstack_event *) malloc(sizeof(sipstack_event));
+
+	int i = sipstack_init();
+
+	int counter = 0;
+
+	/*send REGISTER */
+	int regId =
+		sipstack_send_register("sip:333@192.168.0.1", "sip:192.168.0.99", 1800);
+	fail_unless(regId > -1, "Sending REGISTER failed. (result = %i)", regId);
+
+	/*receive response */
+	while (queue_is_empty(event_queue) && counter < 60) {
+		sleep(1);
+		counter++;
+	}
+
+	fail_unless(!queue_is_empty(event_queue), TEST_SIPSTACK_PREFIX "No response for registering received.");
+
+	event = queue_front_and_dequeue(event_queue);
+
+	/*expect REGISTRATION_FAILURE (2)*/
+	fail_unless(event->type == 2,
+				"No event of type REGISTRATION_FAILURE received. (type = %i)", event->type);
+
+	sipstack_event_free(event);
+	sipstack_quit();
+} END_TEST
+
 // *INDENT-ON*
+
+
+
+
+
+
 
 Suite *sipstack_suite(void) {
 	Suite *s = suite_create("Sipstack (register, call, cancel call)\n");
+
 	TCase *tc_register = tcase_create("Register");
 	TCase *tc_call = tcase_create("Call");
 	TCase *tc_cancel = tcase_create("Cancel");
+	TCase *tc_incoming_call = tcase_create("Incoming call");
 
 	suite_add_tcase(s, tc_register);
 	suite_add_tcase(s, tc_call);
 	suite_add_tcase(s, tc_cancel);
+	suite_add_tcase(s, tc_incoming_call);
 
 	tcase_set_timeout(tc_register, 30);
 	tcase_add_test(tc_register, test_sipstack_register);
@@ -244,17 +371,49 @@ Suite *sipstack_suite(void) {
 	tcase_add_test(tc_cancel, test_sipstack_cancel);
 	tcase_add_checked_fixture(tc_cancel, setup, teardown);
 
+	tcase_set_timeout(tc_incoming_call, 60);
+	tcase_add_test(tc_incoming_call, test_sipstack_incoming_call);
+	tcase_add_checked_fixture(tc_incoming_call, setup, teardown);
+
 	//tcase_add_checked_fixture (tc_apt, setup, teardown);
 
 	return s;
 }
 
+Suite *sipstack_bug_suite(void) {
+	Suite *s = suite_create("Check for known bugs\n");
+
+	TCase *tc_bug0001 = tcase_create("Bug0001");
+
+	suite_add_tcase(s, tc_bug0001);
+
+	tcase_set_timeout(tc_bug0001, 120);
+	tcase_add_test(tc_bug0001, test_bug0001);
+	tcase_add_checked_fixture(tc_bug0001, setup, teardown);
+
+	return s;
+}
+
+
+
+
+
 int main(void) {
-	int nf;
-	Suite *s = sipstack_suite();
-	SRunner *sr = srunner_create(s);
-	srunner_run_all(sr, CK_NORMAL);
-	nf = srunner_ntests_failed(sr);
-	srunner_free(sr);
-	return (nf == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+	
+	int nf1;
+	Suite *s1 = sipstack_suite();
+	SRunner *sr1 = srunner_create(s1);
+	srunner_run_all(sr1, CK_NORMAL);
+	nf1 = srunner_ntests_failed(sr1);
+	srunner_free(sr1);
+
+	//check for known bugs
+	int nf2;
+	Suite *s2 = sipstack_bug_suite();
+	SRunner *sr2 = srunner_create(s2);
+	srunner_run_all(sr2, CK_NORMAL);
+	nf2 = srunner_ntests_failed(sr2);
+	srunner_free(sr2);
+	
+	return (nf1+nf2 == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
