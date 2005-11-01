@@ -33,15 +33,10 @@ void *sip_listener(void *args) {
 
 		/* create debug message on receiving an event */
 		if (event) {
-			if (event->type == EXOSIP_CALL_ACK) {
-				LOG_INFO(SIPSTACK_MSG_PREFIX "Received sip event (ACK).");
-			} else {
-				LOG_INFO(SIPSTACK_MSG_PREFIX "Received sip event (%i).",
-						 event->statusCode);
-			}
+			LOG_INFO(SIPSTACK_MSG_PREFIX "Received sip event (type = %i).",
+					 event->type);
 			/* send sipstack event to listener */
 			sip_listener_receive_event(event);
-
 		}
 
 	}
@@ -127,7 +122,9 @@ sipstack_event *sipstack_map_event(eXosip_event_t * event) {
 	sse = (sipstack_event *) malloc(sizeof(sipstack_event));
 
 	/* get response status code */
-	sse->statusCode = event->response->status_code;
+	if (event->response != NULL) {
+		sse->statusCode = event->response->status_code;
+	}
 	/* get response message */
 	sse->message = (char *) malloc(strlen(event->textinfo) * sizeof(char));
 	strcpy(sse->message, event->textinfo);
