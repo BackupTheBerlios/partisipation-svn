@@ -121,12 +121,11 @@ public class Gui extends JFrame {
                 // --- something
             } else if (((String) o).equalsIgnoreCase("OK")) {
                 print("GUI registered.");
-
+                
                 params.clear();
                 o = execute("core.accountGetAll", params);
 
                 int a = 0;
-                int r = 0;
 
                 if (o != null && o instanceof Vector) {
                     Vector v = (Vector) o;
@@ -137,26 +136,11 @@ public class Gui extends JFrame {
                                 .getResource("gui/resources/red.gif"));
                         img.setDescription(n.toString());
                         list1.addElement(img);
-                        //     list1.addElement("#" + n.toString()
-                        //             + ": not registered");
                         Account acc = new Account(n.intValue(), false);
                         accounts.add(acc);
                         a++;
-
-                        params.clear();
-                        params.add(n);
-                        params.add("autoregister");
-                        String s = (String) execute("core.accountGet", params);
-                        if (s.equalsIgnoreCase("1")) {
-                            params.clear();
-                            params.add(n);
-                            execute("core.register", params);
-                            r++;
-                        }
-
                     }
-                    print("Got " + a + " accounts (" + r
-                            + " automatically registered).");
+                    print("Got " + a + " accounts.");
                 }
             } else {
                 print("ERROR: GUI not registered.");
@@ -456,6 +440,7 @@ public class Gui extends JFrame {
         getContentPane().add(jTabbedPane1,
                 new AbsoluteConstraints(0, 0, 670, 380));
         this.setResizable(false);
+        this.setTitle("partiSIPation");
 
         // Address book window initialization
         addressBook.getContentPane().setLayout(new AbsoluteLayout());
@@ -1577,7 +1562,7 @@ public class Gui extends JFrame {
             execute("core.setMicroVolume", params);
         }
     }
-
+    
     private void jList1ValueChanged(javax.swing.event.ListSelectionEvent evt) {
 
         if (justSelect) {
@@ -1589,7 +1574,7 @@ public class Gui extends JFrame {
 
                 Account acc = (Account) accounts.elementAt(i);
                 actacc = acc;
-                Integer accId = new Integer(acc.id);
+                Integer accId = new Integer(acc.id);            
 
                 if (acc.registered) {
                     popup_register.setText("Unregister");
@@ -1606,12 +1591,12 @@ public class Gui extends JFrame {
                             "Warning", JOptionPane.YES_NO_CANCEL_OPTION,
                             JOptionPane.WARNING_MESSAGE, null, options,
                             options[0]);
-
+                    
                     if (n == 0) {
                         if (oldIndex != -1) {
                             Account oldAcc = (Account) accounts
                                     .elementAt(oldIndex);
-                            Integer oldAccId = new Integer(acc.id);
+                            Integer oldAccId = new Integer(oldAcc.id);                           
                             setValues(oldAccId);
                         }
                         modified = false;
@@ -1633,11 +1618,11 @@ public class Gui extends JFrame {
                 } else {
                     getValues(accId);
                 }
-
             } else {
                 actacc = null;
             }
         }
+        oldIndex = jList1.getSelectedIndex();
     }
 
     private void restoreColor() {
