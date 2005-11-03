@@ -82,7 +82,7 @@ int am_account_set(int const accountId, char *const attribute,
 				ACCOUNT_MANAGER_MSG_PREFIX "am_account_set() - enter");
 
 	struct account *acc = get_node(accountId)->acc;
-	char *new_val = (char *) malloc(strlen(value));
+	char *new_val = (char *) malloc(strlen(value) + 1);
 
 	strcpy(new_val, value);
 
