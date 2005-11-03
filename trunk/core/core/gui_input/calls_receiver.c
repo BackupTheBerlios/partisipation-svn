@@ -14,7 +14,7 @@ int gi_make_call(int const accountId, char *const callee) {
 	char *s;
 
 	len = strlen(callee);
-	s = (char *) malloc(len * sizeof(char));
+	s = (char *) malloc(len * sizeof(char) + 1);
 	strcpy(s, callee);
 
 	params = (void **) malloc(2 * sizeof(void *));
