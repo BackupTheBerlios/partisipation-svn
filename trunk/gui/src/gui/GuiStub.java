@@ -29,8 +29,9 @@ public class GuiStub {
 
     public boolean changeRegStatus(int accountId, boolean registered) {
         
-        JOptionPane.showMessageDialog(gui, "ID: "+ accountId + " REGISTERED: " + registered,
+       /* JOptionPane.showMessageDialog(gui, "ID: "+ accountId + " REGISTERED: " + registered,
                 "ChangeRegStatus", JOptionPane.PLAIN_MESSAGE);
+                */
         
         Enumeration e = gui.accounts.elements();
         int i = 0;
@@ -42,16 +43,21 @@ public class GuiStub {
                     acc.setRegistered(true);
                     ImageIcon img = new ImageIcon(cl
                             .getResource("gui/resources/green.gif"));
-                    img.setDescription(""+accountId);
+                    params.clear();
+                    params.add(new Integer(n));
+                    params.add("name");
+                    img.setDescription((String) gui.execute("core.accountGet", params));
                     gui.list1.set(i, img);
-                    //gui.list1.set(i, "#" + accountId + ": registered");
+
                 } else {
                     acc.setRegistered(false);
                     ImageIcon img = new ImageIcon(cl
                             .getResource("gui/resources/red.gif"));
-                    img.setDescription(""+accountId);
+                    params.clear();
+                    params.add(new Integer(n));
+                    params.add("name");
+                    img.setDescription((String) gui.execute("core.accountGet", params));
                     gui.list1.set(i, img);
-                    //gui.list1.set(i, "#" + accountId + ": not registered");
                 }
                 break;
             }
