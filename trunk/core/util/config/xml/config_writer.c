@@ -351,7 +351,7 @@ int cw_destroy() {
 	@return always 1
 */
 int cw_init(const char *fileName, int saveCfgOnExit) {
-	xml_file_name = (char *) malloc(strlen(fileName) * sizeof(char));
+	xml_file_name = (char *) malloc(strlen(fileName) * sizeof(char) + 1);
 	strcpy(xml_file_name, fileName);
 	save_on_exit = saveCfgOnExit;
 
