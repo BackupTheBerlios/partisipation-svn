@@ -44,19 +44,23 @@ void clear_account_info(int pos) {
 }
 
 int rm_init() {
-	int i;
-	int rc;
+	int i;						// counter
+	int rc;						// return code
 
+	// initialize mutex lock
 	rc = pthread_mutex_init(&accInfoLock, NULL);
 	if (rc != 0) {
 		// ERROR
 		return 0;
 	}
-
+	// reserve memory for status information about accounts
+	// (maximum size is taken from account management)
 	accInfos =
 		(accountstatus *) malloc(config.accounts.accountManagement.
 								 maxAccountIdAmount *
 								 sizeof(accountstatus));
+
+	// initialize data explicitely so we can be sure it is not being used yet
 	for (i = 0; i < config.accounts.accountManagement.maxAccountIdAmount;
 		 i++) {
 		clear_account_info(i);
@@ -65,12 +69,13 @@ int rm_init() {
 }
 
 int rm_destroy() {
-	int rc;
+	int rc;						// return code
 
+	// release memory for status information about accounts
 	if (accInfos) {
 		free(accInfos);
 	}
-
+	// release mutex lock
 	rc = pthread_mutex_destroy(&accInfoLock);
 	if (rc != 0) {
 		// ERROR
@@ -81,25 +86,29 @@ int rm_destroy() {
 }
 
 int find_acc_by_id(int accountId, int *pos) {
-	int i;
+	int i;						// counter
 	for (i = 0; i < config.accounts.accountManagement.maxAccountIdAmount;
 		 i++) {
 		if (accInfos[i].accountId == accountId) {
+			// account found
 			if (pos) {
+				// assign only when given
 				*pos = i;
 			}
 			return 1;
 		}
 	}
 
+	// account not found
 	return 0;
 }
 
 int find_empty_acc_info() {
-	int i;
+	int i;						// counter
 	for (i = 0; i < config.accounts.accountManagement.maxAccountIdAmount;
 		 i++) {
 		if (accInfos[i].accountId == -1) {
+			// empty position found
 			return i;
 		}
 	}
@@ -109,58 +118,72 @@ int find_empty_acc_info() {
 }
 
 int find_acc_by_regid(int regId) {
-	int i;
+	int i;						// counter
 	for (i = 0; i < config.accounts.accountManagement.maxAccountIdAmount;
 		 i++) {
 		if (accInfos[i].regId == regId) {
+			// account found, return position
 			return i;
 		}
 	}
 
-	// not found:
+	// account not found:
 	return -1;
 }
 
-void leave_reg_thrd_with_error(int pos, int accountId) {
-	int rc;
+void leave_reg_thrd_with_error(int pos, int accountId, int acquireLock) {
+	int rc;						// return code
 
+	// try to change the registration status at the GUI:
 	rc = go_change_reg_status(accountId, 0);
 	if (!rc) {
+		// changing reg. status failed, continue anyway
 		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "GUI registration"
 				  " status update failed");
 	}
-
-	rc = pthread_mutex_lock(&accInfoLock);
-	if (rc != 0) {
-		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "mutex lock could "
-				  "not be acquired, error: %d", rc);
-		thread_terminated();
+	// only lock if required
+	if (acquireLock) {
+		// lock, because we want to write when further events may arrive
+		rc = pthread_mutex_lock(&accInfoLock);
+		if (rc != 0) {
+			// failed to gain lock, we have to leave
+			LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "mutex lock could "
+					  "not be acquired, error: %d", rc);
+			thread_terminated();
+		}
 	}
-
-	clear_account_info(pos);
-
+	// if position previously filled:
+	if (pos != -1) {
+		// mark account as not being used:
+		clear_account_info(pos);
+	}
+	// release lock (in any case):
 	pthread_mutex_unlock(&accInfoLock);
+	// exit thread:
 	thread_terminated();
-
 }
 
 void *registration_thread(void *args) {
-	int accountId;
-	int pos;
-	int rc;
-	int counter;
-	int timeoutCtr;
-	struct account *acc;
-	char *from;
-	char *registrar;
+	int accountId;				// current account
+	int pos;					// position of account status information
+	int rc;						// return code
+	int counter;				// counter for registration expire
+	int timeoutCtr;				// timeout counter for sipstack events
+	struct account *acc;		// account data from account management
+	char *from;					// SIP from field
+	char *registrar;			// SIP registrar field
 
+	// accountId is given:
 	accountId = (int) args;
 
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "registration thread entered, "
 			  "accountId: %d", accountId);
 
+	// try to gain lock because we want exclusive responsibility for this
+	// account and we need to use a new position for account status info:
 	rc = pthread_mutex_lock(&accInfoLock);
 	if (rc != 0) {
+		// failed to gain lock, exit (fatal error)
 		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "mutex lock could not be"
 				  "acquired, error: %d", rc);
 		thread_terminated();
@@ -169,49 +192,60 @@ void *registration_thread(void *args) {
 
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "mutex lock acquired");
 
+	// is another thread handling (un-)registration of this account?
 	rc = find_acc_by_id(accountId, NULL);
 	if (rc) {
+		// account is blocked by another thread (impatient GUI user?)
 		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "account already in use");
-		// ERROR: account already in use
-		pthread_mutex_unlock(&accInfoLock);
-		thread_terminated();
+
+		// inform GUI and exit:
+		leave_reg_thrd_with_error(-1, accountId, 0);
 		return NULL;
 	}
 
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "account is not in use");
 
+	// try to find empty position to save account status information
+	// (there has to be one position for every account of account information)
 	pos = find_empty_acc_info();
 	if (pos == -1) {
+		// no position found (fatal error):
 		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "no empty position found");
-		// ERROR: no free position found
-		pthread_mutex_unlock(&accInfoLock);
-		thread_terminated();
+
+		// inform GUI and exit:
+		leave_reg_thrd_with_error(-1, accountId, 0);
 		return NULL;
 	}
 
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "position found: %d", pos);
 
+	// if we set an account ID the array position is marked as used:
 	accInfos[pos].accountId = accountId;
 	accInfos[pos].isRegistered = 0;
 
+	// get account data from account management:
 	acc = am_get_account(accountId);
 	if (!acc) {
+		// ERROR: no such account available:
 		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
 				  "account management did not return"
 				  " matching account data.");
-		// ERROR
-		thread_terminated();
+
+		// inform GUI and exit:
+		leave_reg_thrd_with_error(pos, accountId, 0);
 		return NULL;
 	}
 
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "account management found matching "
 			  "account data.");
 
+	// check fields required for registration:
 	if (!acc->domain || !acc->username || !acc->registrar) {
 		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
 				  "domain, username or registrar is missing");
-		// ERROR
-		thread_terminated();
+
+		// inform GUI and exit:
+		leave_reg_thrd_with_error(pos, accountId, 0);
 		return NULL;
 	}
 
@@ -219,8 +253,9 @@ void *registration_thread(void *args) {
 		|| strcmp(acc->registrar, "") == 0) {
 		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
 				  "domain, username or registrar is empty");
-		// ERROR
-		thread_terminated();
+
+		// inform GUI and exit:
+		leave_reg_thrd_with_error(pos, accountId, 0);
 		return NULL;
 	}
 	// build SIP From and SIP Registrar:
@@ -232,17 +267,20 @@ void *registration_thread(void *args) {
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "from: %s registrar: %s", from,
 			  registrar);
 
-	// now send initial REGISTER
+	// now send initial REGISTER to registrar
 	int regId = sipstack_send_register(from, registrar,
 									   config.core.sipOutput.
 									   registrarManager.expire);
 	if (regId == -1) {
+		// no valid registration ID returned because of an error
 		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "send register failed");
-		// ERROR 
+
+		// free strings:
 		free(from);
 		free(registrar);
 
-		leave_reg_thrd_with_error(pos, accountId);
+		// inform GUI and exit:
+		leave_reg_thrd_with_error(pos, accountId, 0);
 		return NULL;
 	}
 
@@ -250,7 +288,7 @@ void *registration_thread(void *args) {
 			  "send register succeeded, regId: %d", regId);
 
 	accInfos[pos].regId = regId;
-	accInfos[pos].waitingOnRegOK = 1;
+	accInfos[pos].waitingOnRegOK = 1;	// tell dispatcher which OK is expected
 
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "now waiting on OK");
 
@@ -270,53 +308,66 @@ void *registration_thread(void *args) {
 	}
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "done waiting");
 
+	// clear event waiting flags:
 	accInfos[pos].eventArrived = 0;
 	accInfos[pos].waitingOnRegOK = 0;
 
+	// free strings:
 	if (from) {
 		free(from);
 	}
 	if (registrar) {
 		free(registrar);
 	}
-
+	// test if we did receive an OK (isRegistered is set by dispatcher):
 	if (!accInfos[pos].isRegistered) {
 		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "registering failed");
 		// ERROR: retry?
 
-		leave_reg_thrd_with_error(pos, accountId);
+		// inform GUI and exit:
+		leave_reg_thrd_with_error(pos, accountId, 1);
 		return NULL;
 	}
-
+	// inform GUI that registration succeeded:
 	rc = go_change_reg_status(accountId, 1);
 	if (!rc) {
+		// could not contact GUI (error):
 		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "GUI registration status update"
 				  " failed");
 
-		leave_reg_thrd_with_error(pos, accountId);
+		// inform GUI and exit (it is unlikely to succeed but try anyway):
+		leave_reg_thrd_with_error(pos, accountId, 1);
 		return NULL;
 	}
+	// **********************************************************************
+
 	// now we are responsible for updating registration
 	counter = 0;
 	while (!accInfos[pos].doShutdown) {
-		sleep(1);
+		sleep(1);				// test every second for shutdown or imminent expire
 		counter++;
 		if (counter ==
 			config.core.sipOutput.registrarManager.expire -
 			config.core.sipOutput.registrarManager.preExpireRange) {
 
+			// now expire is nearly reached, update registration:
+
 			counter = 0;
 
+			// tell dispatcher on which OK we are waiting for:
 			accInfos[pos].waitingOnRefreshOK = 1;
 
+			// send n-th REGISTER to registrar:
 			rc = sipstack_send_update_register(regId,
 											   config.core.sipOutput.
 											   registrarManager.expire);
 			if (rc == 0) {
+				// send REGISTER failed
 				LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "send update register"
 						  " failed");
 
-				leave_reg_thrd_with_error(pos, accountId);
+				// inform GUI and exit:
+				leave_reg_thrd_with_error(pos, accountId, 1);
 				return NULL;
 			}
 
@@ -335,15 +386,17 @@ void *registration_thread(void *args) {
 			}
 			LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "done waiting");
 
+			// test if OK arrived:
 			if (!accInfos[pos].isRefreshed) {
 				LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
 						  "updating registration failed");
 				// ERROR: retry?
 
-				leave_reg_thrd_with_error(pos, accountId);
+				// inform GUI and exit:
+				leave_reg_thrd_with_error(pos, accountId, 1);
 				return NULL;
 			}
-
+			// clear flags:
 			accInfos[pos].isRefreshed = 0;
 			accInfos[pos].eventArrived = 0;
 			accInfos[pos].waitingOnRefreshOK = 0;
@@ -353,6 +406,8 @@ void *registration_thread(void *args) {
 		}
 	}
 
+	// if an unregister-thread requested quitting this thread we tell it that
+	// we are done (no lock required because other thread is only reading):
 	accInfos[pos].doShutdown = 0;
 	accInfos[pos].isShutdown = 1;
 	thread_terminated();
@@ -360,18 +415,22 @@ void *registration_thread(void *args) {
 }
 
 void *unregistration_thread(void *args) {
-	int accountId;
-	int pos;
-	int rc;
-	int timeoutCtr;
+	int accountId;				// current account
+	int pos;					// position of account status information
+	int rc;						// return code
+	int timeoutCtr;				// timeout counter for sipstack events
 
+	// accountId is given:
 	accountId = (int) args;
 
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "unregistration thread entered, "
 			  "accountId: %d", accountId);
 
+	// try to gain lock because we want exclusive responsibility for 
+	// unregistering this account - also we want to write data:
 	rc = pthread_mutex_lock(&accInfoLock);
 	if (rc != 0) {
+		// failed to gain lock, exit (fatal error)
 		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "mutex lock could not be"
 				  "acquired, error: %d", rc);
 		thread_terminated();
@@ -380,10 +439,27 @@ void *unregistration_thread(void *args) {
 
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "mutex lock acquired");
 
+	// a registration/update thread should be active and have saved account
+	// information - find position in array of it: 
 	rc = find_acc_by_id(accountId, &pos);
 	if (!rc) {
+		// no registration/update thread active
 		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "account not in use");
-		// ERROR: account already in use
+
+		// unlock and exit:
+		pthread_mutex_unlock(&accInfoLock);
+		thread_terminated();
+		return NULL;
+	}
+	// prevent race conditions because we have to release the lock after
+	// setting doShutdown to 1:
+	if (accInfos[pos].doShutdown || accInfos[pos].isShutdown) {
+		// a second unregister thread was started just when we are trying to
+		// shutdown the active registration thread
+		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "another thread is already "
+				  "unregistering");
+
+		// unlock and exit:
 		pthread_mutex_unlock(&accInfoLock);
 		thread_terminated();
 		return NULL;
@@ -391,9 +467,12 @@ void *unregistration_thread(void *args) {
 
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "account is in use");
 
-	// shutdown registration thread:
+	// shutdown registration/update thread:
 	accInfos[pos].doShutdown = 1;
 
+	// release lock to enable abnormal termination (otherwise a dead lock
+	// might occur if registration thread is trying to shutdown in case of
+	// an error while updating):
 	pthread_mutex_unlock(&accInfoLock);
 
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "wait for registration thread "
@@ -403,7 +482,7 @@ void *unregistration_thread(void *args) {
 	// isShutdown == 1 means regular shutdown
 	// accountId == -1 means the account status info was cleared because 
 	// of an error
-	while (!accInfos[pos].isShutdown || accInfos[pos].accountId == -1) {
+	while (!accInfos[pos].isShutdown && accInfos[pos].accountId != -1) {
 		sched_yield();
 		usleep(100000);			// 0.1 seconds
 	}
@@ -413,17 +492,22 @@ void *unregistration_thread(void *args) {
 	if (!accInfos[pos].isRegistered || accInfos[pos].accountId == -1) {
 		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "unregister failed: account "
 				  "is not registered");
+
+		// exit:
 		thread_terminated();
 		return NULL;
 	}
-
+	// tell dispatcher which OK is expected:
 	accInfos[pos].eventArrived = 0;
 	accInfos[pos].waitingOnUnregOK = 1;
 
+	// send REGISTER with expire=0 to registrar:
 	rc = sipstack_send_unregister(accInfos[pos].regId);
 	if (!rc) {
+		// sending REGISTER failed
 		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "send unregister failed");
-		// ERROR 
+
+		// exit:
 		thread_terminated();
 		return NULL;
 	}
@@ -440,28 +524,38 @@ void *unregistration_thread(void *args) {
 	}
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "done waiting");
 
+	// clear flags:
 	accInfos[pos].eventArrived = 0;
 	accInfos[pos].waitingOnUnregOK = 0;
 
+	// test if account is really unregistered:
 	if (accInfos[pos].isRegistered) {
+		// account is still in use:
 		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "unregister failed: account "
 				  "is still registered");
+
+		// exit:
 		thread_terminated();
 		return NULL;
 	}
-
+	// inform GUI that unregister succeeded:
 	rc = go_change_reg_status(accountId, 0);
 	if (!rc) {
+		// failed to contact GUI
 		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "GUI registration status update"
 				  " failed");
+
+		// exit:
 		thread_terminated();
 		return NULL;
 	}
-
+	// mark account as no longer used:
 	clear_account_info(pos);
 
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
 			  "unregister of account %d succeeded", accountId);
+
+	// we are done:
 	thread_terminated();
 	return NULL;
 }
@@ -469,25 +563,36 @@ void *unregistration_thread(void *args) {
 void *autoregistration_thread(void *args) {
 	struct account *accounts[config.accounts.accountManagement.
 							 maxAccountIdAmount];
-	int len;
-	int i;
-	int rc;
+	int len;					// length of account data array
+	int i;						// counter
+	int rc;						// return code
+
+	// retrieve all account data:
 	am_get_all_accounts(accounts, &len);
+
+	// check for accounts that have to be registered automatically
 	for (i = 0; i < len; i++) {
 		if (accounts[i]->autoregister) {
+			// found one and start registration thread:
 			rc = rm_register_account(accounts[i]->id);
 			if (!rc) {
+				// thread starting failed
 				LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "starting registering "
 						  "thread for account %d failed", accounts[i]->id);
+
+				// inform GUI?
 			}
+			// no guarantee that thread execution is error-free at this point
 		}
 	}
 	return NULL;
 }
 
 int rm_register_account(int accountId) {
+	int rc;						// return code
+
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "entering rm_register_account()");
-	int rc;
+
 	rc = start_thread(registration_thread, (void *) accountId);
 	if (!rc) {
 		// ERROR
@@ -497,12 +602,14 @@ int rm_register_account(int accountId) {
 	}
 
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX " leaving rm_register_account()");
-	return 1;
+	return 1;					// pseudo success
 }
 
 int rm_unregister_account(int accountId) {
+	int rc;						// return code
+
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "entering rm_unregister_account()");
-	int rc;
+
 	rc = start_thread(unregistration_thread, (void *) accountId);
 	if (!rc) {
 		// ERROR
@@ -510,13 +617,16 @@ int rm_unregister_account(int accountId) {
 				  "leaving rm_unregister_account(): ERROR");
 		return 0;
 	}
+
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX " leaving rm_unregister_account()");
-	return 1;
+	return 1;					// pseudo success
 }
 
 int rm_register_auto() {
+	int rc;						// return code
+
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "entering rm_register_auto()");
-	int rc;
+
 	rc = start_thread(autoregistration_thread, NULL);
 	if (!rc) {
 		// ERROR
@@ -524,21 +634,23 @@ int rm_register_auto() {
 				  "leaving rm_register_auto(): ERROR");
 		return 0;
 	}
+
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX " leaving rm_register_auto()");
-	return 1;
+	return 1;					// pseudo success
 }
 
 int rm_receive_register_event(sipstack_event * event) {
-	int rc;
-	int pos;
+	int rc;						// return code
+	int pos;					// array position
 
+	// sanity check:
 	if (!event) {
 		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
 				  "register_event: NULL received");
 		// ERROR
 		return 0;
 	}
-
+	// print event info:
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "event:");
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "\ttype: %d", event->type);
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "\tstatusCode: %d",
@@ -550,21 +662,28 @@ int rm_receive_register_event(sipstack_event * event) {
 			  event->transactionId);
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "\tregId: %d", event->regId);
 
+	// acquire lock to prevent multiple events for same account are handled at
+	// the same time
 	rc = pthread_mutex_lock(&accInfoLock);
 	if (rc != 0) {
+		// failed to gain lock, fatal error
 		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "mutex lock could not be"
 				  "acquired, error: %d", rc);
 		return 0;
 	}
-
-	pos = find_acc_by_regid(event->regId);
+	// event can only be in reaction of register, update register or 
+	// unregister - therefore an active thread has to be there
+	pos = find_acc_by_regid(event->regId);	// rely on eXosip registration ID
 	if (pos == -1) {
-		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "no active registration thread "
-				  "with this regId: %d", event->regId);
+		// no active thread found:
+		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "no active (un-)registration "
+				  "thread with this regId: %d", event->regId);
+
+		// unlock and exit:
 		pthread_mutex_unlock(&accInfoLock);
 		return 0;
 	}
-
+	// examine event:
 	switch (event->type) {
 		case EXOSIP_REGISTRATION_NEW:
 			// never used by eXosip atm
@@ -600,15 +719,20 @@ int rm_receive_register_event(sipstack_event * event) {
 					  "REGISTRATION events allowed");
 			break;
 	}
+
+	// tell thread that we have changed the flags:
 	accInfos[pos].eventArrived = 1;
 
+	// unlock because we are done using account status info
 	pthread_mutex_unlock(&accInfoLock);
 
+	// finally free sipstack event:
 	rc = sipstack_event_free(event);
 	if (!rc) {
 		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
 				  "failed to release sipstack event");
 		return 0;
 	}
-	return 1;
+
+	return 1;					// pseudo success (thread still can report an error)
 }
