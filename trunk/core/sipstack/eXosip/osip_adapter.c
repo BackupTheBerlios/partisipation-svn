@@ -126,7 +126,8 @@ sipstack_event *sipstack_map_event(eXosip_event_t * event) {
 		sse->statusCode = event->response->status_code;
 	}
 	/* get response message */
-	sse->message = (char *) malloc(strlen(event->textinfo) * sizeof(char));
+	sse->message =
+		(char *) malloc(strlen(event->textinfo) * sizeof(char) + 1);
 	strcpy(sse->message, event->textinfo);
 	/* get call id */
 	sse->callId = event->cid;
