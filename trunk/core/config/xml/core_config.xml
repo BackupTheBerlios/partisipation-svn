@@ -17,7 +17,7 @@
 				displayname=""
 				outboundproxy=""
 				registrar="192.168.2.101"
-				autoregister="false"
+				autoregister="true"
 			/>
 			<account
 				id="2"
@@ -92,7 +92,7 @@
 			<registrarmanager
 				expire="1800"
 				preexpirerange="10"
-				timeout="10"
+				timeout="60"
 			/>
 		</sipoutput>
 	</core>
