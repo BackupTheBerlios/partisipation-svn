@@ -942,7 +942,10 @@ public class Gui extends JFrame {
             params.add(accId);
             ImageIcon img = new ImageIcon(cl
                     .getResource("gui/resources/yellow.gif"));
-            img.setDescription(accId.toString());
+            params.clear();
+            params.add(accId);
+            params.add("name");
+            img.setDescription((String) execute("core.accountGet", params));
             list1.set(i, img);
 
             if (acc.registered) {
@@ -1889,11 +1892,6 @@ class PhonebookParser extends DefaultHandler {
     }
 }
 
-/*class WindowClosingAdapter extends WindowAdapter {
-    public void windowClosing(WindowEvent event)
-    031   {
-}*/
-
 class PopupListener extends MouseAdapter {
 
     Gui gui;
@@ -1915,6 +1913,11 @@ class PopupListener extends MouseAdapter {
             int pos = gui.jList1.locationToIndex(e.getPoint());
             if (pos > -1) {
                 gui.jList1.setSelectedIndex(pos);
+                if (((Account) gui.accounts.elementAt(pos)).registered) {
+                    gui.popup_register.setText("Unregister");
+                } else {
+                    gui.popup_register.setText("Register");
+                }
                 gui.popup_delete.setEnabled(true);
                 gui.popup_register.setEnabled(true);
             } else {
