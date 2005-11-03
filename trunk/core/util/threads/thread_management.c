@@ -405,6 +405,7 @@ int tm_destroy(int forceShutdown) {
 
 	// free memory for thread references
 	free(threads);
+	free(haveCleaner);
 	return 1;
 }
 
