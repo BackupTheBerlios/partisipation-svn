@@ -293,7 +293,6 @@ int destroy_utils() {
 		// ERROR
 		return 0;
 	}
-	return 1;
 	rc = destroy_config_reader();
 	if (rc == 0) {
 		// ERROR
@@ -396,7 +395,6 @@ int main(int const argc, const char **const argv) {
 		// ERROR
 		return -1;
 	}
-
 	rc = destroy_utils();
 	if (rc == 0) {
 		// ERROR
