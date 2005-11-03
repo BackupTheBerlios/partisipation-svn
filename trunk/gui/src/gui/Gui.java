@@ -5,6 +5,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -134,7 +136,10 @@ public class Gui extends JFrame {
                         Integer n = (Integer) e.nextElement();
                         ImageIcon img = new ImageIcon(cl
                                 .getResource("gui/resources/red.gif"));
-                        img.setDescription(n.toString());
+                        params.clear();
+                        params.add(n);
+                        params.add("name");
+                        img.setDescription((String) execute("core.accountGet", params));
                         list1.addElement(img);
                         Account acc = new Account(n.intValue(), false);
                         accounts.add(acc);
@@ -870,7 +875,25 @@ public class Gui extends JFrame {
             }
         });
 
+        this.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent evt) {
+                windowClose();
+            }
+        });
+        
         pack();
+    }
+    
+    public void windowClose() {
+        Enumeration e = accounts.elements();
+        while (e.hasMoreElements()) {
+            Account ac = (Account) e.nextElement();
+            if (ac.registered) {
+                params.clear();
+                params.add(new Integer(ac.id));
+                execute("core.unregister", params);
+            }
+        }
     }
 
     public void aboutActionPerformed(ActionEvent e) {
@@ -1865,6 +1888,11 @@ class PhonebookParser extends DefaultHandler {
         }
     }
 }
+
+/*class WindowClosingAdapter extends WindowAdapter {
+    public void windowClosing(WindowEvent event)
+    031   {
+}*/
 
 class PopupListener extends MouseAdapter {
 
