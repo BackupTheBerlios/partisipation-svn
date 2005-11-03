@@ -7,6 +7,8 @@ void add_node(struct account *);
 
 void del_node(int);
 
+void del_all_nodes();
+
 struct node *get_node(int);
 
 int get_length();

@@ -56,7 +56,7 @@ int parse_int(const char *input) {
 void parse_string(const char *input, char **target) {
 	int len;
 	len = strlen(input);
-	*target = (char *) malloc(len * sizeof(char));
+	*target = (char *) malloc(len * sizeof(char) + 1);
 	strcpy(*target, input);
 }
 
@@ -689,5 +689,6 @@ int cr_destroy() {
 	if (config.remote.server.xmlrpcServer.logFileName) {
 		free(config.remote.server.xmlrpcServer.logFileName);
 	}
+	del_all_nodes();
 	return 1;
 }

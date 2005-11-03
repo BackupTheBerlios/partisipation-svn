@@ -78,6 +78,21 @@ void del_node(int n) {
 	}
 }
 
+void del_all_nodes() {
+	struct node *cn;
+	struct node *dn;
+
+	cn = head;
+	while (cn != NULL) {
+		dn = cn;
+		cn = cn->next;
+		free_memory(dn->acc);
+		free(dn);
+	}
+	head = NULL;
+	tail = NULL;
+}
+
 int get_length() {
 	int len = 0;
 
