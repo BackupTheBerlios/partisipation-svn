@@ -212,17 +212,19 @@ int main(int argc, char **argv) {
 			("Please enter the mode (send or recv), number of packets to send, ");
 		printf("a host address, and a user port (1024 - 65535). \n");
 	} else {
-		char *mode = (char *) malloc(strlen(argv[1]));
+		char *mode = (char *) malloc(strlen(argv[1]) + 1);
 		strcpy(mode, argv[1]);
 		int num = atoi(argv[2]);
 		char *host = argv[3];
 		int port = atoi(argv[4]);
-		if (!(port > 1023 && port < 65536)) {
+
+		if (!(port > 1023 && port < 65536)) {
 			// invalid port number
 			printf("Illegal port: %d.\n", port);
 			return 0;
 		}
-		if (strcmp(mode, "send") == 0) {
+
+		if (strcmp(mode, "send") == 0) {
 			// work as sender       
 			Rtp_Packet packet;
 			open_socket(host, port);
@@ -298,7 +300,8 @@ int main(int argc, char **argv) {
 			// invalid mode
 			printf("Unknown mode: %s. \n", mode);
 		}
-		free(mode);
+
+		free(mode);
 
 	}
 	return 0;
