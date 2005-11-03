@@ -1,3 +1,24 @@
+/** 
+ * @file registrar_manager.c
+ * A very simple state machine that (un-)registers user accounts.
+ * 
+ * SIP Accounts are managed in a stateful way, i.e. it knows the current
+ * registration status and automatically updates a registration imminent to
+ * expire. The registrar manager receives its commands from the GUI. Events are
+ * provided by the SIP stack and forwarded by the event dispatcher.
+ * 
+ * Multiple (un-)registration attempts by the GUI for the same account are 
+ * blocked. Autoregistration is also handled here, but has to called to the
+ * proper moment.
+ * 
+ * This is the implementation of the registrar manager interface. The state 
+ * machine is not implemented as one or at least not very obvious. Event 
+ * queues, for instance, are not needed because there can only arrive one
+ * event at a time for one specific account.
+ *
+ * @author Matthias Liebig
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -11,25 +32,47 @@
 #include <core/gui_output/gui_callback_sender.h>
 #include <core/sip_output/registrar_manager.h>
 
+/**
+ * Logging prefix for registrar manager.
+ */
 #define REGISTRAR_MGR_MSG_PREFIX "[registrar manager] "
 
+/**
+ * Here the registration status of an account and some other flags are stored
+ * (internal use only).
+ */
 typedef struct {
-	int accountId;
-	int isRegistered;
-	int isRefreshed;
-	int regId;
-	int eventArrived;
-	int doShutdown;
-	int isShutdown;
-	int waitingOnRegOK;
-	int waitingOnRefreshOK;
-	int waitingOnUnregOK;
+	int accountId; /**< The ID of the account.*/
+	int isRegistered; /**< Whether the account is registered at the registrar. */
+	int isRefreshed; /**< Whether the registration was just updated. */
+	int regId; /**< The registration ID provided by eXosip. */
+	int eventArrived; /**< Whether an event has just arrived. */
+	int doShutdown;	/**< Whether a shutdown of a registration thread was 
+						requested. */
+	int isShutdown;	/**< Whether a registration thread is shutdown. */
+	int waitingOnRegOK;	/**< Whether an OK for an initial REGISTER is 
+							expected. */
+	int waitingOnRefreshOK;	/**< Whether an OK for a n-th REGISTER is 
+							expected. */
+	int waitingOnUnregOK; /**< Whether an OK for a REGISTER with expire=0 is
+							expected. */
 } accountstatus;
 
+/**
+ * Global array to store all account status information.
+ */
 accountstatus *accInfos;
 
+/**
+ * Lock to prevent concurring access of the global array.
+ */
 pthread_mutex_t accInfoLock;
 
+/**
+ * Initialize an account status (internal use only).
+ * @param pos position of accoun status information that has to be cleared in
+ * the global array.
+ */
 void clear_account_info(int pos) {
 	accInfos[pos].accountId = -1;
 	accInfos[pos].isRegistered = 0;
@@ -85,6 +128,13 @@ int rm_destroy() {
 	return 1;
 }
 
+/**
+ * Find account status information by account ID (internal use only).
+ * @param accountId the account ID
+ * @param pos a pointer where the position in the global array of the account
+ * may be stored - use NULL if you do not wish to store it
+ * @return whether the account was found (boolean)
+ */
 int find_acc_by_id(int accountId, int *pos) {
 	int i;						// counter
 	for (i = 0; i < config.accounts.accountManagement.maxAccountIdAmount;
@@ -103,6 +153,10 @@ int find_acc_by_id(int accountId, int *pos) {
 	return 0;
 }
 
+/**
+ * Find an empty position in the global array (internal use only).
+ * @return the position if an empty position could be found, -1 otherwise
+ */
 int find_empty_acc_info() {
 	int i;						// counter
 	for (i = 0; i < config.accounts.accountManagement.maxAccountIdAmount;
@@ -117,6 +171,11 @@ int find_empty_acc_info() {
 	return -1;
 }
 
+/**
+ * Find account status information by registration ID (internal use only).
+ * @param regId the registration ID
+ * @return the position if the account could be found, -1 otherwise
+ */
 int find_acc_by_regid(int regId) {
 	int i;						// counter
 	for (i = 0; i < config.accounts.accountManagement.maxAccountIdAmount;
@@ -131,6 +190,15 @@ int find_acc_by_regid(int regId) {
 	return -1;
 }
 
+/**
+ * Common error handling of the registration thread (internal use only). In 
+ * most cases the GUI has to be informed that the registration was not 
+ * successfull and the account information has to be cleared.
+ * @param pos the position of the account information of the current account
+ * @param accountId the account ID of the current account
+ * @param acquireLock to clear the account information we need to gain the
+ * lock - not needed if it is already locked (boolean)
+ */
 void leave_reg_thrd_with_error(int pos, int accountId, int acquireLock) {
 	int rc;						// return code
 
@@ -163,6 +231,12 @@ void leave_reg_thrd_with_error(int pos, int accountId, int acquireLock) {
 	thread_terminated();
 }
 
+/**
+ * A thread that actually handles the registration request of the GUI (internal
+ * use only). See rm_register_account() for details.
+ * @param args the account ID is stored here
+ * @return empty
+ */
 void *registration_thread(void *args) {
 	int accountId;				// current account
 	int pos;					// position of account status information
@@ -414,6 +488,12 @@ void *registration_thread(void *args) {
 	return NULL;
 }
 
+/**
+ * A thread that actually handles the unregistration request of the GUI
+ * (internal use only). See rm_unregister_account() for details.
+ * @param args the account ID is stored here
+ * @return empty
+ */
 void *unregistration_thread(void *args) {
 	int accountId;				// current account
 	int pos;					// position of account status information
@@ -560,6 +640,12 @@ void *unregistration_thread(void *args) {
 	return NULL;
 }
 
+/**
+ * A thread that actually handles the auto_registration request when a GUI is
+ * being started(internal use only). See rm_register_auto() for details.
+ * @param args empty
+ * @return empty
+ */
 void *autoregistration_thread(void *args) {
 	struct account *accounts[config.accounts.accountManagement.
 							 maxAccountIdAmount];
