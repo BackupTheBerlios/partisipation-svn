@@ -28,11 +28,7 @@ public class GuiStub {
     }
 
     public boolean changeRegStatus(int accountId, boolean registered) {
-        
-        JOptionPane.showMessageDialog(gui, "Got values: ID = "+ accountId + " & REGISTERED = " + registered,
-                "ChangeRegStatus", JOptionPane.PLAIN_MESSAGE);
                 
-        
         Enumeration e = gui.accounts.elements();
         int i = 0;
         while (e.hasMoreElements()) {
@@ -59,7 +55,7 @@ public class GuiStub {
                     img.setDescription((String) gui.execute("core.accountGet", params));
                     gui.list1.set(i, img);
                 }
-                //break;
+                break;
             }
             i++;
         }
