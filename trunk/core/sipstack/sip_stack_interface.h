@@ -41,6 +41,10 @@
 typedef struct {
 	int statusCode;
 	eXosip_event_type_t type;
+	char *toUrl;
+	char *toDisplayName;
+	char *fromUrl;
+	char *fromDisplayName;
 	char *message;
 	int callId;
 	int dialogId;

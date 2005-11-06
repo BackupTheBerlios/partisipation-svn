@@ -33,8 +33,16 @@ void *sip_listener(void *args) {
 
 		/* create debug message on receiving an event */
 		if (event) {
-			LOG_INFO(SIPSTACK_MSG_PREFIX "Received sip event (type = %i).",
-					 event->type);
+			if (event->type == EXOSIP_CALL_INVITE) {
+				LOG_INFO(SIPSTACK_MSG_PREFIX
+						 "Received INVITE (To: %s <%s>  From: %s <%s>).",
+						 event->toDisplayName, event->toUrl,
+						 event->fromDisplayName, event->fromUrl,
+						 event->type);
+			} else {
+				LOG_INFO(SIPSTACK_MSG_PREFIX
+						 "Received sip event (type = %i).", event->type);
+			}
 			/* send sipstack event to listener */
 			sip_listener_receive_event(event);
 		}
@@ -121,30 +129,132 @@ sipstack_event *sipstack_map_event(eXosip_event_t * event) {
 	sipstack_event *sse;
 	sse = (sipstack_event *) malloc(sizeof(sipstack_event));
 
+	/* init strings in sipstack event */
+	sse->toDisplayName = NULL;
+	sse->toUrl = NULL;
+	sse->fromDisplayName = NULL;
+	sse->fromUrl = NULL;
+
+	/* get request data if event is a request */
+	if (event->request != NULL) {
+
+		/* check whether data for to header exists */
+		if (event->request->to != NULL) {
+
+			/* check whether the to header contains a display name */
+			if (event->request->to->displayname != NULL) {
+				/* set display name of to field of sipstack event */
+				sse->toDisplayName =
+					(char *) malloc(strlen(event->request->to->displayname)
+									* sizeof(char) + 1);
+				strcpy(sse->toDisplayName,
+					   event->request->to->displayname);
+			}
+
+			/* check whether the to header contains a complete url */
+			if (event->request->to->url->scheme != NULL
+				&& event->request->to->url->username != NULL
+				&& event->request->to->url->host != NULL) {
+				/* set url of to field of sipstack event */
+				sse->toUrl = (char *)
+					malloc((strlen(event->request->to->url->scheme) +
+							strlen(event->request->to->url->username) +
+							strlen(event->request->to->url->host)) *
+						   sizeof(char) + 3);
+				strcpy(sse->toUrl, "");
+				strcat(sse->toUrl, event->request->to->url->scheme);
+				strcat(sse->toUrl, ":");
+				strcat(sse->toUrl, event->request->to->url->username);
+				strcat(sse->toUrl, "@");
+				strcat(sse->toUrl, event->request->to->url->host);
+			}
+
+		}
+
+		/* check whether data for from header exists */
+		if (event->request->from != NULL) {
+
+			/* check whether the from header contains a display name */
+			if (event->request->from->displayname != NULL) {
+				/* set display name of from field of sipstack event */
+				sse->fromDisplayName = (char *)
+					malloc(strlen(event->request->from->displayname) *
+						   sizeof(char) + 1);
+				strcpy(sse->fromDisplayName,
+					   event->request->from->displayname);
+			}
+
+			/* check whether the from header contains a complete url */
+			if (event->request->from->url->scheme != NULL
+				&& event->request->from->url->username != NULL
+				&& event->request->from->url->host != NULL) {
+				/* set url of from field of sipstack event */
+				sse->fromUrl = (char *)
+					malloc((strlen(event->request->from->url->scheme) +
+							strlen(event->request->from->url->username) +
+							strlen(event->request->from->url->host)) *
+						   sizeof(char) + 3);
+				strcpy(sse->fromUrl, "");
+				strcat(sse->fromUrl, event->request->from->url->scheme);
+				strcat(sse->fromUrl, ":");
+				strcat(sse->fromUrl, event->request->from->url->username);
+				strcat(sse->fromUrl, "@");
+				strcat(sse->fromUrl, event->request->from->url->host);
+			}
+
+		}
+
+	}
+
 	/* get response status code */
 	if (event->response != NULL) {
 		sse->statusCode = event->response->status_code;
+	} else {
+		sse->statusCode = NULL;
 	}
 	/* get response message */
 	sse->message =
 		(char *) malloc(strlen(event->textinfo) * sizeof(char) + 1);
 	strcpy(sse->message, event->textinfo);
 	/* get call id */
-	sse->callId = event->cid;
+	sse->callId = (int) event->cid;
 	/* get dialog id */
-	sse->dialogId = event->did;
+	sse->dialogId = (int) event->did;
 	/* get transaction id */
-	sse->transactionId = event->tid;
+	sse->transactionId = (int) event->tid;
 	/* get event type */
-	sse->type = event->type;
+	sse->type = (int) event->type;
 	/* get registration id */
-	sse->regId = event->rid;
+	sse->regId = (int) event->rid;
 
 	/* free memory of eXosip event */
 	eXosip_event_free(event);
 
 	/* return event */
 	return sse;
+}
+
+int sipstack_event_free(sipstack_event * event) {
+	if (event == NULL) {
+		return TRUE;
+	}
+	if (event->toDisplayName != NULL) {
+		free(event->toDisplayName);
+	}
+	if (event->toUrl != NULL) {
+		free(event->toUrl);
+	}
+	if (event->fromDisplayName != NULL) {
+		free(event->fromDisplayName);
+	}
+	if (event->fromUrl != NULL) {
+		free(event->fromUrl);
+	}
+	if (event->message != NULL) {
+		free(event->message);
+	}
+	free(event);
+	return TRUE;
 }
 
 sipstack_event *sipstack_receive_event(int timeout) {
@@ -527,16 +637,5 @@ int sipstack_send_status_code(int transactionId, int status_code) {
 	}
 
 	/* return success */
-	return TRUE;
-}
-
-int sipstack_event_free(sipstack_event * event) {
-	if (event == NULL) {
-		return TRUE;
-	}
-	if (event->message != NULL) {
-		free(event->message);
-	}
-	free(event);
 	return TRUE;
 }
