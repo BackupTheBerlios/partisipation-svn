@@ -210,7 +210,7 @@ sipstack_event *sipstack_map_event(eXosip_event_t * event) {
 	if (event->response != NULL) {
 		sse->statusCode = event->response->status_code;
 	} else {
-		sse->statusCode = NULL;
+		sse->statusCode = 0;
 	}
 	/* get response message */
 	sse->message =
