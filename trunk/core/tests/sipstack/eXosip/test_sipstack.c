@@ -92,11 +92,22 @@ START_TEST(test_sipstack_register) {
 	/* get new event */
 	event = queue_front_and_dequeue(event_queue);
 
+	/* test failed*/
+	if(event->statusCode != 200) {
+		/* free allocated memory before test fails */
+		sipstack_event_free(event);
+	}
 	fail_unless(event->statusCode == 200,
 				"No 200 response for registering received. (status code = %i)", event->statusCode);
 
 	/*update registration */
 	i = sipstack_send_update_register(regId, 1800);
+
+	/* test failed*/
+	if(i != 1) {
+		/* free allocated memory before test fails */
+		sipstack_event_free(event);
+	}
 	fail_unless(i == 1, "Updating registration failed.");
 
 	/*receive response */
@@ -105,6 +116,12 @@ START_TEST(test_sipstack_register) {
 		sleep(1);
 		counter++;
 	}
+
+	/* test failed*/
+	if(!queue_is_empty(event_queue)) {
+		/* free allocated memory before test fails */
+		sipstack_event_free(event);
+	}
 	fail_unless(!queue_is_empty(event_queue), TEST_SIPSTACK_PREFIX "No response for updating registration received.");
 
 	/* free memory of event which is no more needed*/
@@ -112,9 +129,18 @@ START_TEST(test_sipstack_register) {
 	/* get new event */
 	event = queue_front_and_dequeue(event_queue);
 
+	/* test failed*/
+	if(event->statusCode != 200) {
+		/* free allocated memory before test fails */
+		sipstack_event_free(event);
+	}
 	fail_unless(event->statusCode == 200, TEST_SIPSTACK_PREFIX
 				"No 200 response for updating registration received. (status code = %i)",
 				event->statusCode);
+
+	/* free memory of event which is no more needed*/
+	sipstack_event_free(event);
+
 
 	/*unregister */
 	i = sipstack_send_unregister(regId);
@@ -128,11 +154,14 @@ START_TEST(test_sipstack_register) {
 	}
 	fail_unless(!queue_is_empty(event_queue), TEST_SIPSTACK_PREFIX "No response for unregistering received.");
 
-	/* free memory of event which is no more needed*/
-	sipstack_event_free(event);
 	/* get new event */
 	event = queue_front_and_dequeue(event_queue);
 
+	/* test failed*/
+	if(event->statusCode != 200) {
+		/* free allocated memory before test fails */
+		sipstack_event_free(event);
+	}
 	fail_unless(event->statusCode == 200, TEST_SIPSTACK_PREFIX
 				"No 200 response for unregistering received. (status code = %i)",
 				event->statusCode);
@@ -169,18 +198,34 @@ START_TEST(test_sipstack_call) {
 		}
 		sleep(1);
 	}
+	/* test failed*/
+	if(event->statusCode != 200) {
+		/* free allocated memory before test fails */
+		sipstack_event_free(event);
+	}
 	fail_unless(event->statusCode == 200,
 				"[test call][INVITE]No 200 response for INVITE received. (result = %i)",
 				event->statusCode);
 
 	/*send ACK for OK */
 	i = sipstack_send_acknowledgment(event->dialogId);
+
+	/* test failed*/
+	if(i != 1) {
+		/* free allocated memory before test fails */
+		sipstack_event_free(event);
+	}
 	fail_unless(i == 1, "[test call][INVITE]Sending ACK failed.");
 
 	sleep(2);
 
 	/*send BYE */
 	i = sipstack_bye(callId, event->dialogId);
+	/* test failed*/
+	if(i != 1) {
+		/* free allocated memory before test fails */
+		sipstack_event_free(event);
+	}
 	fail_unless(i == 1,
 				"[test call][BYE]Sending BYE failed. (result = %2d)", i);
 
@@ -222,6 +267,12 @@ START_TEST(test_sipstack_cancel) {
 
 	/*send CANCEL */
 	i = sipstack_cancel(callId, event->dialogId);
+
+	/* test failed*/
+	if(i != 1) {
+		/* free allocated memory before test fails */
+		sipstack_event_free(event);
+	}
 	fail_unless(i == 1, "[test transaction]Sending CANCEL failed.");
 
 	/*receive response for INVITE*/
@@ -235,6 +286,12 @@ START_TEST(test_sipstack_cancel) {
 			statusCode = event->statusCode;
 		}
 		sleep(1);
+	}
+
+	/* test failed*/
+	if(event->statusCode != 487) {
+		/* free allocated memory before test fails */
+		sipstack_event_free(event);
 	}
 	fail_unless(event->statusCode == 487,
 				"[test call][CANCEL]No 487 response for INVITE received. (received %i event)",
@@ -272,6 +329,11 @@ START_TEST(test_sipstack_incoming_call) {
 
 	event = queue_front_and_dequeue(event_queue);
 
+	/* test failed*/
+	if(event->statusCode != 200) {
+		/* free allocated memory before test fails */
+		sipstack_event_free(event);
+	}
 	fail_unless(event->statusCode == 200,
 				"No 200 response for registering received. (result = %i)", event->statusCode);
 
@@ -292,11 +354,21 @@ START_TEST(test_sipstack_incoming_call) {
 		counter++;
 	}
 
+	/* test failed*/
+	if(event->type != EXOSIP_CALL_INVITE) {
+		/* free allocated memory before test fails */
+		sipstack_event_free(event);
+	}
 	fail_unless(event->type == EXOSIP_CALL_INVITE, "[test incoming call]No INVITE received.");
 
 	/*send OK for INVITE */
 	i = sipstack_send_ok(event->dialogId, event->transactionId);
 
+	/* test failed*/
+	if(i != 1) {
+		/* free allocated memory before test fails */
+		sipstack_event_free(event);
+	}
 	fail_unless(i == 1, "[test incoming call]Sending of OK failed.");
 
 	/*wait for ACK*/
@@ -312,6 +384,11 @@ START_TEST(test_sipstack_incoming_call) {
 		counter++;
 	}
 
+	/* test failed*/
+	if(event->type != EXOSIP_CALL_ACK) {
+		/* free allocated memory before test fails */
+		sipstack_event_free(event);
+	}
 	fail_unless(event->type == EXOSIP_CALL_ACK,
 				"[test incoming call]No ACK received.");
 
@@ -319,6 +396,12 @@ START_TEST(test_sipstack_incoming_call) {
 
 	/*send BYE */
 	i = sipstack_bye(event->callId, event->dialogId);
+
+	/* test failed*/
+	if(i != 1) {
+		/* free allocated memory before test fails */
+		sipstack_event_free(event);
+	}
 	fail_unless(i == 1,
 				"[test incoming call][BYE]Sending BYE failed");
 	
@@ -331,24 +414,24 @@ START_TEST(test_sipstack_incoming_call) {
 /* ************************************************************ */
 /* bug tests                                                    */
 /* ************************************************************ */
-START_TEST(test_bug0001) {
+START_TEST(test_bug005562) {
 	/*
-	 * BUG 0001: Segfault after sending REGISTER to an invalid address (no registrar aat this address) and waiting >30sec
+	 * BUG 005562: Segfault after sending REGISTER to an invalid address (no registrar aat this address) and waiting >30sec
 	 */
 
 	sipstack_event *event;
 	event = (sipstack_event *) malloc(sizeof(sipstack_event));
 
-	int i = sipstack_init();
+	sipstack_init();
 
 	int counter = 0;
 
-	/*send REGISTER */
+	/* send REGISTER */
 	int regId =
 		sipstack_send_register("sip:"TEST_SIPSTACK_USER"@192.168.0.1", "sip:192.168.0.99", 1800);
 	fail_unless(regId > -1, "Sending REGISTER failed. (result = %i)", regId);
 
-	/*receive response */
+	/* receive response */
 	while (queue_is_empty(event_queue) && counter < 60) {
 		sleep(1);
 		counter++;
@@ -358,7 +441,12 @@ START_TEST(test_bug0001) {
 
 	event = queue_front_and_dequeue(event_queue);
 
-	/*expect REGISTRATION_FAILURE (2)*/
+	/* expect REGISTRATION_FAILURE (2) */
+	/* test failed*/
+	if(event->type != 2) {
+		/* free allocated memory before test fails */
+		sipstack_event_free(event);
+	}
 	fail_unless(event->type == 2,
 				"No event of type REGISTRATION_FAILURE received. (type = %i)", event->type);
 
@@ -412,13 +500,13 @@ Suite *sipstack_suite(void) {
 Suite *sipstack_bug_suite(void) {
 	Suite *s = suite_create("Check for known bugs\n");
 
-	TCase *tc_bug0001 = tcase_create("Bug0001");
+	TCase *tc_bug005562 = tcase_create("Bug005562");
 
-	suite_add_tcase(s, tc_bug0001);
+	suite_add_tcase(s, tc_bug005562);
 
-	tcase_set_timeout(tc_bug0001, 120);
-	tcase_add_test(tc_bug0001, test_bug0001);
-	tcase_add_checked_fixture(tc_bug0001, setup, teardown);
+	tcase_set_timeout(tc_bug005562, 120);
+	tcase_add_test(tc_bug005562, test_bug005562);
+	tcase_add_checked_fixture(tc_bug005562, setup, teardown);
 
 	return s;
 }
