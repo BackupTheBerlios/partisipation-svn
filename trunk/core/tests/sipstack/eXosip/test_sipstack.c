@@ -48,7 +48,7 @@ void teardown(void) {
 	int rc;
 
 	//empty event queue
-	queue_make_empty(event_queue);
+	queue_dispose_queue(event_queue);
 	LOG_DEBUG(TEST_SIPSTACK_PREFIX "Event queue emptied successfully.");
 
 	rc = tm_destroy(0);
