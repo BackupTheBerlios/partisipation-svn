@@ -89,10 +89,11 @@ START_TEST(test_sipstack_register) {
 
 	fail_unless(!queue_is_empty(event_queue), TEST_SIPSTACK_PREFIX "No response for registering received.");
 
+	/* get new event */
 	event = queue_front_and_dequeue(event_queue);
 
 	fail_unless(event->statusCode == 200,
-				"No 200 response for registering received. (result = %i)", event->statusCode);
+				"No 200 response for registering received. (status code = %i)", event->statusCode);
 
 	/*update registration */
 	i = sipstack_send_update_register(regId, 1800);
@@ -106,10 +107,13 @@ START_TEST(test_sipstack_register) {
 	}
 	fail_unless(!queue_is_empty(event_queue), TEST_SIPSTACK_PREFIX "No response for updating registration received.");
 
+	/* free memory of event which is no more needed*/
+	sipstack_event_free(event);
+	/* get new event */
 	event = queue_front_and_dequeue(event_queue);
 
 	fail_unless(event->statusCode == 200, TEST_SIPSTACK_PREFIX
-				"No 200 response for updating registration received. (result = %i)",
+				"No 200 response for updating registration received. (status code = %i)",
 				event->statusCode);
 
 	/*unregister */
@@ -124,10 +128,13 @@ START_TEST(test_sipstack_register) {
 	}
 	fail_unless(!queue_is_empty(event_queue), TEST_SIPSTACK_PREFIX "No response for unregistering received.");
 
+	/* free memory of event which is no more needed*/
+	sipstack_event_free(event);
+	/* get new event */
 	event = queue_front_and_dequeue(event_queue);
 
 	fail_unless(event->statusCode == 200, TEST_SIPSTACK_PREFIX
-				"No 200 response for unregistering received. (result = %i)",
+				"No 200 response for unregistering received. (status code = %i)",
 				event->statusCode);
 
 	sipstack_event_free(event);
@@ -154,6 +161,9 @@ START_TEST(test_sipstack_call) {
 	statusCode = 0;
 	while (statusCode < 200) {
 		if (!queue_is_empty(event_queue)) {
+			/* free memory of event which is no more needed*/
+			sipstack_event_free(event);
+			/* get new event */
 			event = queue_front_and_dequeue(event_queue);
 			statusCode = event->statusCode;
 		}
@@ -201,6 +211,9 @@ START_TEST(test_sipstack_cancel) {
 	statusCode = 0;
 	while (statusCode < 99) {
 		if (!queue_is_empty(event_queue)) {
+			/* free memory of event which is no more needed*/
+			sipstack_event_free(event);
+			/* get new event */
 			event = queue_front_and_dequeue(event_queue);
 			statusCode = event->statusCode;
 		}
@@ -215,6 +228,9 @@ START_TEST(test_sipstack_cancel) {
 	statusCode = 0;
 	while (statusCode < 487) {
 		if (!queue_is_empty(event_queue)) {
+			/* free memory of event which is no more needed*/
+			sipstack_event_free(event);
+			/* get new event */
 			event = queue_front_and_dequeue(event_queue);
 			statusCode = event->statusCode;
 		}
@@ -267,6 +283,9 @@ START_TEST(test_sipstack_incoming_call) {
 	counter = 0;
 	while (event->type != EXOSIP_CALL_INVITE && counter < 20) {
 		if (!queue_is_empty(event_queue)) {
+			/* free memory of event which is no more needed*/
+			sipstack_event_free(event);
+			/* get new event */
 			event = queue_front_and_dequeue(event_queue);
 		}
 		sleep(1);
@@ -284,6 +303,9 @@ START_TEST(test_sipstack_incoming_call) {
 	counter = 0;
 	while (event->type != EXOSIP_CALL_ACK && counter < 10) {
 		if (!queue_is_empty(event_queue)) {
+			/* free memory of event which is no more needed*/
+			sipstack_event_free(event);
+			/* get new event */
 			event = queue_front_and_dequeue(event_queue);
 		}
 		sleep(1);
