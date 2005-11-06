@@ -12,6 +12,9 @@
 #include <util/threads/thread_management.h>
 
 #define TEST_SIPSTACK_PREFIX "[sipstack test] "
+#define TEST_SIPSTACK_HOST "192.168.0.2"
+#define TEST_SIPSTACK_USER "333"
+#define TEST_SIPSTACK_CALLEE "123"
 
 queue event_queue;
 
@@ -67,7 +70,6 @@ START_TEST(test_sipstack_register) {
 	 */
 
 	sipstack_event *event;
-	event = (sipstack_event *) malloc(sizeof(sipstack_event));
 
 	int i = sipstack_init();
 	LOG_DEBUG(TEST_SIPSTACK_PREFIX "Sip stack initialized.");
@@ -76,7 +78,7 @@ START_TEST(test_sipstack_register) {
 
 	/*send initial REGISTER */
 	int regId =
-		sipstack_send_register("sip:333@192.168.0.2", "sip:192.168.0.2", 1800);
+		sipstack_send_register("sip:"TEST_SIPSTACK_USER"@"TEST_SIPSTACK_HOST, "sip:"TEST_SIPSTACK_HOST, 1800);
 	fail_unless(regId > -1, "Sending REGISTER failed. (result = %i)", regId);
 
 	/*receive response */
@@ -138,20 +140,22 @@ START_TEST(test_sipstack_call) {
 	 */
 
 	sipstack_event * event;
-	event = (sipstack_event *) malloc(sizeof(sipstack_event));
+
+	int statusCode;
 
 	int callId = 2;
 
 	int i = sipstack_init();
 
 	/*send initial INVITE */
-	callId = sipstack_send_invite("sip:321@192.168.0.2", "sip:123@192.168.0.2", "Sip Stack Test");
+	callId = sipstack_send_invite("sip:"TEST_SIPSTACK_CALLEE"@"TEST_SIPSTACK_HOST, "sip:"TEST_SIPSTACK_USER"@"TEST_SIPSTACK_HOST, "Sip Stack Test");
 	LOG_DEBUG("INVITE send (callId=%i)", callId);
 	/*receive response */
-	event->statusCode = 0;
-	while (event->statusCode < 200) {
+	statusCode = 0;
+	while (statusCode < 200) {
 		if (!queue_is_empty(event_queue)) {
 			event = queue_front_and_dequeue(event_queue);
+			statusCode = event->statusCode;
 		}
 		sleep(1);
 	}
@@ -180,12 +184,13 @@ START_TEST(test_sipstack_cancel) {
 	 */
 
 	sipstack_event * event;
-	event = (sipstack_event *) malloc(sizeof(sipstack_event));
+
+	int statusCode;
 
 	int i = sipstack_init();
 
 	/*send initial INVITE */
-	int callId = sipstack_send_invite("sip:321@192.168.0.2", "sip:123@192.168.0.2", "Sip Stack Test");
+	int callId = sipstack_send_invite("sip:"TEST_SIPSTACK_CALLEE"@"TEST_SIPSTACK_HOST, "sip:"TEST_SIPSTACK_USER"@"TEST_SIPSTACK_HOST, "Sip Stack Test");
 
 	fail_unless(callId > 0, "[test transaction]Sending INVITE failed. (result = %2d)", i);
 
@@ -193,10 +198,11 @@ START_TEST(test_sipstack_cancel) {
 		wait for provisional answer (e.g. 100)
 		because eXosip can only cancel an inituial INVITE after receiving a provisional answer
 	*/
-	event->statusCode = 0;
-	while (event->statusCode < 99) {
+	statusCode = 0;
+	while (statusCode < 99) {
 		if (!queue_is_empty(event_queue)) {
 			event = queue_front_and_dequeue(event_queue);
+			statusCode = event->statusCode;
 		}
 		sleep(1);
 	}
@@ -206,10 +212,11 @@ START_TEST(test_sipstack_cancel) {
 	fail_unless(i == 1, "[test transaction]Sending CANCEL failed.");
 
 	/*receive response for INVITE*/
-	event->statusCode = 0;
-	while (event->statusCode < 487) {
+	statusCode = 0;
+	while (statusCode < 487) {
 		if (!queue_is_empty(event_queue)) {
 			event = queue_front_and_dequeue(event_queue);
+			statusCode = event->statusCode;
 		}
 		sleep(1);
 	}
@@ -227,21 +234,20 @@ START_TEST(test_sipstack_incoming_call) {
 	 * unit test code
 	 */
 	sipstack_event * event;
-	event = (sipstack_event *) malloc(sizeof(sipstack_event));
 
 	int i = sipstack_init();
-	int counter;
+	int counter = 0;
 
 	
 	/*registering at registrar*/
 	
 	/*send initial REGISTER */
 	int regId =
-		sipstack_send_register("sip:333@192.168.0.2", "sip:192.168.0.2", 1800);
+		sipstack_send_register("sip:"TEST_SIPSTACK_USER"@"TEST_SIPSTACK_HOST, "sip:"TEST_SIPSTACK_HOST, 1800);
 	fail_unless(regId > -1, "Sending REGISTER failed. (result = %i)", regId);
 
 	/*receive response */
-	while (queue_is_empty(event_queue) && counter < 10) {
+	while (queue_is_empty(event_queue) && counter < 20) {
 		sleep(1);
 		counter++;
 	}
@@ -317,7 +323,7 @@ START_TEST(test_bug0001) {
 
 	/*send REGISTER */
 	int regId =
-		sipstack_send_register("sip:333@192.168.0.1", "sip:192.168.0.99", 1800);
+		sipstack_send_register("sip:"TEST_SIPSTACK_USER"@192.168.0.1", "sip:192.168.0.99", 1800);
 	fail_unless(regId > -1, "Sending REGISTER failed. (result = %i)", regId);
 
 	/*receive response */
@@ -380,6 +386,7 @@ Suite *sipstack_suite(void) {
 	return s;
 }
 
+
 Suite *sipstack_bug_suite(void) {
 	Suite *s = suite_create("Check for known bugs\n");
 
@@ -400,7 +407,7 @@ Suite *sipstack_bug_suite(void) {
 
 int main(void) {
 	
-	int nf1;
+	int nf1 = 0;
 	Suite *s1 = sipstack_suite();
 	SRunner *sr1 = srunner_create(s1);
 	srunner_run_all(sr1, CK_NORMAL);
@@ -408,7 +415,7 @@ int main(void) {
 	srunner_free(sr1);
 
 	//check for known bugs
-	int nf2;
+	int nf2 = 0;
 	Suite *s2 = sipstack_bug_suite();
 	SRunner *sr2 = srunner_create(s2);
 	srunner_run_all(sr2, CK_NORMAL);
