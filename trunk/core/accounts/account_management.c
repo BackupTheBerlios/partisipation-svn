@@ -311,3 +311,34 @@ int am_get_max_id() {
 	}
 	return max;
 }
+
+int get_account_by_callee_uri(char *calleeSipUri) {
+	struct account *accounts[config.accounts.accountManagement.
+							 maxAccountIdAmount];
+	int len;					// length of account data array
+	int i;
+	char *username;
+	char *domain;
+
+	username = strtok(calleeSipUri, "@");
+	if (!username) {
+		return -1;
+	}
+
+	domain = strtok(NULL, "");
+	if (!domain) {
+		return -1;
+	}
+	// retrieve all account data:
+	am_get_all_accounts(accounts, &len);
+
+	// check for accounts with matching user data
+	for (i = 0; i < len; i++) {
+		if (strcmp(accounts[i]->username, username) == 0
+			&& strcmp(accounts[i]->domain, domain) == 0) {
+			return accounts[i]->id;
+		}
+	}
+
+	return -1;
+}
