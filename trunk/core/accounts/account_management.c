@@ -81,7 +81,16 @@ int am_account_set(int const accountId, char *const attribute,
 	log_message(LOG_DEBUG,
 				ACCOUNT_MANAGER_MSG_PREFIX "am_account_set() - enter");
 
-	struct account *acc = get_node(accountId)->acc;
+	struct node *n;
+	struct account *acc;
+
+	n = get_node(accountId);
+	if (!n) {
+		// accountId is not valid
+		return 0;
+	}
+	acc = n->acc;
+
 	char *new_val = (char *) malloc(strlen(value) + 1);
 
 	strcpy(new_val, value);
@@ -147,7 +156,15 @@ void am_account_get(int const accountId, char *const attribute,
 				ACCOUNT_MANAGER_MSG_PREFIX
 				"id: %d, att: %s", accountId, attribute);
 
-	struct account *acc = get_node(accountId)->acc;
+	struct node *n;
+	struct account *acc;
+
+	n = get_node(accountId);
+	if (!n) {
+		// accountId is not valid
+		return;
+	}
+	acc = n->acc;
 
 	if (strcmp(attribute, "id") == 0) {
 		snprintf(result, 10, "%d", acc->id);
@@ -288,6 +305,9 @@ void am_get_all_accounts(struct account *accounts[], int *length) {
  */
 struct account *am_get_account(int const accountId) {
 	struct node *n = get_node(accountId);
+	if (!n) {
+		return NULL;
+	}
 	return n->acc;
 }
 
@@ -312,7 +332,7 @@ int am_get_max_id() {
 	return max;
 }
 
-int get_account_by_callee_uri(char *calleeSipUri) {
+int am_get_account_by_callee_uri(char *calleeSipUri) {
 	struct account *accounts[config.accounts.accountManagement.
 							 maxAccountIdAmount];
 	int len;					// length of account data array
@@ -341,4 +361,58 @@ int get_account_by_callee_uri(char *calleeSipUri) {
 	}
 
 	return -1;
+}
+
+int am_is_account_valid(int accountId) {
+	struct account *acc;
+	acc = am_get_account(accountId);
+	if (!acc) {
+		return 0;
+	}
+	if (!acc->domain || !acc->username) {
+		// main account data missing
+		return 0;
+	}
+
+	if (strcmp(acc->domain, "") == 0 || strcmp(acc->username, "") == 0) {
+		// main account data empty
+		return 0;
+	}
+
+	return 1;
+}
+
+int am_build_from_and_to(int accountId, char *callee, char **from,
+						 char **to) {
+	struct account *acc;
+	char *at;
+	acc = am_get_account(accountId);
+	if (!acc) {
+		return 0;
+	}
+
+	if (!callee || strlen(callee) == 0) {
+		return 0;
+	}
+
+	*from = (char *)
+		malloc((strlen(acc->username) + strlen(acc->domain) +
+				strlen("sip:") + strlen("@")) * sizeof(char) + 1);
+
+	sprintf(*from, "sip:%s@%s", acc->username, acc->domain);
+
+	at = strstr(callee, "@");
+	if (!at) {
+		*to = (char *)
+			malloc((strlen(callee) + strlen(acc->domain) + strlen("sip:") +
+					strlen("@")) * sizeof(char) + 1);
+		sprintf(*to, "sip:%s@%s", callee, acc->domain);
+	} else {
+		*to =
+			(char *) malloc((strlen(callee) + strlen("sip:")) *
+							sizeof(char) + 1);
+		sprintf(*to, "sip:%s", callee);
+	}
+
+	return 1;
 }
