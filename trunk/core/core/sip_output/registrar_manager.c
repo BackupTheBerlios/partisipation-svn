@@ -56,6 +56,8 @@ typedef struct {
 							expected. */
 	int waitingOnUnregOK; /**< Whether an OK for a REGISTER with expire=0 is
 							expected. */
+	int informGui; /**< Whether the success of an unregistration has to be 
+					announced to the GUI. */
 } accountstatus;
 
 /**
@@ -84,6 +86,7 @@ void clear_account_info(int pos) {
 	accInfos[pos].waitingOnRegOK = 0;
 	accInfos[pos].waitingOnRefreshOK = 0;
 	accInfos[pos].waitingOnUnregOK = 0;
+	accInfos[pos].informGui = 1;
 }
 
 int rm_init() {
@@ -618,16 +621,19 @@ void *unregistration_thread(void *args) {
 		thread_terminated();
 		return NULL;
 	}
-	// inform GUI that unregister succeeded:
-	rc = go_change_reg_status(accountId, 0);
-	if (!rc) {
-		// failed to contact GUI
-		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "GUI registration status update"
-				  " failed");
 
-		// exit:
-		thread_terminated();
-		return NULL;
+	if (accInfos[pos].informGui) {
+		// inform GUI that unregister succeeded:
+		rc = go_change_reg_status(accountId, 0);
+		if (!rc) {
+			// failed to contact GUI
+			LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
+					  "GUI registration status update" " failed");
+
+			// exit:
+			thread_terminated();
+			return NULL;
+		}
 	}
 	// mark account as no longer used:
 	clear_account_info(pos);
@@ -642,7 +648,7 @@ void *unregistration_thread(void *args) {
 
 /**
  * A thread that actually handles the auto_registration request when a GUI is
- * being started(internal use only). See rm_register_auto() for details.
+ * being started (internal use only). See rm_register_auto() for details.
  * @param args empty
  * @return empty
  */
@@ -671,6 +677,50 @@ void *autoregistration_thread(void *args) {
 			// no guarantee that thread execution is error-free at this point
 		}
 	}
+
+	// we are done:
+	thread_terminated();
+	return NULL;
+}
+
+/**
+ * A thread that actually handles the request for unregistering all active
+ * accounts when a GUI is being shut down (internal use only). See 
+ * rm_unregister_all() for details.
+ * @param args empty
+ * @return empty
+ */
+void *unregisterall_thread(void *args) {
+	int rc;
+	int i;
+
+	rc = pthread_mutex_lock(&accInfoLock);
+	if (rc != 0) {
+		// failed to gain lock, fatal error
+		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "mutex lock could not be"
+				  "acquired, error: %d", rc);
+		return 0;
+	}
+
+	for (i = 0; i < config.accounts.accountManagement.maxAccountIdAmount;
+		 i++) {
+		if (accInfos[i].accountId != -1) {
+			accInfos[i].informGui = 0;
+		}
+		if (accInfos[i].accountId != -1 && accInfos[i].isRegistered) {
+			rc = rm_unregister_account(accInfos[i].accountId);
+			if (!rc) {
+				LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
+						  "failed to automatically"
+						  " unregister account: %d",
+						  accInfos[i].accountId);
+			}
+		}
+	}
+	pthread_mutex_unlock(&accInfoLock);
+
+	// we are done:
+	thread_terminated();
 	return NULL;
 }
 
@@ -722,6 +772,23 @@ int rm_register_auto() {
 	}
 
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX " leaving rm_register_auto()");
+	return 1;					// pseudo success
+}
+
+int rm_unregister_all() {
+	int rc;						// return code
+
+	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "entering rm_unregister_all()");
+
+	rc = start_thread(unregisterall_thread, NULL);
+	if (!rc) {
+		// ERROR
+		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
+				  "leaving rm_unregister_all(): ERROR");
+		return 0;
+	}
+
+	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX " leaving rm_unregister_all()");
 	return 1;					// pseudo success
 }
 

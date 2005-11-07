@@ -63,6 +63,17 @@ int rm_unregister_account(int accountId);
 int rm_register_auto();
 
 /**
+ * Unregister all accounts currently registered. This simply calls 
+ * rm_unregister_account() for every active account. This function is being 
+ * called when the GUI is shut down, so we can stop refreshing the account
+ * registration. The GUI is not being informed about the change of the
+ * registration status, because it might already be closed.
+ * @return whether starting the unregister-all thread was successfull - it
+ * is only a pseudo success (boolean)
+ */
+int rm_unregister_all();
+
+/**
  * This dispatches any incoming events from SIP stack. It has to find out which
  * (un-)registration thread waits on the event and of which type the event is.
  * An event is not forwarded to the thread - it is evaluated and only the 

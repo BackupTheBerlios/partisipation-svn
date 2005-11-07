@@ -48,6 +48,10 @@ void *xmlrpc_server_thread(void *param) {
 	xmlrpc_registry_add_method(&env, registryP, NULL, name,
 							   &register_gui_RP, NULL);
 
+	generate_method_name("unregisterGui", name);
+	xmlrpc_registry_add_method(&env, registryP, NULL, name,
+							   &unregister_gui_RP, NULL);
+
 	// call management:
 	generate_method_name("makeCall", name);
 	xmlrpc_registry_add_method(&env, registryP, NULL, name, &make_call_RP,
