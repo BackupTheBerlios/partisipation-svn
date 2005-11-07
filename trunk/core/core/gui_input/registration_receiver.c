@@ -37,12 +37,6 @@ char *gi_register_gui(char *const address, int const port) {
 		return "ERROR";
 	}
 
-	rc = rm_register_auto();
-	if (!rc) {
-		LOG_DEBUG(REG_RCVR_MSG_PREFIX "auto registering failed");
-		// ERROR
-	}
-
 	LOG_DEBUG(REG_RCVR_MSG_PREFIX "register_gui result=OK");
 	return "OK";
 }

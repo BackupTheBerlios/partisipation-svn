@@ -99,6 +99,10 @@ void *xmlrpc_server_thread(void *param) {
 	xmlrpc_registry_add_method(&env, registryP, NULL, name,
 							   &account_unregister_RP, NULL);
 
+	generate_method_name("registerAuto", name);
+	xmlrpc_registry_add_method(&env, registryP, NULL, name,
+							   &account_register_auto_RP, NULL);
+
 	// volume management:
 
 	generate_method_name("setSpeakerVolume", name);

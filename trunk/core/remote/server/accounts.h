@@ -16,6 +16,8 @@ int account_register(int const accountId);
 
 int account_unregister(int const accountId);
 
+int account_register_auto();
+
 int account_save();
 
 #endif

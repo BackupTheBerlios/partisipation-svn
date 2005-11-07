@@ -161,6 +161,20 @@ xmlrpc_value *account_unregister_RP(xmlrpc_env * const env,
 	return xmlrpc_build_value(env, "b", result);
 }
 
+xmlrpc_value *account_register_auto_RP(xmlrpc_env * const env,
+									   xmlrpc_value * const param_array,
+									   void *const server_context) {
+
+	printf("entering registerAuto...\n");
+
+	int result;
+
+	result = account_register_auto();
+
+	printf("leaving registerAuto\n");
+	return xmlrpc_build_value(env, "b", result);
+}
+
 xmlrpc_value *account_save_RP(xmlrpc_env * const env,
 							  xmlrpc_value * const param_array,
 							  void *const server_context) {

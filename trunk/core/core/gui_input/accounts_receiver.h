@@ -17,6 +17,8 @@ int gi_account_register(int const accountId);
 
 int gi_account_unregister(int const accountId);
 
+int gi_account_register_auto();
+
 int gi_account_save();
 
 #endif

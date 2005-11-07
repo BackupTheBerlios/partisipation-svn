@@ -35,6 +35,10 @@ int gi_account_unregister(int const accountId) {
 	return rm_unregister_account(accountId);
 }
 
+int gi_account_register_auto() {
+	return rm_register_auto();
+}
+
 int gi_account_save() {
 	return am_account_save();
 }
