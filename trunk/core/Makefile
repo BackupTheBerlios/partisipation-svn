@@ -58,7 +58,7 @@ compile: indent
 
 clean:
 	find ./ -maxdepth 1 | grep \\.o$$ | xargs rm -f
-#	-rm $(DOCDIR) -r
+	rm -rf ./docs/doxygen
 	rm -f core_launcher
 	$(MAKE) -C util clean
 	$(MAKE) -C sipstack clean
