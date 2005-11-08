@@ -1,0 +1,17 @@
+<!ELEMENT config (phonebook,remote)>
+
+<!ELEMENT phonebook (entry)*>
+
+<!ELEMENT remote (core,gui)>
+
+<!ELEMENT entry EMPTY>
+<!ATTLIST entry name CDATA #REQUIRED>
+<!ATTLIST entry number CDATA #REQUIRED>
+
+<!ELEMENT core EMPTY>
+<!ATTLIST core host CDATA #REQUIRED>
+<!ATTLIST core port CDATA #REQUIRED>
+
+<!ELEMENT gui EMPTY>
+<!ATTLIST gui host CDATA #REQUIRED>
+<!ATTLIST gui port CDATA #REQUIRED>
