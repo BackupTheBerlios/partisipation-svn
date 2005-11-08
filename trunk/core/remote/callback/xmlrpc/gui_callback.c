@@ -7,11 +7,16 @@
 #include <remote/callback/xmlrpc/xmlrpc_callback_client.h>
 #include <remote/callback/gui_callback.h>
 #include <util/config/globals.h>
+#include <util/logging/logger.h>
+
+#define GUI_CALLBACK_MSG_PREFIX "[gui callback]"
 
 void die_if_fault_occurred(xmlrpc_env * env) {
 	if (env->fault_occurred) {
-		fprintf(stderr, "XML-RPC Fault: %s (%d)\n",
-				env->fault_string, env->fault_code);
+		log_message(LOG_INFO,
+					GUI_CALLBACK_MSG_PREFIX
+					"XML-RPC Fault: %s (%d)",
+					env->fault_string, env->fault_code);
 		exit(1);
 	}
 }
@@ -21,8 +26,8 @@ int change_reg_status(int accountId, int registered) {
 	xmlrpc_value *result;
 	xmlrpc_bool success;
 	const char *methodName = "gui.changeRegStatus";
-
-	printf("entering changeRegStatus...\n");
+	log_message(LOG_INFO,
+				GUI_CALLBACK_MSG_PREFIX "entering changeRegStatus...");
 
 	/*
 	 * Make the remote procedure call 
@@ -36,14 +41,15 @@ int change_reg_status(int accountId, int registered) {
 
 	xmlrpc_read_bool(&callbackEnv, result, &success);
 	die_if_fault_occurred(&callbackEnv);
-	printf("return %d\n", success);
+	log_message(LOG_INFO, GUI_CALLBACK_MSG_PREFIX "return %d", success);
 
 	/*
 	 * Dispose of our result value. 
 	 */
 	xmlrpc_DECREF(result);
 
-	printf("leaving changeRegStatus\n");
+	log_message(LOG_INFO,
+				GUI_CALLBACK_MSG_PREFIX "leaving changeRegStatus");
 
 	return success;
 }
@@ -54,7 +60,8 @@ int change_call_status(int callId, char *status) {
 	xmlrpc_bool success;
 	const char *methodName = "gui.changeCallStatus";
 
-	printf("entering changeCallStatus...\n");
+	log_message(LOG_INFO,
+				GUI_CALLBACK_MSG_PREFIX "entering changeCallStatus...");
 
 	/*
 	 * Make the remote procedure call 
@@ -68,14 +75,14 @@ int change_call_status(int callId, char *status) {
 
 	xmlrpc_read_bool(&callbackEnv, result, &success);
 	die_if_fault_occurred(&callbackEnv);
-	printf("return %d\n", success);
+	log_message(LOG_INFO, GUI_CALLBACK_MSG_PREFIX "return %d", success);
 
 	/*
 	 * Dispose of our result value. 
 	 */
 	xmlrpc_DECREF(result);
-
-	printf("leaving changeCallStatus...\n");
+	log_message(LOG_INFO,
+				GUI_CALLBACK_MSG_PREFIX "leaving changeCallStatus...");
 
 	return success;
 }
@@ -88,8 +95,8 @@ show_user_event(int accountId,
 	xmlrpc_value *result;
 	xmlrpc_bool success;
 	const char *methodName = "gui.showUserEvent";
-
-	printf("entering showUserEvent...\n");
+	log_message(LOG_INFO,
+				GUI_CALLBACK_MSG_PREFIX "entering showUserEvent...");
 
 	/*
 	 * Make the remote procedure call 
@@ -103,14 +110,14 @@ show_user_event(int accountId,
 
 	xmlrpc_read_bool(&callbackEnv, result, &success);
 	die_if_fault_occurred(&callbackEnv);
-	printf("return %d\n", success);
+	log_message(LOG_INFO, GUI_CALLBACK_MSG_PREFIX "return %d", success);
 
 	/*
 	 * Dispose of our result value. 
 	 */
 	xmlrpc_DECREF(result);
 
-	printf("leaving showUserEvent\n");
+	log_message(LOG_INFO, GUI_CALLBACK_MSG_PREFIX "leaving showUserEvent");
 
 	return success;
 }
@@ -120,7 +127,8 @@ int register_core() {
 	xmlrpc_bool success;
 	const char *methodName = "gui.registerCore";
 
-	printf("entering registerCore...\n");
+	log_message(LOG_INFO,
+				GUI_CALLBACK_MSG_PREFIX "entering registerCore...");
 
 	/*
 	 * Make the remote procedure call 
@@ -133,14 +141,13 @@ int register_core() {
 
 	xmlrpc_read_bool(&callbackEnv, result, &success);
 	die_if_fault_occurred(&callbackEnv);
-	printf("return %d\n", success);
+	log_message(LOG_INFO, GUI_CALLBACK_MSG_PREFIX "return %d\n", success);
 
 	/*
 	 * Dispose of our result value. 
 	 */
 	xmlrpc_DECREF(result);
-
-	printf("leaving registerCore\n");
+	log_message(LOG_INFO, GUI_CALLBACK_MSG_PREFIX "leaving registerCore");
 
 	return success;
 }
@@ -152,7 +159,8 @@ incoming_call(int accountId,
 	xmlrpc_bool success;
 	const char *methodName = "gui.incomingCall";
 
-	printf("entering incomingCall...\n");
+	log_message(LOG_INFO,
+				GUI_CALLBACK_MSG_PREFIX "entering incomingCall...");
 
 	/*
 	 * Make the remote procedure call 
@@ -167,14 +175,14 @@ incoming_call(int accountId,
 
 	xmlrpc_read_bool(&callbackEnv, result, &success);
 	die_if_fault_occurred(&callbackEnv);
-	printf("return %d\n", success);
+	log_message(LOG_INFO, GUI_CALLBACK_MSG_PREFIX "return %d", success);
 
 	/*
 	 * Dispose of our result value. 
 	 */
 	xmlrpc_DECREF(result);
 
-	printf("leaving incomingCall\n");
+	log_message(LOG_INFO, GUI_CALLBACK_MSG_PREFIX "leaving incomingCall");
 
 	return success;
 }
@@ -183,8 +191,8 @@ int set_speaker_volume_cb(double level) {
 	xmlrpc_value *result;
 	xmlrpc_bool success;
 	const char *methodName = "gui.setSpeakerVolume";
-
-	printf("entering setSpeakerVolume...\n");
+	log_message(LOG_INFO,
+				GUI_CALLBACK_MSG_PREFIX "entering setSpeakerVolume...");
 
 	/*
 	 * Make the remote procedure call 
@@ -197,14 +205,14 @@ int set_speaker_volume_cb(double level) {
 
 	xmlrpc_read_bool(&callbackEnv, result, &success);
 	die_if_fault_occurred(&callbackEnv);
-	printf("return %d\n", success);
+	log_message(LOG_INFO, GUI_CALLBACK_MSG_PREFIX "return %d", success);
 
 	/*
 	 * Dispose of our result value. 
 	 */
 	xmlrpc_DECREF(result);
-
-	printf("leaving setSpeakerVolume\n");
+	log_message(LOG_INFO,
+				GUI_CALLBACK_MSG_PREFIX "leaving setSpeakerVolume");
 
 	return success;
 }
@@ -214,7 +222,8 @@ int set_micro_volume_cb(double level) {
 	xmlrpc_bool success;
 	const char *methodName = "gui.setMicroVolume";
 
-	printf("entering setMicroVolume...\n");
+	log_message(LOG_INFO,
+				GUI_CALLBACK_MSG_PREFIX "entering setMicroVolume...");
 
 	/*
 	 * Make the remote procedure call 
@@ -227,14 +236,15 @@ int set_micro_volume_cb(double level) {
 
 	xmlrpc_read_bool(&callbackEnv, result, &success);
 	die_if_fault_occurred(&callbackEnv);
-	printf("return %d\n", success);
+	log_message(LOG_INFO, GUI_CALLBACK_MSG_PREFIX "return %d", success);
 
 	/*
 	 * Dispose of our result value. 
 	 */
 	xmlrpc_DECREF(result);
 
-	printf("leaving setMicroVolume\n");
+	log_message(LOG_INFO,
+				GUI_CALLBACK_MSG_PREFIX "leaving setMicroVolume");
 
 	return success;
 }
