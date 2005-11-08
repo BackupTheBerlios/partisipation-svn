@@ -83,14 +83,36 @@ public class Gui extends JFrame {
     private Vector params = new Vector();
 
     // stores the list of the phone numbers
-    private Vector phonebook = new Vector();
+    public Vector phonebook = new Vector();
 
     // account to use for current call
     private Account actacc = null;
 
     // current callee's display name
     private String dname = "";
+    
+    private String GUI_HOST = "";
+    private String CORE_HOST = "";
+    private int GUI_PORT;
+    private int CORE_PORT;
+    
+    public void setGuiHost(String s) {
+        GUI_HOST = s;
+    }
+    
+    public void setGuiPort(int n) {
+        GUI_PORT = n;
+    }
 
+    public void setCoreHost(String s) {
+        CORE_HOST = s;
+    }
+    
+    public void setCorePort(int n) {
+        CORE_PORT = n;
+    }
+
+    
     /**
      * This method creates the GUI window and the XML-RPC part.
      */
@@ -99,14 +121,17 @@ public class Gui extends JFrame {
 
         try {
 
-            accfile = System.getProperty("user.home", ".") + "/phonebook.xml";
+            accfile = System.getProperty("user.home", ".") + "/.partiSIPation/gui_config.xml";
+            
+            readConfig();
+            
+            print("Try to register GUI ("+GUI_HOST+":"+GUI_PORT+") at core ("+CORE_HOST+":"+CORE_PORT+").");
+            
+            client = new XmlRpcClientLite(InetAddress.getByName(CORE_HOST)
+                    .getHostName(), CORE_PORT);
 
-            client = new XmlRpcClientLite(InetAddress.getByName(Utils.COREHOST)
-                    .getHostName(), Utils.COREPORT);
-
-            //XmlRpc.setDebug(true);
-            server = new WebServer(Utils.GUIPORT, InetAddress
-                    .getByName(Utils.GUIHOST));
+            server = new WebServer(GUI_PORT, InetAddress
+                    .getByName(GUI_HOST));
 
             GuiStub guiStub = new GuiStub(this);
 
@@ -115,12 +140,12 @@ public class Gui extends JFrame {
 
             // call REGISTER_GUI immediately after GUI has been opened
             params.clear();
-            params.addElement(Utils.GUIHOST);
-            params.addElement(new Integer(Utils.GUIPORT));
+            params.addElement(GUI_HOST);
+            params.addElement(new Integer(GUI_PORT));
 
             Object o = execute("core.registerGui", params, 3000);
             if (o == null) {
-                // --- something
+                print("ERROR: GUI not registered. Check your configuration file.");
             } else if (((String) o).equalsIgnoreCase("OK")) {
                 print("GUI registered.");
                 
@@ -146,12 +171,15 @@ public class Gui extends JFrame {
                         a++;
                     }
                     print("Got " + a + " accounts.");
+                    
+                    params.clear();
+                    execute("core.registerAuto", params);
+                    
                 }
             } else {
                 print("ERROR: GUI not registered.");
             }
-
-            readPhonebook();
+           
             Enumeration e = phonebook.elements();
             while (e.hasMoreElements()) {
                 Contact con = (Contact) e.nextElement();
@@ -885,15 +913,10 @@ public class Gui extends JFrame {
     }
     
     public void windowClose() {
-        Enumeration e = accounts.elements();
-        while (e.hasMoreElements()) {
-            Account ac = (Account) e.nextElement();
-            if (ac.registered) {
-                params.clear();
-                params.add(new Integer(ac.id));
-                execute("core.unregister", params);
-            }
-        }
+        params.clear();
+        params.addElement(GUI_HOST);
+        params.addElement(new Integer(GUI_PORT));
+        execute("core.unregisterGui", params);
     }
 
     public void aboutActionPerformed(ActionEvent e) {
@@ -938,8 +961,6 @@ public class Gui extends JFrame {
             Account acc = (Account) accounts.elementAt(i);
             Integer accId = new Integer(acc.id);
 
-            params.clear();
-            params.add(accId);
             ImageIcon img = new ImageIcon(cl
                     .getResource("gui/resources/yellow.gif"));
             params.clear();
@@ -947,6 +968,9 @@ public class Gui extends JFrame {
             params.add("name");
             img.setDescription((String) execute("core.accountGet", params));
             list1.set(i, img);
+            
+            params.clear();
+            params.add(accId);
 
             if (acc.registered) {
                 execute("core.unregister", params);
@@ -1289,8 +1313,6 @@ public class Gui extends JFrame {
 
         if (!sipurl.trim().equalsIgnoreCase("")) {
             if (actacc != null) {
-                if (actacc.registered) {
-
                     Vector v = new Vector();
                     v.add(new Integer(actacc.id));
                     v.add(sipurl);
@@ -1311,11 +1333,6 @@ public class Gui extends JFrame {
                         print("Trying to call " + sipurl + " (call # " + id
                                 + ").");
                     }
-                } else {
-                    JOptionPane.showMessageDialog(this, "Account #" + actacc.id
-                            + " not registered.", "ERROR",
-                            JOptionPane.ERROR_MESSAGE);
-                }
             } else {
                 JOptionPane.showMessageDialog(this, "No account selected.",
                         "ERROR", JOptionPane.ERROR_MESSAGE);
@@ -1785,7 +1802,7 @@ public class Gui extends JFrame {
         }
     }
 
-    private void print(String s) {
+    public void print(String s) {
         jTextArea1.append(Utils.getTimestamp() + ": " + s + "\n");
     }
 
@@ -1815,12 +1832,15 @@ public class Gui extends JFrame {
         return t.execute();
     }
 
-    private final void readPhonebook() {
+    private final void readConfig() {
         try {
 
             SAXParser parser = new SAXParser();
+            
+            parser.setFeature("http://xml.org/sax/features/validation",
+                    true);
 
-            PhonebookParser pp = new PhonebookParser(phonebook);
+            ConfigParser pp = new ConfigParser(this);
 
             parser.setContentHandler(pp);
 
@@ -1831,7 +1851,7 @@ public class Gui extends JFrame {
         } catch (SAXException e) {
             System.out.println("> Your XML file seems to be invalid.");
         } catch (IOException e) {
-            System.out.println("> No phonebook found.");
+            System.out.println("> No configuration file found at "+accfile+".");
         }
     }
 
@@ -1842,16 +1862,23 @@ public class Gui extends JFrame {
             BufferedWriter bw = new BufferedWriter(out);
 
             bw.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-            bw.write("<phonebook>\n");
+            bw.write("<!DOCTYPE config SYSTEM \"gui_config.dtd\">\n");
+            bw.write("<config>\n");
+            bw.write("\t<phonebook>\n");
 
             Enumeration e = phonebook.elements();
             while (e.hasMoreElements()) {
                 Contact con = (Contact) e.nextElement();
-                bw.write("\t<entry name=\"" + con.name + "\" number=\""
+                bw.write("\t\t<entry name=\"" + con.name + "\" number=\""
                         + con.sipurl + "\"/>\n");
             }
 
-            bw.write("</phonebook>\n");
+            bw.write("\t</phonebook>\n");
+            bw.write("\t<remote>\n");
+            bw.write("\t\t<core host=\""+CORE_HOST+"\" port=\""+CORE_PORT+"\"/>\n");
+            bw.write("\t\t<gui host=\""+GUI_HOST+"\" port=\""+GUI_PORT+"\"/>\n");
+            bw.write("\t</remote>\n");
+            bw.write("</config>\n");
             bw.flush();
             bw.close();
             out.close();
@@ -1863,17 +1890,39 @@ public class Gui extends JFrame {
     }
 }
 
-class PhonebookParser extends DefaultHandler {
+class ConfigParser extends DefaultHandler {
 
     private Vector phonebook;
+    Gui gui;
 
-    public PhonebookParser(Vector p) {
-        phonebook = p;
+    public ConfigParser(Gui g) {
+        gui = g;
+        phonebook = gui.phonebook;
     }
 
     public void startElement(String uri, String local, String qName,
             Attributes atts) {
-        if (local.equalsIgnoreCase("entry")) {
+        
+        if (local.equalsIgnoreCase("core")) {
+            for (int i = 0; i < atts.getLength(); i++) {
+                String attname = atts.getLocalName(i);
+                if (attname.equalsIgnoreCase("host")) {
+                    gui.setCoreHost(atts.getValue(attname));
+                } else if (attname.equalsIgnoreCase("port")) {
+                    gui.setCorePort(Integer.parseInt(atts.getValue(attname)));
+                }
+            }
+        } else if  (local.equalsIgnoreCase("gui")) {
+            for (int i = 0; i < atts.getLength(); i++) {
+                String attname = atts.getLocalName(i);
+                if (attname.equalsIgnoreCase("host")) {
+                    gui.setGuiHost(atts.getValue(attname));
+                } else if (attname.equalsIgnoreCase("port")) {
+                    gui.setGuiPort(Integer.parseInt(atts.getValue(attname)));
+                }
+            }
+        }
+        else if (local.equalsIgnoreCase("entry")) {
 
             String name = "";
             String sip = "";
