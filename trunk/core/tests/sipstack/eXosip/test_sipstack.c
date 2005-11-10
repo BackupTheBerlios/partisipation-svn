@@ -184,7 +184,7 @@ START_TEST(test_sipstack_call) {
 	int i = sipstack_init();
 
 	/*send initial INVITE */
-	callId = sipstack_send_invite("sip:"TEST_SIPSTACK_CALLEE"@"TEST_SIPSTACK_HOST, "sip:"TEST_SIPSTACK_USER"@"TEST_SIPSTACK_HOST, "Sip Stack Test");
+	callId = sipstack_send_invite("sip:"TEST_SIPSTACK_CALLEE"@"TEST_SIPSTACK_HOST, "sip:"TEST_SIPSTACK_USER"@"TEST_SIPSTACK_HOST, "Sip Stack Tester", "Sip Stack Test");
 	LOG_DEBUG("INVITE send (callId=%i)", callId);
 	/*receive response */
 	statusCode = 0;
@@ -245,7 +245,7 @@ START_TEST(test_sipstack_cancel) {
 	int i = sipstack_init();
 
 	/*send initial INVITE */
-	int callId = sipstack_send_invite("sip:"TEST_SIPSTACK_CALLEE"@"TEST_SIPSTACK_HOST, "sip:"TEST_SIPSTACK_USER"@"TEST_SIPSTACK_HOST, "Sip Stack Test");
+	int callId = sipstack_send_invite("sip:"TEST_SIPSTACK_CALLEE"@"TEST_SIPSTACK_HOST, "sip:"TEST_SIPSTACK_USER"@"TEST_SIPSTACK_HOST, "SIP STACK TESTER", "Sip Stack Test");
 
 	fail_unless(callId > 0, "[test transaction]Sending INVITE failed. (result = %2d)", i);
 
