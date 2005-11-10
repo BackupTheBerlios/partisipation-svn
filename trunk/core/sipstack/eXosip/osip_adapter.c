@@ -400,19 +400,35 @@ int sipstack_send_update_register(int regId, int expire) {
 	return TRUE;
 }
 
-int sipstack_send_invite(char *to, char *from, char *subject) {
+int sipstack_send_invite(char *to, char *from, char *fromDisplayName,
+						 char *subject) {
 
 	/* message which is build in this methode */
 	osip_message_t *invite;
 
 	int i;
 
-	/*build initial INVITE message */
+	/* build initial INVITE message */
 	i = eXosip_call_build_initial_invite(&invite, to, from, NULL, subject);
 	if (i != 0) {
 		/* building of INVITE message failed */
 		/* return error */
 		return -1;
+	}
+
+	/* add display name of sender (from) */
+	/* check whether the display name for the sender (from) is set */
+	if (fromDisplayName != NULL) {
+		/* do additional check even if it seems to be unneccessary */
+		/* because it is not sure that invite->from will be defined if the  */
+		/* parameter from is NULL */
+		if (invite->from != NULL) {
+			/* set display name of from field of sipstack event */
+			invite->from->displayname =
+				(char *) malloc(strlen(fromDisplayName) * sizeof(char) +
+								1);
+			strcpy(invite->from->displayname, fromDisplayName);
+		}
 	}
 
 	osip_message_set_supported(invite, "100rel");

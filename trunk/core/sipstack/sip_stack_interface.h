@@ -116,10 +116,12 @@ int sipstack_send_unregister(int regId);
  *
  * @param to sip url of callee
  * @param from sip url of caller
+ * @param fromDisplayName displayed name of caller
  * @param subject subject of call
  * @return call id (-1 if sending of INVITE failed)
  */
-int sipstack_send_invite(char *to, char *from, char *subject);
+int sipstack_send_invite(char *to, char *from, char *fromDisplayName,
+						 char *subject);
 
 /**
  * Send an reINVITE. Therefore a call id is needed
