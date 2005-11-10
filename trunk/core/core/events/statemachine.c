@@ -31,7 +31,7 @@ int sm_checking_state_on_entry(local_call_info * callInfo) {
 	int success;
 	call_trigger *elem;
 
-	success = 0;
+	success = 1;
 
 	rc = am_is_account_valid(callInfo->accountId);
 	if (!rc) {
@@ -177,6 +177,8 @@ int sm_initial_state(sm_state * curState, event trigger, void **params,
 			callInfo->caller = NULL;
 			callInfo->sipCallId = 0;
 			callInfo->dialogId = 0;
+			callInfo->from = NULL;
+			callInfo->to = NULL;
 
 			rc = sm_checking_state_on_entry(callInfo);
 			if (!rc) {
@@ -730,11 +732,9 @@ void *sm_start(void *args) {
 	finished = 0;
 	errorOccurred = 0;
 
-	while (!finished) {
-		while (!errorOccurred && !finished && ((curState == TERMINATING)
-											   ||
-											   !queue_is_empty(eventPool)))
-		{
+	while (!errorOccurred && !finished) {
+		while (!errorOccurred && !finished &&
+			   ((curState == TERMINATING) || !queue_is_empty(eventPool))) {
 
 			call_trigger *elem;
 
@@ -742,6 +742,7 @@ void *sm_start(void *args) {
 			if (curState != TERMINATING) {
 				elem = (call_trigger *) queue_front_and_dequeue(eventPool);
 			}
+
 			switch (curState) {
 				case INITIAL:
 					rc = sm_initial_state(&curState, elem->trigger,
@@ -830,7 +831,7 @@ void *sm_start(void *args) {
 			}
 		}
 
-		if (!finished) {
+		if (!errorOccurred && !finished) {
 			// sleep until next event
 			pthread_mutex_lock(&queues[queueId]->wakeUpLock);
 			pthread_cond_wait(&queues[queueId]->wakeUp,
