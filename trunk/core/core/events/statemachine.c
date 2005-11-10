@@ -97,7 +97,8 @@ int sm_inviting_state_on_entry(local_call_info * callInfo) {
 
 int sm_connected_state_on_entry(local_call_info * callInfo) {
 	int rc;
-	rc = go_change_call_status(callInfo->callId, "ACCEPTED");
+	rc = go_change_call_status(callInfo->callId,
+							   call_status_to_str(CS_ACCEPTED));
 	if (!rc) {
 		LOG_DEBUG(STATEMACHINE_PREFIX "connected.OnEntry: failed to "
 				  "change call status (call ID: %d)", callInfo->callId);
@@ -108,7 +109,8 @@ int sm_connected_state_on_entry(local_call_info * callInfo) {
 
 int sm_terminating_state_on_exit(local_call_info * callInfo) {
 	int rc;
-	rc = go_change_call_status(callInfo->callId, "TERMINATED");
+	rc = go_change_call_status(callInfo->callId,
+							   call_status_to_str(CS_TERMINATED));
 	if (!rc) {
 		LOG_DEBUG(STATEMACHINE_PREFIX "terminating.OnExit: failed to "
 				  "change call status (call ID: %d)", callInfo->callId);
@@ -310,8 +312,9 @@ int sm_checking_state(sm_state * curState, event trigger, void **params,
 int sm_inviting_state(sm_state * curState, event trigger, void **params,
 					  local_call_info * callInfo) {
 	int rc;
-	char *msg;
+	call_status callSt;
 	sipstack_event *sipEvt;
+	
 	switch (trigger) {
 		case SIPLISTENER_RECEIVE:
 			sipEvt = (sipstack_event *) params[0];
@@ -319,14 +322,14 @@ int sm_inviting_state(sm_state * curState, event trigger, void **params,
 				 && (sipEvt->statusCode <= 199)) {
 				switch (sipEvt->statusCode) {
 					case 180:
-						msg = "RINGING"; 
+						callSt = CS_RINGING; 
 						break;
 					default:
-						msg = "TRYING"; 
+						callSt = CS_TRYING; 
 						break;
 				}
 
-				rc = go_change_call_status(callInfo->callId, msg); 
+				rc = go_change_call_status(callInfo->callId, call_status_to_str(callSt));
 				if (!rc) {
 					LOG_DEBUG(STATEMACHINE_PREFIX "inviting state, "
 						"SipListener.Receive: failed to change "
@@ -367,6 +370,14 @@ int sm_inviting_state(sm_state * curState, event trigger, void **params,
 					LOG_DEBUG(STATEMACHINE_PREFIX "inviting state, "
 						"SipListener.Receive: failed to send ACK via "
 						"sipstack adapter (call ID: %d)", callInfo->callId);
+					return 0;
+				}
+				
+				rc = go_change_call_status(callInfo->callId, call_status_to_str(CS_DECLINED));
+				if (!rc) {
+					LOG_DEBUG(STATEMACHINE_PREFIX "inviting state, "
+							  "SipListener.Receive failed to change call "
+							  "status (call ID: %d)", callInfo->callId);
 					return 0;
 				}
 
@@ -476,7 +487,8 @@ int sm_ringing_state(sm_state * curState, event trigger,
 				return 0;
 			}
 
-			rc = go_change_call_status(callInfo->callId, "CANCELLED");
+			rc = go_change_call_status(callInfo->callId,
+									   call_status_to_str(CS_CANCELLED));
 			if (!rc) {
 				LOG_DEBUG(STATEMACHINE_PREFIX "ringing state, "
 						  "SipListener.Receive: failed to change call status "
@@ -584,7 +596,9 @@ int sm_connecting_state(sm_state * curState, event trigger,
 					return 0;
 				}
 
-				rc = go_change_call_status(callInfo->callId, "CANCELLED");
+				rc = go_change_call_status(callInfo->callId,
+										   call_status_to_str
+										   (CS_CANCELLED));
 				if (!rc) {
 					LOG_DEBUG(STATEMACHINE_PREFIX "connecting state, "
 							  "SipListener.Receive: failed to change "

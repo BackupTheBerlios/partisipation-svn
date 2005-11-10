@@ -12,7 +12,7 @@ typedef enum {
 	CS_INVALID_CALL_STATUS
 } call_status;
 
-const char *call_status_to_str(call_status status);
+char *call_status_to_str(call_status status);
 
 call_status str_to_call_status(const char *str);
 

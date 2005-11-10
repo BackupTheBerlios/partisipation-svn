@@ -4,7 +4,7 @@
 
 #include <core/events/call_status.h>
 
-const char *call_status_to_str(call_status status) {
+char *call_status_to_str(call_status status) {
 	switch (status) {
 		case CS_TRYING:
 			return "TRYING";
