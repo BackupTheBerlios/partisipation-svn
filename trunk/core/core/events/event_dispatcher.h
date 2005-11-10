@@ -10,6 +10,7 @@ typedef struct {
 	pthread_cond_t wakeUp;
 	pthread_mutex_t wakeUpLock;
 	int callId;
+	int sipCallId;
 } sm_data;
 
 typedef struct {

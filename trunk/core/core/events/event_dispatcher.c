@@ -13,6 +13,8 @@
 #include <sipstack/sip_stack_interface.h>
 #include <core/sip_output/registrar_manager.h>
 
+#define EVENT_DISP_MSG_PREFIX "[event dispatcher]"
+
 sm_data **queues;
 pthread_mutex_t queuesLock;
 
@@ -193,6 +195,16 @@ int enqueue_and_wake(int callId, call_trigger * param) {
 	return 1;
 }
 
+void leave_dispatch_thr_err(call_trigger * param) {
+	if (param && param->params) {
+		free(param->params);
+	}
+	if (param) {
+		free(param);
+	}
+	thread_terminated();
+}
+
 void *dispatch(void *args) {
 
 	call_trigger *param;
@@ -209,11 +221,10 @@ void *dispatch(void *args) {
 			res = create_queue(&pos, callId);
 			if (res == 0) {
 				// ERROR
-				printf("no free position found!\n");
+				LOG_DEBUG(EVENT_DISP_MSG_PREFIX
+						  "create_queue(): no free position found");
 
-				free(param);
-
-				thread_terminated();
+				leave_dispatch_thr_err(param);
 				return NULL;
 			}
 
@@ -291,14 +302,6 @@ void *dispatch(void *args) {
 			break;
 	}
 
-	// free(param); ?
-
-	if (param->params) {
-		free(param->params);
-	}
-	if (param) {
-		free(param);
-	}
 	thread_terminated();
 	return NULL;
 }
@@ -320,11 +323,12 @@ int event_dispatch(event evt, void **params, int *callId) {
 		accountId = (int) params[0];
 		callee = (char *) params[1];
 
-		threadParam->params =
-			(void **) malloc(2 * sizeof(int) + strlen(callee));
+		threadParam->params = (void **) malloc(3 * sizeof(void *));
 		threadParam->params[0] = (void *) accountId;
-		threadParam->params[1] = (void *) callee;
-		threadParam->params[2] = (void *) callId;
+		threadParam->params[1] =
+			(void *) malloc(strlen(callee) * sizeof(char) + 1);
+		strcpy(threadParam->params[1], callee);
+		threadParam->params[2] = (void *) *callId;
 		threadParam->trigger = evt;
 
 	} else {
