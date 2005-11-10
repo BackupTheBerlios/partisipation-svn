@@ -737,7 +737,7 @@ int rm_register_account(int accountId) {
 		return 0;
 	}
 
-	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX " leaving rm_register_account()");
+	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "leaving rm_register_account()");
 	return 1;					// pseudo success
 }
 
@@ -754,7 +754,7 @@ int rm_unregister_account(int accountId) {
 		return 0;
 	}
 
-	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX " leaving rm_unregister_account()");
+	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "leaving rm_unregister_account()");
 	return 1;					// pseudo success
 }
 
@@ -771,7 +771,7 @@ int rm_register_auto() {
 		return 0;
 	}
 
-	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX " leaving rm_register_auto()");
+	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "leaving rm_register_auto()");
 	return 1;					// pseudo success
 }
 
@@ -788,7 +788,7 @@ int rm_unregister_all() {
 		return 0;
 	}
 
-	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX " leaving rm_unregister_all()");
+	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "leaving rm_unregister_all()");
 	return 1;					// pseudo success
 }
 
