@@ -83,15 +83,36 @@ int sm_inviting_state_on_entry(local_call_info * callInfo) {
 				  callInfo->accountId);
 		return 0;
 	}
+	// event dispatcher has to know SIP call ID: save it in own statemachine
+	// record; lock before actually sending the invite to prevent answer 
+	// arriving before sipCallId is set
+	rc = pthread_mutex_lock(&queuesLock);
+	if (rc != 0) {
+		LOG_DEBUG(STATEMACHINE_PREFIX "initial state, "
+				  "SipListener.receive: failed to gain mutex lock");
+		return 0;
+	}
 
 	rc = sipstack_send_invite(callInfo->callee, callInfo->caller,
 							  acc->displayname, "");
-	if (!rc) {
+	if (rc == -1) {
 		LOG_DEBUG(STATEMACHINE_PREFIX "inviting.OnEntry: failed to send "
 				  "INVITE via sipstack adapter (call ID: %d)",
 				  callInfo->callId);
 		return 0;
 	}
+
+	callInfo->sipCallId = rc;
+
+	queues[callInfo->queueId]->callId = callInfo->callId;
+
+	rc = pthread_mutex_unlock(&queuesLock);
+	if (rc != 0) {
+		LOG_DEBUG(STATEMACHINE_PREFIX "initial state, "
+				  "SipListener.receive: failed to release mutex " "lock");
+		return 0;
+	}
+
 	return 1;
 }
 
@@ -227,6 +248,25 @@ int sm_initial_state(sm_state * curState, event trigger, void **params,
 			callInfo->dialogId = sipEvt->dialogId;
 			callInfo->from = NULL;
 			callInfo->to = NULL;
+
+			// event dispatcher has to know generated call ID: save it in
+			// own statemachine record
+			rc = pthread_mutex_lock(&queuesLock);
+			if (rc != 0) {
+				LOG_DEBUG(STATEMACHINE_PREFIX "initial state, "
+						  "SipListener.receive: failed to gain mutex lock");
+				return 0;
+			}
+
+			queues[callInfo->queueId]->callId = callInfo->callId;
+
+			rc = pthread_mutex_unlock(&queuesLock);
+			if (rc != 0) {
+				LOG_DEBUG(STATEMACHINE_PREFIX "initial state, "
+						  "SipListener.receive: failed to release mutex "
+						  "lock");
+				return 0;
+			}
 
 			rc = add_transaction(callInfo, sipEvt->transactionId,
 								 INVITE_TRANSACTION);

@@ -13,7 +13,7 @@
 #include <sipstack/sip_stack_interface.h>
 #include <core/sip_output/registrar_manager.h>
 
-#define EVENT_DISP_MSG_PREFIX "[event dispatcher]"
+#define EVENT_DISP_MSG_PREFIX "[event dispatcher] "
 
 sm_data **queues;
 pthread_mutex_t queuesLock;
@@ -22,7 +22,8 @@ int ed_init() {
 	int rc;
 
 	rc = pthread_mutex_init(&queuesLock, NULL);
-	if (rc != 0) {				// ERROR
+	if (rc != 0) {
+		LOG_DEBUG(EVENT_DISP_MSG_PREFIX "failed to initialize mutex lock");
 		return 0;
 	}
 
@@ -38,7 +39,7 @@ int ed_destroy() {
 
 	rc = pthread_mutex_destroy(&queuesLock);
 	if (rc != 0) {
-		// ERROR
+		LOG_DEBUG(EVENT_DISP_MSG_PREFIX "failed to release mutex lock");
 		return 0;
 	}
 
@@ -47,7 +48,7 @@ int ed_destroy() {
 	return 1;
 }
 
-int create_queue(int *pos, int callId) {
+int create_queue(int *pos, int callId, int sipCallId) {
 	int i;						// counter
 	int rc;						// return code
 
@@ -60,14 +61,17 @@ int create_queue(int *pos, int callId) {
 		i++;
 
 		if (i == config.core.events.dispatcher.maxCalls) {
-			// ERROR: too many simultanous calls
-			// unlock:
+			LOG_ERROR(EVENT_DISP_MSG_PREFIX "too many simultanous calls, "
+					  "maximum is %d",
+					  config.core.events.dispatcher.maxCalls);
+			// unlock
 			pthread_mutex_unlock(&queuesLock);
 			return 0;
 		}
 	}
 
-	printf("position found: %d\n", i);
+	LOG_ERROR(EVENT_DISP_MSG_PREFIX "create queue: position found: %d\n",
+			  i);
 
 	sm_data *data;
 
@@ -80,6 +84,7 @@ int create_queue(int *pos, int callId) {
 	pthread_mutex_unlock(&queuesLock);
 
 	queues[i]->callId = callId;
+	queues[i]->sipCallId = sipCallId;
 
 	// initialize event queue for specific statemachine:
 	queues[i]->eventPool =
@@ -88,24 +93,31 @@ int create_queue(int *pos, int callId) {
 	// initialize wakeup-condition-variable for specific statemachine:
 	rc = pthread_cond_init(&queues[i]->wakeUp, NULL);
 	if (rc != 0) {
-		// ERROR
+		LOG_DEBUG(EVENT_DISP_MSG_PREFIX
+				  "create queue: failed to initialize "
+				  "wakeup-condition-variable");
 		return 0;
 	}
 	// condition-variable always comes with a mutex lock:
 	rc = pthread_mutex_init(&queues[i]->wakeUpLock, NULL);
 	if (rc != 0) {
-		// ERROR
+		LOG_DEBUG(EVENT_DISP_MSG_PREFIX
+				  "create queue: failed to initialize "
+				  "mutex lock for condition variable");
 		return 0;
 	}
 	// initialize mutex lock for event pool:
 	rc = pthread_mutex_init(&queues[i]->poolLock, NULL);
 	if (rc != 0) {
-		// ERROR
+		LOG_DEBUG(EVENT_DISP_MSG_PREFIX
+				  "create queue: failed to initialize "
+				  "event pool mutex lock");
 		return 0;
 	}
 	// set the given parameter to the found position
 	*pos = i;
 
+	LOG_DEBUG(EVENT_DISP_MSG_PREFIX "created queue");
 	// return true for success:
 	return 1;
 }
@@ -119,31 +131,44 @@ int destroy_queue(int pos) {
 	// release condition variable:
 	rc = pthread_cond_destroy(&queues[pos]->wakeUp);
 	if (rc != 0) {
-		// ERROR
+		LOG_DEBUG(EVENT_DISP_MSG_PREFIX "destroy queue: failed to release "
+				  "wakeup condition variable");
 		return 0;
 	}
 	// release mutex locks:
 	rc = pthread_mutex_destroy(&queues[pos]->wakeUpLock);
 	if (rc != 0) {
-		// ERROR
+		LOG_DEBUG(EVENT_DISP_MSG_PREFIX "destroy queue: failed to release "
+				  "mutex lock for condition variable");
 		return 0;
 	}
 
 	rc = pthread_mutex_destroy(&queues[pos]->poolLock);
 	if (rc != 0) {
-		// ERROR
+		LOG_DEBUG(EVENT_DISP_MSG_PREFIX "destroy queue: failed to release "
+				  "event pool mutex lock");
 		return 0;
 	}
 	// release array element and remove reference:
 	free(queues[pos]);
 	queues[pos] = 0;
 
+	LOG_DEBUG(EVENT_DISP_MSG_PREFIX "destroyed queue");
 	// return true for success:
 	return 1;
 }
 
 int find_pos_by_call_id(int callId) {
 	int i;
+	int rc;
+
+	// we have to lock, because statemachine may update the call ID atm
+	rc = pthread_mutex_lock(&queuesLock);
+	if (rc != 0) {
+		LOG_DEBUG(EVENT_DISP_MSG_PREFIX "find pos by call ID: failed to "
+				  "gain mutex lock");
+		return 0;
+	}
 
 	i = 0;
 	while (i < config.core.events.dispatcher.maxCalls) {
@@ -154,44 +179,142 @@ int find_pos_by_call_id(int callId) {
 		}
 		i++;
 	}
+
+	rc = pthread_mutex_unlock(&queuesLock);
+	if (rc != 0) {
+		LOG_DEBUG(EVENT_DISP_MSG_PREFIX "find pos by call ID: failed to "
+				  "gain mutex lock");
+		return 0;
+	}
+
+	return -1;
+}
+
+int find_pos_by_sip_call_id(int sipCallId) {
+	int i;
+	int rc;
+
+	// we have to lock, because statemachine may update the SIP call ID atm
+	rc = pthread_mutex_lock(&queuesLock);
+	if (rc != 0) {
+		LOG_DEBUG(EVENT_DISP_MSG_PREFIX
+				  "find pos by SIP call ID: failed to " "gain mutex lock");
+		return 0;
+	}
+
+	i = 0;
+	while (i < config.core.events.dispatcher.maxCalls) {
+		if (queues[i]) {
+			if (queues[i]->sipCallId == sipCallId) {
+				return i;
+			}
+		}
+		i++;
+	}
+
+	rc = pthread_mutex_unlock(&queuesLock);
+	if (rc != 0) {
+		LOG_DEBUG(EVENT_DISP_MSG_PREFIX
+				  "find pos by SIP call ID: failed to " "gain mutex lock");
+		return 0;
+	}
+
 	return -1;
 }
 
 int enqueue_event(int pos, call_trigger * param) {
-	pthread_mutex_lock(&queues[pos]->poolLock);
+	int rc;
+
+	rc = pthread_mutex_lock(&queues[pos]->poolLock);
+	if (rc != 0) {
+		LOG_DEBUG(EVENT_DISP_MSG_PREFIX
+				  "enqueue event: failed to gain mutex" " lock");
+		return 0;
+	}
+
 	queue_enqueue((void *) param, queues[pos]->eventPool);
-	pthread_mutex_unlock(&queues[pos]->poolLock);
+
+	rc = pthread_mutex_unlock(&queues[pos]->poolLock);
+	if (rc != 0) {
+		LOG_DEBUG(EVENT_DISP_MSG_PREFIX "enqueue event: failed to release "
+				  "mutex lock");
+		return 0;
+	}
+
 	return 1;
 }
 
 int wake_machine(int pos) {
-	pthread_mutex_lock(&queues[pos]->wakeUpLock);
-	pthread_cond_signal(&queues[pos]->wakeUp);
-	pthread_mutex_unlock(&queues[pos]->wakeUpLock);
+	int rc;
+
+	rc = pthread_mutex_lock(&queues[pos]->wakeUpLock);
+	if (rc != 0) {
+		LOG_DEBUG(EVENT_DISP_MSG_PREFIX
+				  "wake machine: failed to gain mutex" " lock");
+		return 0;
+	}
+
+	rc = pthread_cond_signal(&queues[pos]->wakeUp);
+	if (rc != 0) {
+		LOG_DEBUG(EVENT_DISP_MSG_PREFIX "wake machine: failed to send "
+				  "condition signal");
+		return 0;
+	}
+
+	rc = pthread_mutex_unlock(&queues[pos]->wakeUpLock);
+	if (rc != 0) {
+		LOG_DEBUG(EVENT_DISP_MSG_PREFIX "wake machine: failed to release "
+				  "mutex lock");
+		return 0;
+	}
+
 	return 1;
 }
 
-int enqueue_and_wake(int callId, call_trigger * param) {
-	int res, pos;
+int enqueue_and_wake(int callId, int sipCallId, call_trigger * param) {
+	int res;
+	int pos;
 
-	res = find_pos_by_call_id(callId);
-	if (res == -1) {
-		// ERROR
+	if (callId > 0) {
+		res = find_pos_by_call_id(callId);
+		if (res == -1) {
+			LOG_DEBUG(EVENT_DISP_MSG_PREFIX "enqueue and wake: failed to "
+					  "find statemachine position to given call ID %d",
+					  callId);
+			return 0;
+		}
+	} else if (sipCallId > 0) {
+		res = find_pos_by_sip_call_id(sipCallId);
+		if (res == -1) {
+			LOG_DEBUG(EVENT_DISP_MSG_PREFIX "enqueue and wake: failed to "
+					  "find statemachine position to given SIP call ID %d",
+					  sipCallId);
+			return 0;
+		}
+	} else {
+		LOG_DEBUG(EVENT_DISP_MSG_PREFIX "neither call ID nor SIP call ID "
+				  "given - unable to find statemachine position");
 		return 0;
 	}
+
 	pos = res;
 
 	res = enqueue_event(pos, param);
 	if (!res) {
-		// ERROR
+		LOG_DEBUG(EVENT_DISP_MSG_PREFIX
+				  "enqueue and wake: failed to enqueue "
+				  "current event (event type %d, call ID %d)",
+				  param->trigger, callId);
 		return 0;
 	}
 
 	res = wake_machine(pos);
 	if (!res) {
-		// ERROR
+		LOG_DEBUG(EVENT_DISP_MSG_PREFIX "enqueue and wake: failed to wake "
+				  "statemachine (call ID: %d)", callId);
 		return 0;
 	}
+
 	return 1;
 }
 
@@ -207,23 +330,28 @@ void leave_dispatch_thr_err(call_trigger * param) {
 
 void *dispatch(void *args) {
 
+	int res;
+	int pos;
+	int callId;
+	int sipCallId;
 	call_trigger *param;
+	sipstack_event *sipEvt;
 
 	param = (call_trigger *) args;
-
-	int res, pos, callId;
-
-	sipstack_event *sipEvt;
+	if (!param) {
+		LOG_DEBUG(EVENT_DISP_MSG_PREFIX "dispatch thread received no "
+				  "parameters");
+		leave_dispatch_thr_err(param);
+		return NULL;
+	}
 
 	switch (param->trigger) {
 		case GUI_MAKE_CALL:
 			callId = (int) param->params[2];
-			res = create_queue(&pos, callId);
-			if (res == 0) {
-				// ERROR
+			res = create_queue(&pos, callId, 0);
+			if (!res) {
 				LOG_DEBUG(EVENT_DISP_MSG_PREFIX
 						  "create_queue(): no free position found");
-
 				leave_dispatch_thr_err(param);
 				return NULL;
 			}
@@ -243,64 +371,73 @@ void *dispatch(void *args) {
 
 				res = rm_receive_register_event(sipEvt);
 				if (!res) {
-					// ERROR
+					LOG_DEBUG(EVENT_DISP_MSG_PREFIX
+							  "dispatch thread: failed "
+							  "to deliver registration event to registrar "
+							  "manager");
+					leave_dispatch_thr_err(param);
+					return NULL;
+				}
+			} else if (sipEvt->type == EXOSIP_CALL_INVITE) {
+				sipCallId = sipEvt->callId;
+				res = create_queue(&pos, 0, sipCallId);
+				if (!res) {
+					LOG_DEBUG(EVENT_DISP_MSG_PREFIX
+							  "create_queue(): no free position found");
+					leave_dispatch_thr_err(param);
+					return NULL;
+				}
+
+				queue_enqueue((void *) param, queues[pos]->eventPool);
+
+				start_thread(sm_start, (void *) pos);
+			} else {
+				sipCallId = sipEvt->callId;
+				res = enqueue_and_wake(sipCallId, 0, param);
+				if (!res) {
+					LOG_DEBUG(EVENT_DISP_MSG_PREFIX "dispatch thread, "
+							  "SipListener.receive: enqueue&wake failed "
+							  "(event type: %d)", sipEvt->type);
+					leave_dispatch_thr_err(param);
+					return NULL;
 				}
 			}
 
-			/*
-			   callId = (int) param->params[0];
-			   res = create_queue(&pos, callId);
-			   if (res == 0) {
-			   // ERROR
-			   printf("no free position found!\n");
-
-			   free(param);
-
-			   thread_terminated();
-			   return NULL;
-			   }
-
-			   queue_enqueue((void *) param, queues[pos]->eventPool);
-
-			   start_thread(sm_start, (void *) pos);
-			 */
-			// <TEST>
-			/*
-			 * sleep(4);
-			 * 
-			 * res = destroy_queue(pos);
-			 * if (res == 0) {
-			 * // ERROR
-			 * printf("error destroying queue!\n");
-			 * 
-			 * free(param);
-			 * 
-			 * thread_terminated();
-			 * } 
-			 */
-			// </TEST>
 			break;
 		case GUI_END_CALL:
 			callId = (int) param->params[0];
-			res = enqueue_and_wake(callId, param);
+			res = enqueue_and_wake(callId, 0, param);
 			if (!res) {
-				// ERROR
+				LOG_DEBUG(EVENT_DISP_MSG_PREFIX "dispatch thread, "
+						  "GUI.endCall: enqueue&wake failed");
+				leave_dispatch_thr_err(param);
+				return NULL;
 			}
 			break;
 		case GUI_ACCEPT_CALL:
 			callId = (int) param->params[0];
-			res = enqueue_and_wake(callId, param);
+			res = enqueue_and_wake(callId, 0, param);
 			if (!res) {
-				// ERROR
+				LOG_DEBUG(EVENT_DISP_MSG_PREFIX "dispatch thread, "
+						  "GUI.acceptCall: enqueue&wake failed");
+				leave_dispatch_thr_err(param);
+				return NULL;
 			}
 			break;
 		case INVALID_EVENT:
-			// ERROR
-			break;
+			LOG_DEBUG(EVENT_DISP_MSG_PREFIX "dispatch thread, "
+					  "GUI.endCall: enqueue&wake failed");
+			leave_dispatch_thr_err(param);
+			return NULL;
 		default:
-			// NYI
-			break;
+			LOG_ERROR(EVENT_DISP_MSG_PREFIX "dispatch thread: received "
+					  "event which is not yet implemented");
+			leave_dispatch_thr_err(param);
+			return NULL;
 	}
+
+	// don't free event, because it is needed by the statemachine
+	// statemachine is responsible for freeing the event and its parameters
 
 	thread_terminated();
 	return NULL;
@@ -336,8 +473,10 @@ int event_dispatch(event evt, void **params, int *callId) {
 		threadParam->params = params;
 	}
 
+	// start dispatch thread - it does the real dispatching
 	rc = start_thread(dispatch, (void *) threadParam);
 	if (!rc) {
+		LOG_ERROR(EVENT_DISP_MSG_PREFIX "failed to start dispatch thread");
 		return 0;
 	}
 
