@@ -93,7 +93,7 @@ int sm_inviting_state_on_entry(local_call_info * callInfo) {
 		return 0;
 	}
 
-	rc = sipstack_send_invite(callInfo->callee, callInfo->caller,
+	rc = sipstack_send_invite(callInfo->to, callInfo->from,
 							  acc->displayname, "");
 	if (rc == -1) {
 		LOG_DEBUG(STATEMACHINE_PREFIX "inviting.OnEntry: failed to send "
@@ -104,7 +104,7 @@ int sm_inviting_state_on_entry(local_call_info * callInfo) {
 
 	callInfo->sipCallId = rc;
 
-	queues[callInfo->queueId]->callId = callInfo->callId;
+	queues[callInfo->queueId]->sipCallId = callInfo->sipCallId;
 
 	rc = pthread_mutex_unlock(&queuesLock);
 	if (rc != 0) {
@@ -224,6 +224,8 @@ int sm_initial_state(sm_state * curState, event trigger, void **params,
 				break;
 			}
 
+			LOG_DEBUG(STATEMACHINE_PREFIX "inital state, "
+					  "SipListener.receive: To URL: %s", sipEvt->toUrl);
 			callInfo->accountId =
 				am_get_account_by_callee_uri(sipEvt->toUrl);
 			if (callInfo->accountId == -1) {
@@ -243,7 +245,7 @@ int sm_initial_state(sm_state * curState, event trigger, void **params,
 			callInfo->caller =
 				(char *) malloc(strlen(sipEvt->fromUrl) * sizeof(char) +
 								1);
-			strcpy(callInfo->callee, sipEvt->fromUrl);
+			strcpy(callInfo->caller, sipEvt->fromUrl);
 			callInfo->sipCallId = sipEvt->callId;
 			callInfo->dialogId = sipEvt->dialogId;
 			callInfo->from = NULL;
@@ -358,6 +360,9 @@ int sm_inviting_state(sm_state * curState, event trigger, void **params,
 	switch (trigger) {
 		case SIPLISTENER_RECEIVE:
 			sipEvt = (sipstack_event *) params[0];
+			update_transaction_and_dialog(callInfo, sipEvt->transactionId, 
+										  INVITE_TRANSACTION, 
+										  sipEvt->dialogId);
 			if ((sipEvt->statusCode >= 100)
 				 && (sipEvt->statusCode <= 199)) {
 				switch (sipEvt->statusCode) {
@@ -379,6 +384,7 @@ int sm_inviting_state(sm_state * curState, event trigger, void **params,
 				
 				// don't leave current state, we're still inviting callee:
 				*curState = INVITING;
+				break;
 			} else if ((sipEvt->statusCode >= 200)
 						&& (sipEvt->statusCode <= 299)) {
 				int rc;
@@ -386,7 +392,8 @@ int sm_inviting_state(sm_state * curState, event trigger, void **params,
 				if (!rc) {
 					LOG_DEBUG(STATEMACHINE_PREFIX "inviting state, "
 						"SipListener.Receive: failed to send ACK via "
-						"sipstack adapter (call ID: %d)", callInfo->callId);
+						"sipstack adapter (call ID: %d, dialog ID: %d)", 
+						callInfo->callId, callInfo->dialogId);
 					return 0;
 				}
 
@@ -490,6 +497,11 @@ int sm_ringing_state(sm_state * curState, event trigger,
 						  "%d - ignoring event", sipEvt->type);
 				break;
 			}
+
+			update_transaction_and_dialog(callInfo, sipEvt->transactionId,
+										  CANCEL_TRANSACTION,
+										  sipEvt->dialogId);
+
 			// INVITE
 			transId =
 				find_transaction_by_type(callInfo, INVITE_TRANSACTION);
@@ -540,6 +552,8 @@ int sm_ringing_state(sm_state * curState, event trigger,
 			break;
 		default:
 			// ignore event, no transition
+			LOG_DEBUG(STATEMACHINE_PREFIX "ringing state, received event "
+					  "without matching transition: ignoring");
 			break;
 	}
 	return 1;
@@ -651,10 +665,15 @@ int sm_connecting_state(sm_state * curState, event trigger,
 				break;
 			}
 			// wrong event, ignore
-
+			LOG_DEBUG(STATEMACHINE_PREFIX "connecting state, "
+					  "SipListener.receive: expected ACK or CANCEL, but "
+					  "received %d - ignoring event", sipEvt->type);
 			break;
 		default:
 			// ignore event, no transition
+			LOG_DEBUG(STATEMACHINE_PREFIX
+					  "connecting state, received event "
+					  "without matching transition: ignoring");
 			break;
 	}
 	return 1;
@@ -681,34 +700,43 @@ int sm_connected_state(sm_state * curState, event trigger,
 		case SIPLISTENER_RECEIVE:
 			sipEvt = (sipstack_event *) params[0];
 
-			// BYE
 			if (sipEvt->type != EXOSIP_CALL_CLOSED) {
-				// wrong event
+				LOG_DEBUG(STATEMACHINE_PREFIX "connected state, "
+						  "SipListener.receive: expected BYE, but "
+						  "received %d - ignoring event", sipEvt->type);
 				break;
 			}
+			// BYE
 
-			transId =
-				find_transaction_by_type(callInfo, INVITE_TRANSACTION);
+			update_transaction_and_dialog(callInfo, sipEvt->transactionId,
+										  BYE_TRANSACTION,
+										  sipEvt->dialogId);
+
+			transId = find_transaction_by_type(callInfo, BYE_TRANSACTION);
 			if (transId == -1) {
 				LOG_DEBUG(STATEMACHINE_PREFIX "connected state, "
 						  "SipListener.receive: failed to find matching "
-						  "INVITE transaction (call ID: %d)",
+						  "BYE transaction (call ID: %d)",
 						  callInfo->callId);
 				return 0;
 			}
-
-			rc = sipstack_send_ok(callInfo->dialogId, transId);
-			if (!rc) {
-				LOG_DEBUG(STATEMACHINE_PREFIX "connected state, "
-						  "SipListener.receive: failed to send status "
-						  "code 200 via sipstack adapter (call ID: %d)",
-						  callInfo->callId);
-				return 0;
-			}
+			/*
+			   rc = sipstack_send_ok(callInfo->dialogId, transId);
+			   if (!rc) {
+			   LOG_DEBUG(STATEMACHINE_PREFIX "connected state, "
+			   "SipListener.receive: failed to send status "
+			   "code 200 via sipstack adapter (call ID: %d, "
+			   "dialogId: %d, transaction: %d)",
+			   callInfo->callId, callInfo->dialogId, transId);
+			   return 0;
+			   } */
 			*curState = TERMINATING;
 			break;
 		default:
 			// ignore event, no transition
+			LOG_DEBUG(STATEMACHINE_PREFIX
+					  "connecting state, received event "
+					  "without matching transition: ignoring");
 			break;
 	}
 	return 1;
@@ -729,30 +757,50 @@ int sm_terminating_state(sm_state * curState,
 	return 1;
 }
 
-void free_call_trigger(call_trigger * elem) {
+int free_call_trigger(call_trigger * elem) {
 	int rc;
 	sipstack_event *sipEvt;
 	char *callee;
 
 	if (!elem) {
-		return;
+		return 1;
 	}
 
 	switch (elem->trigger) {
 		case GUI_MAKE_CALL:
 			callee = (char *) elem->params[1];
-			free(callee);
-			free(elem->params);
+			if (callee) {
+				free(callee);
+			}
+			if (elem->params) {
+				free(elem->params);
+			}
 			break;
 		case GUI_END_CALL:
-			free(elem->params);
+			if (elem->params) {
+				free(elem->params);
+			}
 			break;
 		case GUI_ACCEPT_CALL:
-			free(elem->params);
+			if (elem->params) {
+				free(elem->params);
+			}
 			break;
 		case SIPLISTENER_RECEIVE:
+			if (!elem->params) {
+				break;
+			}
+
 			sipEvt = (sipstack_event *) elem->params[0];
 			rc = sipstack_event_free(sipEvt);
+			if (!rc) {
+				LOG_DEBUG(STATEMACHINE_PREFIX "failed to release sipstack "
+						  "event");
+				free(elem->params);
+				free(elem);
+				return 0;
+			}
+
 			free(elem->params);
 			break;
 		case ACCOUNT_ERROR:
@@ -764,6 +812,7 @@ void free_call_trigger(call_trigger * elem) {
 	}
 
 	free(elem);
+	return 1;
 }
 
 void *sm_start(void *args) {
@@ -887,10 +936,37 @@ void *sm_start(void *args) {
 
 		if (!errorOccurred && !finished) {
 			// sleep until next event
-			pthread_mutex_lock(&queues[queueId]->wakeUpLock);
-			pthread_cond_wait(&queues[queueId]->wakeUp,
-							  &queues[queueId]->wakeUpLock);
+			LOG_DEBUG(STATEMACHINE_PREFIX "statemachine going to sleep "
+					  "until next event arrives (callId: %d)",
+					  callInfo.callId);
+
+			rc = pthread_mutex_lock(&queues[queueId]->wakeUpLock);
+			if (rc != 0) {
+				LOG_DEBUG(STATEMACHINE_PREFIX "main: failed to gain mutex "
+						  "lock");
+				errorOccurred = 1;
+				break;
+			}
+
+			rc = pthread_cond_wait(&queues[queueId]->wakeUp,
+								   &queues[queueId]->wakeUpLock);
+			if (rc != 0) {
+				LOG_DEBUG(STATEMACHINE_PREFIX "main: failed to wait for "
+						  "signal");
+				errorOccurred = 1;
+				break;
+			}
+
 			pthread_mutex_unlock(&queues[queueId]->wakeUpLock);
+			if (rc != 0) {
+				LOG_DEBUG(STATEMACHINE_PREFIX "main: failed to release "
+						  "mutex lock");
+				errorOccurred = 1;
+				break;
+			}
+
+			LOG_DEBUG(STATEMACHINE_PREFIX "statemachine awaking again "
+					  "(callId: %d)", callInfo.callId);
 		}
 	}
 
