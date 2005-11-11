@@ -7,7 +7,8 @@ CAINCLUDES = /usr/local/include/
 export TOOLSDIR
 export CAINCLUDES
 
-DOCDIR = $(CURDIR)/docs/
+DOCDIR = $(CURDIR)/doc/
+DOXYGENDOCDIR = $(DOCDIR)/api/
 STYLEDOCDIR = $(DOCDIR)/style/
 export STYLEDOCDIR
 
@@ -39,6 +40,8 @@ style:
 	$(MAKE) -C core style
 	$(MAKE) -C tests style
 
+docu: doxygen
+
 doxygen:
 	mkdir -p $(DOCDIR)
 	$(DOXYGEN)
@@ -58,7 +61,8 @@ compile: indent
 
 clean:
 	find ./ -maxdepth 1 | grep \\.o$$ | xargs rm -f
-	rm -rf ./docs/doxygen
+	rm -rf $(DOXYGENDOCDIR)
+	rm -rf $(STYLEDOCDIR)
 	rm -f core_launcher
 	$(MAKE) -C util clean
 	$(MAKE) -C sipstack clean
