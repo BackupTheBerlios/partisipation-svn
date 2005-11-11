@@ -337,16 +337,36 @@ int am_get_account_by_callee_uri(char *calleeSipUri) {
 							 maxAccountIdAmount];
 	int len;					// length of account data array
 	int i;
+	char *uri;
 	char *username;
 	char *domain;
+	char *protocol;
 
-	username = strtok(calleeSipUri, "@");
+	uri = (char *) malloc(strlen(calleeSipUri) * sizeof(char) + 1);
+	strcpy(uri, calleeSipUri);
+
+	protocol = strtok(uri, ":");
+	if (!protocol || strcmp("sip", protocol) != 0) {
+		LOG_DEBUG(ACCOUNT_MANAGER_MSG_PREFIX "get_account_by_callee_uri: "
+				  "wrong protocol in URI <%s>, expecting \"sip:\"",
+				  calleeSipUri);
+		free(uri);
+		return -1;
+	}
+
+	username = strtok(NULL, "@");
 	if (!username) {
+		LOG_DEBUG(ACCOUNT_MANAGER_MSG_PREFIX "get_account_by_callee_uri: "
+				  "@ is missing in URI <%s>", calleeSipUri);
+		free(uri);
 		return -1;
 	}
 
 	domain = strtok(NULL, "");
 	if (!domain) {
+		LOG_DEBUG(ACCOUNT_MANAGER_MSG_PREFIX "get_account_by_callee_uri: "
+				  "domain is empty in URI <%s>", calleeSipUri);
+		free(uri);
 		return -1;
 	}
 	// retrieve all account data:
@@ -356,10 +376,15 @@ int am_get_account_by_callee_uri(char *calleeSipUri) {
 	for (i = 0; i < len; i++) {
 		if (strcmp(accounts[i]->username, username) == 0
 			&& strcmp(accounts[i]->domain, domain) == 0) {
+			free(uri);
 			return accounts[i]->id;
 		}
 	}
 
+	LOG_DEBUG(ACCOUNT_MANAGER_MSG_PREFIX "get_account_by_callee_uri: "
+			  "no account found, URI <%s>, username <%s>, domain <%s>",
+			  calleeSipUri, username, domain);
+	free(uri);
 	return -1;
 }
 
