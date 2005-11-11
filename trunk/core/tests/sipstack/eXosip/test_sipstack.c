@@ -118,7 +118,7 @@ START_TEST(test_sipstack_register) {
 	}
 
 	/* test failed*/
-	if(!queue_is_empty(event_queue)) {
+	if(queue_is_empty(event_queue)) {
 		/* free allocated memory before test fails */
 		sipstack_event_free(event);
 	}
@@ -182,7 +182,9 @@ START_TEST(test_sipstack_call) {
 	int callId = 2;
 
 	int i = sipstack_init();
-
+	
+	event = NULL;
+	
 	/*send initial INVITE */
 	callId = sipstack_send_invite("sip:"TEST_SIPSTACK_CALLEE"@"TEST_SIPSTACK_HOST, "sip:"TEST_SIPSTACK_USER"@"TEST_SIPSTACK_HOST, "Sip Stack Tester", "Sip Stack Test");
 	LOG_DEBUG("INVITE send (callId=%i)", callId);
@@ -190,8 +192,11 @@ START_TEST(test_sipstack_call) {
 	statusCode = 0;
 	while (statusCode < 200) {
 		if (!queue_is_empty(event_queue)) {
-			/* free memory of event which is no more needed*/
-			sipstack_event_free(event);
+			if (event) {
+				/* free memory of event which is no more needed*/
+				sipstack_event_free(event);
+			}
+			
 			/* get new event */
 			event = queue_front_and_dequeue(event_queue);
 			statusCode = event->statusCode;
@@ -243,6 +248,7 @@ START_TEST(test_sipstack_cancel) {
 	int statusCode;
 
 	int i = sipstack_init();
+	event = NULL;
 
 	/*send initial INVITE */
 	int callId = sipstack_send_invite("sip:"TEST_SIPSTACK_CALLEE"@"TEST_SIPSTACK_HOST, "sip:"TEST_SIPSTACK_USER"@"TEST_SIPSTACK_HOST, "SIP STACK TESTER", "Sip Stack Test");
@@ -256,8 +262,10 @@ START_TEST(test_sipstack_cancel) {
 	statusCode = 0;
 	while (statusCode < 99) {
 		if (!queue_is_empty(event_queue)) {
-			/* free memory of event which is no more needed*/
-			sipstack_event_free(event);
+			if (event) {
+				/* free memory of event which is no more needed*/
+				sipstack_event_free(event);
+			}
 			/* get new event */
 			event = queue_front_and_dequeue(event_queue);
 			statusCode = event->statusCode;
@@ -420,7 +428,6 @@ START_TEST(test_bug005562) {
 	 */
 
 	sipstack_event *event;
-	event = (sipstack_event *) malloc(sizeof(sipstack_event));
 
 	sipstack_init();
 
