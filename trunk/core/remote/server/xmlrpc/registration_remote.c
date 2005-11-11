@@ -4,6 +4,9 @@
 #include <xmlrpc.h>
 #include <remote/server/xmlrpc/registration_remote.h>
 #include <remote/server/registration.h>
+#include <util/logging/logger.h>
+
+#define REGISTRATION_REMOTE_MSG_PREFIX "[registration remote]"
 
 xmlrpc_value *register_gui_RP(xmlrpc_env * const env,
 							  xmlrpc_value * const param_array,
@@ -18,7 +21,8 @@ xmlrpc_value *register_gui_RP(xmlrpc_env * const env,
 		return NULL;
 	}
 
-	printf("register_gui called\n");
+	log_message(LOG_INFO,
+				REGISTRATION_REMOTE_MSG_PREFIX "register_gui called");
 
 	result = register_gui(address, port);
 
@@ -38,7 +42,8 @@ xmlrpc_value *unregister_gui_RP(xmlrpc_env * const env,
 		return NULL;
 	}
 
-	printf("unregister_gui called\n");
+	log_message(LOG_INFO,
+				REGISTRATION_REMOTE_MSG_PREFIX "unregister_gui called");
 
 	result = unregister_gui(address, port);
 

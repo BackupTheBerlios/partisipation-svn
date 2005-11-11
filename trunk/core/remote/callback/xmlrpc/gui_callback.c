@@ -13,7 +13,7 @@
 
 void die_if_fault_occurred(xmlrpc_env * env) {
 	if (env->fault_occurred) {
-		log_message(LOG_INFO,
+		log_message(LOG_DEBUG,
 					GUI_CALLBACK_MSG_PREFIX
 					"XML-RPC Fault: %s (%d)",
 					env->fault_string, env->fault_code);
@@ -26,9 +26,9 @@ int change_reg_status(int accountId, int registered) {
 	xmlrpc_value *result;
 	xmlrpc_bool success;
 	const char *methodName = "gui.changeRegStatus";
-	log_message(LOG_INFO,
-				GUI_CALLBACK_MSG_PREFIX "entering changeRegStatus...");
 
+	log_message(LOG_DEBUG,
+				GUI_CALLBACK_MSG_PREFIX "entering changeRegStatus...");
 	/*
 	 * Make the remote procedure call 
 	 */
@@ -48,7 +48,8 @@ int change_reg_status(int accountId, int registered) {
 	 */
 	xmlrpc_DECREF(result);
 
-	log_message(LOG_INFO,
+
+	log_message(LOG_DEBUG,
 				GUI_CALLBACK_MSG_PREFIX "leaving changeRegStatus");
 
 	return success;
@@ -60,9 +61,9 @@ int change_call_status(int callId, char *status) {
 	xmlrpc_bool success;
 	const char *methodName = "gui.changeCallStatus";
 
-	log_message(LOG_INFO,
-				GUI_CALLBACK_MSG_PREFIX "entering changeCallStatus...");
 
+	log_message(LOG_DEBUG,
+				GUI_CALLBACK_MSG_PREFIX "entering changeCallStatus...");
 	/*
 	 * Make the remote procedure call 
 	 */
@@ -81,23 +82,22 @@ int change_call_status(int callId, char *status) {
 	 * Dispose of our result value. 
 	 */
 	xmlrpc_DECREF(result);
-	log_message(LOG_INFO,
-				GUI_CALLBACK_MSG_PREFIX "leaving changeCallStatus...");
 
+	log_message(LOG_DEBUG,
+				GUI_CALLBACK_MSG_PREFIX "leaving changeCallStatus...");
 	return success;
 }
 
-int
-show_user_event(int accountId,
+int show_user_event(int accountId,
 				char *category,
 				char *title, char *message, char *detailMessage) {
 
 	xmlrpc_value *result;
 	xmlrpc_bool success;
 	const char *methodName = "gui.showUserEvent";
-	log_message(LOG_INFO,
-				GUI_CALLBACK_MSG_PREFIX "entering showUserEvent...");
 
+	log_message(LOG_DEBUG,
+				GUI_CALLBACK_MSG_PREFIX "entering showUserEvent...");
 	/*
 	 * Make the remote procedure call 
 	 */
@@ -117,8 +117,8 @@ show_user_event(int accountId,
 	 */
 	xmlrpc_DECREF(result);
 
-	log_message(LOG_INFO, GUI_CALLBACK_MSG_PREFIX "leaving showUserEvent");
-
+	log_message(LOG_DEBUG,
+				GUI_CALLBACK_MSG_PREFIX "leaving showUserEvent");
 	return success;
 }
 
@@ -127,7 +127,8 @@ int register_core() {
 	xmlrpc_bool success;
 	const char *methodName = "gui.registerCore";
 
-	log_message(LOG_INFO,
+
+	log_message(LOG_DEBUG,
 				GUI_CALLBACK_MSG_PREFIX "entering registerCore...");
 
 	/*
@@ -147,7 +148,7 @@ int register_core() {
 	 * Dispose of our result value. 
 	 */
 	xmlrpc_DECREF(result);
-	log_message(LOG_INFO, GUI_CALLBACK_MSG_PREFIX "leaving registerCore");
+	log_message(LOG_DEBUG, GUI_CALLBACK_MSG_PREFIX "leaving registerCore");
 
 	return success;
 }
@@ -159,9 +160,8 @@ incoming_call(int accountId,
 	xmlrpc_bool success;
 	const char *methodName = "gui.incomingCall";
 
-	log_message(LOG_INFO,
+	log_message(LOG_DEBUG,
 				GUI_CALLBACK_MSG_PREFIX "entering incomingCall...");
-
 	/*
 	 * Make the remote procedure call 
 	 */
@@ -182,8 +182,8 @@ incoming_call(int accountId,
 	 */
 	xmlrpc_DECREF(result);
 
-	log_message(LOG_INFO, GUI_CALLBACK_MSG_PREFIX "leaving incomingCall");
-
+	log_message(LOG_DEBUG, GUI_CALLBACK_MSG_PREFIX "leaving incomingCall");
+	
 	return success;
 }
 
@@ -191,9 +191,9 @@ int set_speaker_volume_cb(double level) {
 	xmlrpc_value *result;
 	xmlrpc_bool success;
 	const char *methodName = "gui.setSpeakerVolume";
-	log_message(LOG_INFO,
-				GUI_CALLBACK_MSG_PREFIX "entering setSpeakerVolume...");
 
+	log_message(LOG_DEBUG,
+				GUI_CALLBACK_MSG_PREFIX "entering setSpeakerVolume...");
 	/*
 	 * Make the remote procedure call 
 	 */
@@ -211,7 +211,8 @@ int set_speaker_volume_cb(double level) {
 	 * Dispose of our result value. 
 	 */
 	xmlrpc_DECREF(result);
-	log_message(LOG_INFO,
+
+	log_message(LOG_DEBUG,
 				GUI_CALLBACK_MSG_PREFIX "leaving setSpeakerVolume");
 
 	return success;
@@ -222,9 +223,8 @@ int set_micro_volume_cb(double level) {
 	xmlrpc_bool success;
 	const char *methodName = "gui.setMicroVolume";
 
-	log_message(LOG_INFO,
+	log_message(LOG_DEBUG,
 				GUI_CALLBACK_MSG_PREFIX "entering setMicroVolume...");
-
 	/*
 	 * Make the remote procedure call 
 	 */
@@ -243,7 +243,7 @@ int set_micro_volume_cb(double level) {
 	 */
 	xmlrpc_DECREF(result);
 
-	log_message(LOG_INFO,
+	log_message(LOG_DEBUG,
 				GUI_CALLBACK_MSG_PREFIX "leaving setMicroVolume");
 
 	return success;

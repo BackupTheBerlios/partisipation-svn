@@ -4,12 +4,15 @@
 #include <xmlrpc.h>
 #include <remote/server/xmlrpc/calls_remote.h>
 #include <remote/server/calls.h>
+#include <util/logging/logger.h>
+
+#define CALLS_REMOTE_MSG_PREFIX "[calls remote]"
 
 xmlrpc_value *make_call_RP(xmlrpc_env * const env,
 						   xmlrpc_value * const param_array,
 						   void *const server_context) {
 
-	printf("entering makeCall...\n");
+	log_message(LOG_DEBUG, CALLS_REMOTE_MSG_PREFIX "entering makeCall...");
 
 	xmlrpc_int32 accountId;
 	char *callee;
@@ -22,15 +25,14 @@ xmlrpc_value *make_call_RP(xmlrpc_env * const env,
 
 	result = make_call(accountId, callee);
 
-	printf("leaving makeCall\n");
+	log_message(LOG_DEBUG, CALLS_REMOTE_MSG_PREFIX "leaving makeCall");
 	return xmlrpc_build_value(env, "i", result);
 }
 
 xmlrpc_value *end_call_RP(xmlrpc_env * const env,
 						  xmlrpc_value * const param_array,
 						  void *const server_context) {
-
-	printf("entering endCall...\n");
+	log_message(LOG_DEBUG, CALLS_REMOTE_MSG_PREFIX "entering endCall...");
 
 	xmlrpc_int32 callId;
 	int result;
@@ -42,15 +44,15 @@ xmlrpc_value *end_call_RP(xmlrpc_env * const env,
 
 	result = end_call(callId);
 
-	printf("leaving endCall\n");
+	log_message(LOG_DEBUG, CALLS_REMOTE_MSG_PREFIX "leaving endCall");
 	return xmlrpc_build_value(env, "b", result);
 }
 
 xmlrpc_value *accept_call_RP(xmlrpc_env * const env,
 							 xmlrpc_value * const param_array,
 							 void *const server_context) {
-
-	printf("entering acceptCall...\n");
+	log_message(LOG_DEBUG,
+				CALLS_REMOTE_MSG_PREFIX "entering acceptCall...");
 
 	xmlrpc_int32 callId;
 	int result;
@@ -62,6 +64,6 @@ xmlrpc_value *accept_call_RP(xmlrpc_env * const env,
 
 	result = accept_call(callId);
 
-	printf("leaving acceptCall\n");
+	log_message(LOG_DEBUG, CALLS_REMOTE_MSG_PREFIX "leaving acceptCall");
 	return xmlrpc_build_value(env, "b", result);
 }
