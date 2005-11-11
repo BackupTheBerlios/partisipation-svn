@@ -230,6 +230,17 @@ sipstack_event *sipstack_map_event(eXosip_event_t * event) {
 	/* free memory of eXosip event */
 	eXosip_event_free(event);
 
+	// print event info:
+	LOG_DEBUG(SIPSTACK_MSG_PREFIX "event:");
+	LOG_DEBUG(SIPSTACK_MSG_PREFIX "\ttype: %d", sse->type);
+	LOG_DEBUG(SIPSTACK_MSG_PREFIX "\tstatusCode: %d", sse->statusCode);
+	LOG_DEBUG(SIPSTACK_MSG_PREFIX "\tmessage: %s", sse->message);
+	LOG_DEBUG(SIPSTACK_MSG_PREFIX "\tcallId: %d", sse->callId);
+	LOG_DEBUG(SIPSTACK_MSG_PREFIX "\tdialogId: %d", sse->dialogId);
+	LOG_DEBUG(SIPSTACK_MSG_PREFIX "\ttransactionId: %d",
+			  sse->transactionId);
+	LOG_DEBUG(SIPSTACK_MSG_PREFIX "\tregId: %d", sse->regId);
+
 	/* return event */
 	return sse;
 }
@@ -412,6 +423,13 @@ int sipstack_send_invite(char *to, char *from, char *fromDisplayName,
 	i = eXosip_call_build_initial_invite(&invite, to, from, NULL, subject);
 	if (i != 0) {
 		/* building of INVITE message failed */
+		LOG_DEBUG(SIPSTACK_MSG_PREFIX "send invite: building of INVITE "
+				  "message failed, parameters following");
+		LOG_DEBUG(SIPSTACK_MSG_PREFIX "\tto: %s", to);
+		LOG_DEBUG(SIPSTACK_MSG_PREFIX "\tfrom: %s", from);
+		LOG_DEBUG(SIPSTACK_MSG_PREFIX "\tfromDisplayName: %s",
+				  fromDisplayName);
+		LOG_DEBUG(SIPSTACK_MSG_PREFIX "\tsubject: %s", subject);
 		/* return error */
 		return -1;
 	}
