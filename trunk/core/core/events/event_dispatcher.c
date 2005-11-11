@@ -70,7 +70,7 @@ int create_queue(int *pos, int callId, int sipCallId) {
 		}
 	}
 
-	LOG_ERROR(EVENT_DISP_MSG_PREFIX "create queue: position found: %d\n",
+	LOG_DEBUG(EVENT_DISP_MSG_PREFIX "create queue: position found: %d\n",
 			  i);
 
 	sm_data *data;

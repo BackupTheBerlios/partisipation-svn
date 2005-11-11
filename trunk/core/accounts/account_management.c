@@ -12,7 +12,7 @@
 #include <util/config/xml/config_writer.h>
 #include <util/logging/logger.h>
 
-#define ACCOUNT_MANAGER_MSG_PREFIX "[account manager]"
+#define ACCOUNT_MANAGER_MSG_PREFIX "[account manager] "
 
 int id = 0;
 struct account *cur_acc;
