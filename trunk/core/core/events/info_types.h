@@ -4,6 +4,7 @@
 #define MAX_TRANSACTION_COUNT 10
 
 typedef enum {
+	BYE_TRANSACTION,
 	INVITE_TRANSACTION,
 	CANCEL_TRANSACTION
 } transaction_type;

@@ -28,6 +28,36 @@ int add_transaction(local_call_info * callInfo, int transId,
 	return 0;
 }
 
+void update_transaction_and_dialog(local_call_info * callInfo, int transId,
+								   transaction_type transType,
+								   int dialogId) {
+	int i;
+	int pos;
+
+	if (transId < 1) {
+		return;
+	}
+
+	pos = -1;
+
+	for (i = 0; i < MAX_TRANSACTION_COUNT; i++) {
+		if (callInfo->transactions[i].id == transId) {
+			pos = i;
+		}
+	}
+
+	if (pos == -1) {
+		add_transaction(callInfo, transId, transType);
+		return;
+	}
+
+	if (dialogId != 0) {
+		callInfo->dialogId = dialogId;
+	}
+
+	return;
+}
+
 int clear_transaction(local_call_info * callInfo, int transId) {
 	int i;
 	for (i = 0; i < MAX_TRANSACTION_COUNT; i++) {
