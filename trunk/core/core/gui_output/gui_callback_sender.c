@@ -111,6 +111,8 @@ int go_change_call_status(int callId, char *status) {
 	void **params;				// parameter array
 
 	LOG_DEBUG(GUI_CB_SNDR_MSG_PREFIX "entering go_change_call_status()");
+	LOG_DEBUG(GUI_CB_SNDR_MSG_PREFIX "\tcallId: %d", callId);
+	LOG_DEBUG(GUI_CB_SNDR_MSG_PREFIX "\tstatus: %s", status);
 
 	params = (void **) malloc(2 * sizeof(void *));
 	params[0] = (void *) callId;
@@ -310,6 +312,11 @@ int go_incoming_call(int accountId, int callId,
 	void **params;				// parameter array
 
 	LOG_DEBUG(GUI_CB_SNDR_MSG_PREFIX "entering go_incoming_call()");
+	LOG_DEBUG(GUI_CB_SNDR_MSG_PREFIX "\taccountId: %d", accountId);
+	LOG_DEBUG(GUI_CB_SNDR_MSG_PREFIX "\tcallId: %d", callId);
+	LOG_DEBUG(GUI_CB_SNDR_MSG_PREFIX "\tcallerSipUri: %s", callerSipUri);
+	LOG_DEBUG(GUI_CB_SNDR_MSG_PREFIX "\tcallerDisplayName: %s",
+			  callerDisplayName);
 
 	params = (void **) malloc(4 * sizeof(void *));
 	params[0] = (void *) accountId;
