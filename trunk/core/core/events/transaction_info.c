@@ -32,21 +32,22 @@ void update_transaction_and_dialog(local_call_info * callInfo, int transId,
 								   transaction_type transType,
 								   int dialogId) {
 	int i;
-	int pos;
+	int found;
 
 	if (transId < 1) {
 		return;
 	}
 
-	pos = -1;
+	found = 0;
 
 	for (i = 0; i < MAX_TRANSACTION_COUNT; i++) {
 		if (callInfo->transactions[i].id == transId) {
-			pos = i;
+			found = 1;
+			break;
 		}
 	}
 
-	if (pos == -1) {
+	if (!found) {
 		add_transaction(callInfo, transId, transType);
 		return;
 	}

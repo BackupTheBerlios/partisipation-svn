@@ -413,6 +413,8 @@ int sm_inviting_state(sm_state * curState, event trigger, void **params,
 						&& (sipEvt->statusCode <= 699)) {
 				int rc;
 				
+				// send ACK is done by sipstack
+				
 				/*
 				rc = sipstack_send_acknowledgment(callInfo->dialogId);
 				if (!rc) {
@@ -465,7 +467,7 @@ int sm_inviting_state(sm_state * curState, event trigger, void **params,
 int sm_ringing_state(sm_state * curState, event trigger,
 					 void **params, local_call_info * callInfo) {
 	int rc;
-	int transId;
+//  int transId;
 	sipstack_event *sipEvt;
 
 	switch (trigger) {
@@ -493,13 +495,20 @@ int sm_ringing_state(sm_state * curState, event trigger,
 			*curState = TERMINATING;
 		case SIPLISTENER_RECEIVE:
 			sipEvt = (sipstack_event *) params[0];
-			if (sipEvt->type != EXOSIP_CALL_CANCELLED) {
+			// unfortunately eXosip does not use its own events properly
+			// so we have to assume that CALL_CLOSED (BYE) and statusCode 487 
+			// is CANCEL
+//          if (sipEvt->type != EXOSIP_CALL_CANCELLED) {
+			if (sipEvt->type != EXOSIP_CALL_CLOSED
+				|| sipEvt->statusCode != 487) {
 				LOG_DEBUG(STATEMACHINE_PREFIX "ringing state, "
 						  "SipListener.receive: expected CANCEL, but received "
 						  "%d - ignoring event", sipEvt->type);
 				break;
 			}
+			// send 487 (INVITE), send OK (CANCEL) is done by sipstack
 
+/*
 			update_transaction_and_dialog(callInfo, sipEvt->transactionId,
 										  CANCEL_TRANSACTION,
 										  sipEvt->dialogId);
@@ -522,6 +531,7 @@ int sm_ringing_state(sm_state * curState, event trigger,
 						  callInfo->callId);
 				return 0;
 			}
+			
 			// CANCEL
 			transId =
 				find_transaction_by_type(callInfo, CANCEL_TRANSACTION);
@@ -540,7 +550,7 @@ int sm_ringing_state(sm_state * curState, event trigger,
 						  callInfo->callId);
 				return 0;
 			}
-
+*/
 			rc = go_change_call_status(callInfo->callId,
 									   call_status_to_str(CS_CANCELLED));
 			if (!rc) {
@@ -612,7 +622,16 @@ int sm_connecting_state(sm_state * curState, event trigger,
 
 				*curState = CONNECTED;
 				break;
-			} else if (sipEvt->type == EXOSIP_CALL_CANCELLED) {
+
+				// unfortunately eXosip does not use its own events properly
+				// so we have to assume that CALL_CLOSED (BYE) and statusCode 487 
+				// is CANCEL
+//          } else if (sipEvt->type == EXOSIP_CALL_CANCELLED) {
+			} else if (sipEvt->type == EXOSIP_CALL_CLOSED
+					   && sipEvt->statusCode == 487) {
+
+				// send 487 (INVITE), send OK (CANCEL) is done by sipstack
+/*
 				// INVITE
 				transId =
 					find_transaction_by_type(callInfo, INVITE_TRANSACTION);
@@ -651,7 +670,7 @@ int sm_connecting_state(sm_state * curState, event trigger,
 							  callInfo->callId);
 					return 0;
 				}
-
+*/
 				rc = go_change_call_status(callInfo->callId,
 										   call_status_to_str
 										   (CS_CANCELLED));
@@ -722,6 +741,8 @@ int sm_connected_state(sm_state * curState, event trigger,
 						  callInfo->callId);
 				return 0;
 			}
+			// OK is done by sipstack
+
 			/*
 			   rc = sipstack_send_ok(callInfo->dialogId, transId);
 			   if (!rc) {
