@@ -412,13 +412,15 @@ int sm_inviting_state(sm_state * curState, event trigger, void **params,
 			} else if ((sipEvt->statusCode >= 300)
 						&& (sipEvt->statusCode <= 699)) {
 				int rc;
+				
+				/*
 				rc = sipstack_send_acknowledgment(callInfo->dialogId);
 				if (!rc) {
 					LOG_DEBUG(STATEMACHINE_PREFIX "inviting state, "
 						"SipListener.Receive: failed to send ACK via "
 						"sipstack adapter (call ID: %d)", callInfo->callId);
 					return 0;
-				}
+				}*/
 				
 				rc = go_change_call_status(callInfo->callId, call_status_to_str(CS_DECLINED));
 				if (!rc) {
