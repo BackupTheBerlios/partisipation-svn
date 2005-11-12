@@ -11,11 +11,10 @@
 #define REG_RCVR_MSG_PREFIX "[registration receiver] "
 
 char *gi_register_gui(char *const address, int const port) {
+	int rc;
 
 	LOG_DEBUG(REG_RCVR_MSG_PREFIX "register_gui(address: %s port: %d)",
 			  address, port);
-
-	int rc;
 
 	if (config.remote.callback.guiCallback.guiURL) {
 		free(config.remote.callback.guiCallback.guiURL);
@@ -31,9 +30,14 @@ char *gi_register_gui(char *const address, int const port) {
 
 	rc = go_register_core();
 
-	// TODO: what happens in error case? (atm: access violation)
 	if (!rc) {
-		LOG_DEBUG(REG_RCVR_MSG_PREFIX "register_gui result=ERROR");
+		LOG_ERROR(REG_RCVR_MSG_PREFIX "failed to register GUI "
+				  "(address: %s port: %d)", address, port);
+
+		free(config.remote.callback.guiCallback.guiURL);
+		// explicitly setting to NULL so callback functions can savely check 
+		// this 
+		config.remote.callback.guiCallback.guiURL = NULL;
 		return "ERROR";
 	}
 
@@ -42,34 +46,38 @@ char *gi_register_gui(char *const address, int const port) {
 }
 
 int gi_unregister_gui(char *const address, int const port) {
+	char *url;
+	int rc;
 
 	LOG_DEBUG(REG_RCVR_MSG_PREFIX "unregister_gui(address: %s port: %d)",
 			  address, port);
 
-	char *url;
-	int rc;
-
 	url = (char *) malloc(1024 * sizeof(char));
 	sprintf(url, "http://%s:%d/RPC2", address, port);
 
-	if (strcmp(config.remote.callback.guiCallback.guiURL, url) != 0) {
-		LOG_DEBUG(REG_RCVR_MSG_PREFIX "trying to unregister GUI without "
-				  "previous registration");
+	if (!config.remote.callback.guiCallback.guiURL ||
+		strcmp(config.remote.callback.guiCallback.guiURL, url) != 0) {
+
+		LOG_ERROR(REG_RCVR_MSG_PREFIX "trying to unregister GUI without "
+				  "previous registration (url: %s)", url);
+		free(url);
 		return 0;
 	}
 
 	free(config.remote.callback.guiCallback.guiURL);
 	free(url);
 
+	// explicitly setting to NULL so callback functions can savely check this 
+	config.remote.callback.guiCallback.guiURL = NULL;
+
+	// unregister all accounts with the SIP registrars
 	rc = rm_unregister_all();
 	if (!rc) {
-		LOG_DEBUG(REG_RCVR_MSG_PREFIX
+		LOG_ERROR(REG_RCVR_MSG_PREFIX
 				  "unregistering of all accounts failed");
-		// ERROR
 		return 0;
 	}
 
-	return 1;
-
 	LOG_DEBUG(REG_RCVR_MSG_PREFIX "leaving unregister_gui()");
+	return 1;
 }
