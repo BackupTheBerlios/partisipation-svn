@@ -6,14 +6,13 @@
 #include <remote/server/extras.h>
 #include <util/logging/logger.h>
 
-#define EXTRAS_REMOTE_MSG_PREFIX "[extras remote]"
+#define EXTRAS_REMOTE_MSG_PREFIX "[extras remote] "
 
 xmlrpc_value *send_dtmf_RP(xmlrpc_env * const env,
 						   xmlrpc_value * const param_array,
 						   void *const server_context) {
 
-	log_message(LOG_DEBUG,
-				EXTRAS_REMOTE_MSG_PREFIX "entering sendDtmf...");
+	LOG_DEBUG(EXTRAS_REMOTE_MSG_PREFIX "entering sendDtmf...");
 
 	char *character;
 	xmlrpc_int32 callId;

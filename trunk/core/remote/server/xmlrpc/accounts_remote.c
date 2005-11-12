@@ -7,13 +7,13 @@
 #include <util/config/globals.h>
 #include <util/logging/logger.h>
 
-#define ACCOUNTS_REMOTE_MSG_PREFIX "[accounts remote]"
+#define ACCOUNTS_REMOTE_MSG_PREFIX "[accounts remote] "
 
 xmlrpc_value *account_get_all_RP(xmlrpc_env * const env,
 								 xmlrpc_value * const param_array,
 								 void *const server_context) {
-	log_message(LOG_DEBUG,
-				ACCOUNTS_REMOTE_MSG_PREFIX "entering accountGetAll...");
+
+	LOG_DEBUG(ACCOUNTS_REMOTE_MSG_PREFIX "entering accountGetAll...");
 
 	int *ids;
 	int len;
@@ -33,8 +33,7 @@ xmlrpc_value *account_get_all_RP(xmlrpc_env * const env,
 	}
 	free(ids);
 
-	log_message(LOG_DEBUG,
-				ACCOUNTS_REMOTE_MSG_PREFIX "leaving accountGetAll");
+	LOG_DEBUG(ACCOUNTS_REMOTE_MSG_PREFIX "leaving accountGetAll");
 	return result;
 }
 
@@ -42,8 +41,7 @@ xmlrpc_value *account_set_RP(xmlrpc_env * const env,
 							 xmlrpc_value * const param_array,
 							 void *const server_context) {
 
-	log_message(LOG_DEBUG,
-				ACCOUNTS_REMOTE_MSG_PREFIX "entering accountSet...");
+	LOG_DEBUG(ACCOUNTS_REMOTE_MSG_PREFIX "entering accountSet...");
 
 	xmlrpc_int32 accountId;
 	char *attribute;
@@ -58,8 +56,7 @@ xmlrpc_value *account_set_RP(xmlrpc_env * const env,
 
 	result = account_set(accountId, attribute, value);
 
-	log_message(LOG_DEBUG,
-				ACCOUNTS_REMOTE_MSG_PREFIX "leaving accountSet");
+	LOG_DEBUG(ACCOUNTS_REMOTE_MSG_PREFIX "leaving accountSet");
 	return xmlrpc_build_value(env, "b", result);
 }
 
@@ -67,8 +64,7 @@ xmlrpc_value *account_get_RP(xmlrpc_env * const env,
 							 xmlrpc_value * const param_array,
 							 void *const server_context) {
 
-	log_message(LOG_DEBUG,
-				ACCOUNTS_REMOTE_MSG_PREFIX "entering accountGet...");
+	LOG_DEBUG(ACCOUNTS_REMOTE_MSG_PREFIX "entering accountGet...");
 
 	xmlrpc_int32 accountId;
 	char *attribute;
@@ -89,8 +85,7 @@ xmlrpc_value *account_get_RP(xmlrpc_env * const env,
 
 	free(result);
 
-	log_message(LOG_DEBUG,
-				ACCOUNTS_REMOTE_MSG_PREFIX "leaving accountGet");
+	LOG_DEBUG(ACCOUNTS_REMOTE_MSG_PREFIX "leaving accountGet");
 	return xmlres;
 
 }
@@ -98,23 +93,22 @@ xmlrpc_value *account_get_RP(xmlrpc_env * const env,
 xmlrpc_value *account_create_RP(xmlrpc_env * const env,
 								xmlrpc_value * const param_array,
 								void *const server_context) {
-	log_message(LOG_DEBUG,
-				ACCOUNTS_REMOTE_MSG_PREFIX "entering accountCreate...");
+
+	LOG_DEBUG(ACCOUNTS_REMOTE_MSG_PREFIX "entering accountCreate...");
 
 	int result;
 
 	result = account_create();
 
-	log_message(LOG_DEBUG,
-				ACCOUNTS_REMOTE_MSG_PREFIX "leaving accountCreate");
+	LOG_DEBUG(ACCOUNTS_REMOTE_MSG_PREFIX "leaving accountCreate");
 	return xmlrpc_build_value(env, "i", result);
 }
 
 xmlrpc_value *account_delete_RP(xmlrpc_env * const env,
 								xmlrpc_value * const param_array,
 								void *const server_context) {
-	log_message(LOG_DEBUG,
-				ACCOUNTS_REMOTE_MSG_PREFIX "entering accountDelete...");
+
+	LOG_DEBUG(ACCOUNTS_REMOTE_MSG_PREFIX "entering accountDelete...");
 
 	xmlrpc_int32 accountId;
 	int result;
@@ -126,16 +120,15 @@ xmlrpc_value *account_delete_RP(xmlrpc_env * const env,
 
 	result = account_delete(accountId);
 
-	log_message(LOG_DEBUG,
-				ACCOUNTS_REMOTE_MSG_PREFIX "leaving accountDelete");
+	LOG_DEBUG(ACCOUNTS_REMOTE_MSG_PREFIX "leaving accountDelete");
 	return xmlrpc_build_value(env, "b", result);
 }
 
 xmlrpc_value *account_register_RP(xmlrpc_env * const env,
 								  xmlrpc_value * const param_array,
 								  void *const server_context) {
-	log_message(LOG_DEBUG,
-				ACCOUNTS_REMOTE_MSG_PREFIX "entering register...");
+
+	LOG_DEBUG(ACCOUNTS_REMOTE_MSG_PREFIX "entering register...");
 
 	xmlrpc_int32 accountId;
 	int result;
@@ -147,15 +140,15 @@ xmlrpc_value *account_register_RP(xmlrpc_env * const env,
 
 	result = account_register(accountId);
 
-	log_message(LOG_DEBUG, ACCOUNTS_REMOTE_MSG_PREFIX "leaving register");
+	LOG_DEBUG(ACCOUNTS_REMOTE_MSG_PREFIX "leaving register");
 	return xmlrpc_build_value(env, "b", result);
 }
 
 xmlrpc_value *account_unregister_RP(xmlrpc_env * const env,
 									xmlrpc_value * const param_array,
 									void *const server_context) {
-	log_message(LOG_DEBUG,
-				ACCOUNTS_REMOTE_MSG_PREFIX "entering unregister...");
+
+	LOG_DEBUG(ACCOUNTS_REMOTE_MSG_PREFIX "entering unregister...");
 
 	xmlrpc_int32 accountId;
 	int result;
@@ -167,37 +160,34 @@ xmlrpc_value *account_unregister_RP(xmlrpc_env * const env,
 
 	result = account_unregister(accountId);
 
-	log_message(LOG_DEBUG,
-				ACCOUNTS_REMOTE_MSG_PREFIX "leaving unregister");
+	LOG_DEBUG(ACCOUNTS_REMOTE_MSG_PREFIX "leaving unregister");
 	return xmlrpc_build_value(env, "b", result);
 }
 
 xmlrpc_value *account_register_auto_RP(xmlrpc_env * const env,
 									   xmlrpc_value * const param_array,
 									   void *const server_context) {
-	log_message(LOG_DEBUG,
-				ACCOUNTS_REMOTE_MSG_PREFIX "entering registerAuto...");
+
+	LOG_DEBUG(ACCOUNTS_REMOTE_MSG_PREFIX "entering registerAuto...");
 
 	int result;
 
 	result = account_register_auto();
 
-	log_message(LOG_DEBUG,
-				ACCOUNTS_REMOTE_MSG_PREFIX "leaving registerAuto");
+	LOG_DEBUG(ACCOUNTS_REMOTE_MSG_PREFIX "leaving registerAuto");
 	return xmlrpc_build_value(env, "b", result);
 }
 
 xmlrpc_value *account_save_RP(xmlrpc_env * const env,
 							  xmlrpc_value * const param_array,
 							  void *const server_context) {
-	log_message(LOG_DEBUG,
-				ACCOUNTS_REMOTE_MSG_PREFIX "entering accountSave...");
+
+	LOG_DEBUG(ACCOUNTS_REMOTE_MSG_PREFIX "entering accountSave...");
 
 	int result;
 
 	result = account_save();
 
-	log_message(LOG_DEBUG,
-				ACCOUNTS_REMOTE_MSG_PREFIX "leaving accountSave");
+	LOG_DEBUG(ACCOUNTS_REMOTE_MSG_PREFIX "leaving accountSave");
 	return xmlrpc_build_value(env, "i", result);
 }

@@ -16,7 +16,7 @@
 #include <util/config/globals.h>
 #include <util/logging/logger.h>
 
-#define XMLRPC_SERVER_MSG_PREFIX "[xmlrpc server]"
+#define XMLRPC_SERVER_MSG_PREFIX "[xmlrpc server] "
 
 int serverRunning = 0;
 
@@ -141,8 +141,7 @@ void *xmlrpc_server_thread(void *param) {
 	serverparm.log_file_name =
 		config.remote.server.xmlrpcServer.logFileName;
 
-	log_message(LOG_INFO,
-				XMLRPC_SERVER_MSG_PREFIX "Running XML-RPC server...");
+	LOG_INFO(XMLRPC_SERVER_MSG_PREFIX "Running XML-RPC server...");
 
 	xmlrpc_server_abyss(&env, &serverparm, XMLRPC_APSIZE(log_file_name));
 

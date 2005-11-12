@@ -24,15 +24,13 @@ int am_get_max_id();
 	Initialize list of accounts.
 */
 void am_init() {
-	log_message(LOG_DEBUG,
-				ACCOUNT_MANAGER_MSG_PREFIX
-				"account_management_init() - enter");
+	LOG_DEBUG(ACCOUNT_MANAGER_MSG_PREFIX "account_management_init() "
+			  "- enter");
 
 	id = am_get_max_id();
 
-	log_message(LOG_DEBUG,
-				ACCOUNT_MANAGER_MSG_PREFIX
-				"account_management_init() - exit");
+	LOG_DEBUG(ACCOUNT_MANAGER_MSG_PREFIX "account_management_init() "
+			  "- exit");
 }
 
 /**
@@ -42,8 +40,7 @@ void am_init() {
 	@param int* length Pointer to an integer to store length of this array
 */
 void am_account_get_all(int *accountIds, int *length) {
-	log_message(LOG_DEBUG,
-				ACCOUNT_MANAGER_MSG_PREFIX "am_get_all() - enter");
+	LOG_DEBUG(ACCOUNT_MANAGER_MSG_PREFIX "am_get_all() - enter");
 
 	*length = get_length();
 
@@ -58,13 +55,10 @@ void am_account_get_all(int *accountIds, int *length) {
 		}
 	} else {
 		*length = 0;
-		log_message(LOG_ERROR,
-					ACCOUNT_MANAGER_MSG_PREFIX
-					"Error: More accounts than memory reserved");
+		LOG_ERROR(ACCOUNT_MANAGER_MSG_PREFIX "Error: More accounts than "
+				  "memory reserved");
 	}
-	log_message(LOG_DEBUG,
-				ACCOUNT_MANAGER_MSG_PREFIX "am_get_all() - exit");
-
+	LOG_DEBUG(ACCOUNT_MANAGER_MSG_PREFIX "am_get_all() - exit");
 }
 
 /**
@@ -78,8 +72,7 @@ void am_account_get_all(int *accountIds, int *length) {
 int am_account_set(int const accountId, char *const attribute,
 				   char *const value) {
 
-	log_message(LOG_DEBUG,
-				ACCOUNT_MANAGER_MSG_PREFIX "am_account_set() - enter");
+	LOG_DEBUG(ACCOUNT_MANAGER_MSG_PREFIX "am_account_set() - enter");
 
 	struct node *n;
 	struct account *acc;
@@ -130,8 +123,7 @@ int am_account_set(int const accountId, char *const attribute,
 		return 0;
 	}
 
-	log_message(LOG_DEBUG,
-				ACCOUNT_MANAGER_MSG_PREFIX "am_account_set() - exit");
+	LOG_DEBUG(ACCOUNT_MANAGER_MSG_PREFIX "am_account_set() - exit");
 
 	return 1;
 }
@@ -139,9 +131,10 @@ int am_account_set(int const accountId, char *const attribute,
 /**
 	This function delivers certain attribute value for the specified account.
 	
-	Note that only as much characters are read as defined by config.accounts.accountManagement.maxValueLength
-	from <constants.h>. Anything else is cut away, but this length ought be
-	enough for any convenient value. 
+	Note that only as much characters are read as defined by
+	config.accounts.accountManagement.maxValueLength from configuration. 
+	Anything else is cut away, but this length ought be enough for any 
+	convenient value. 
 	
 	@param int accountId ID of the account whose attribute is to be read
 	@param char attribute Name of the attribute to be read
@@ -149,12 +142,10 @@ int am_account_set(int const accountId, char *const attribute,
 */
 void am_account_get(int const accountId, char *const attribute,
 					char *result) {
-	log_message(LOG_DEBUG,
-				ACCOUNT_MANAGER_MSG_PREFIX "am_account_get() - enter");
 
-	log_message(LOG_DEBUG,
-				ACCOUNT_MANAGER_MSG_PREFIX
-				"id: %d, att: %s", accountId, attribute);
+	LOG_DEBUG(ACCOUNT_MANAGER_MSG_PREFIX "am_account_get() - enter");
+	LOG_DEBUG(ACCOUNT_MANAGER_MSG_PREFIX "id: %d, att: %s", accountId,
+			  attribute);
 
 	struct node *n;
 	struct account *acc;
@@ -196,8 +187,7 @@ void am_account_get(int const accountId, char *const attribute,
 		snprintf(result, 10, "%d", acc->autoregister);
 	}
 
-	log_message(LOG_DEBUG,
-				ACCOUNT_MANAGER_MSG_PREFIX "am_account_get() - exit");
+	LOG_DEBUG(ACCOUNT_MANAGER_MSG_PREFIX "am_account_get() - exit");
 }
 
 /**
@@ -206,8 +196,7 @@ void am_account_get(int const accountId, char *const attribute,
 	@return int ID of the new account
 */
 int am_account_create() {
-	log_message(LOG_DEBUG,
-				ACCOUNT_MANAGER_MSG_PREFIX "am_account_create() - enter");
+	LOG_DEBUG(ACCOUNT_MANAGER_MSG_PREFIX "am_account_create() - enter");
 
 	struct account *a = (struct account *) malloc(sizeof(struct account));
 
@@ -228,8 +217,7 @@ int am_account_create() {
 
 	cw_save_config();
 
-	log_message(LOG_DEBUG,
-				ACCOUNT_MANAGER_MSG_PREFIX "am_account_create() - exit");
+	LOG_DEBUG(ACCOUNT_MANAGER_MSG_PREFIX "am_account_create() - exit");
 
 	return id;
 }
@@ -241,15 +229,13 @@ int am_account_create() {
 	@return int Always 1
 */
 int am_account_delete(int const accountId) {
-	log_message(LOG_DEBUG,
-				ACCOUNT_MANAGER_MSG_PREFIX "am_account_delete() - enter");
+	LOG_DEBUG(ACCOUNT_MANAGER_MSG_PREFIX "am_account_delete() - enter");
 
 	del_node(accountId);
 
 	cw_save_config();
 
-	log_message(LOG_DEBUG,
-				ACCOUNT_MANAGER_MSG_PREFIX "account_delete() - exit");
+	LOG_DEBUG(ACCOUNT_MANAGER_MSG_PREFIX "account_delete() - exit");
 
 	return 1;
 }
@@ -258,13 +244,11 @@ int am_account_delete(int const accountId) {
  * This function writes data for all accounts from memory to a file on the disk.
  */
 int am_account_save() {
-	log_message(LOG_DEBUG,
-				ACCOUNT_MANAGER_MSG_PREFIX "am_account_save() - enter");
+	LOG_DEBUG(ACCOUNT_MANAGER_MSG_PREFIX "am_account_save() - enter");
 
 	cw_save_config();
 
-	log_message(LOG_DEBUG,
-				ACCOUNT_MANAGER_MSG_PREFIX "am_account_save() - exit");
+	LOG_DEBUG(ACCOUNT_MANAGER_MSG_PREFIX "am_account_save() - exit");
 	return 1;
 }
 
@@ -290,10 +274,8 @@ void am_get_all_accounts(struct account *accounts[], int *length) {
 		}
 	} else {
 		*length = 0;
-		log_message(LOG_ERROR,
-					ACCOUNT_MANAGER_MSG_PREFIX
-					"Error: More accounts than memory reserved");
-
+		LOG_ERROR(ACCOUNT_MANAGER_MSG_PREFIX "Error: More accounts than "
+				  "memory reserved");
 	}
 }
 

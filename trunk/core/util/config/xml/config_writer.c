@@ -316,9 +316,8 @@ int cw_save_config() {
 		genxEndDocument(w);		// done
 
 	} else {
-		log_message(LOG_INFO,
-					CONFIG_WRITER_MSG_PREFIX
-					"I/O error for file %s", xml_file_name);
+		LOG_ERROR(CONFIG_WRITER_MSG_PREFIX "I/O error for file %s",
+				  xml_file_name);
 		result = 0;
 	}
 	// close file
