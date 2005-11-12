@@ -57,7 +57,7 @@ int create_queue(int *pos, int callId, int sipCallId) {
 
 	i = 0;
 	// find free position in array:
-	while (queues[i] != 0) {
+	while (queues[i]) {
 		i++;
 
 		if (i == config.core.events.dispatcher.maxCalls) {
@@ -73,11 +73,8 @@ int create_queue(int *pos, int callId, int sipCallId) {
 	LOG_DEBUG(EVENT_DISP_MSG_PREFIX "create queue: position found: %d\n",
 			  i);
 
-	sm_data *data;
-
 	// reserve memory for statemachine-specific data
-	data = (sm_data *) malloc(sizeof(sm_data));
-	queues[i] = data;
+	queues[i] = (sm_data *) malloc(sizeof(sm_data));
 
 	// now the position is marked as used and cannot be overwritten:
 	// we can unlock
@@ -151,7 +148,7 @@ int destroy_queue(int pos) {
 	}
 	// release array element and remove reference:
 	free(queues[pos]);
-	queues[pos] = 0;
+	queues[pos] = NULL;
 
 	LOG_DEBUG(EVENT_DISP_MSG_PREFIX "destroyed queue");
 	// return true for success:

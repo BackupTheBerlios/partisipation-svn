@@ -26,6 +26,10 @@ extern sm_data **queues;
 
 extern pthread_mutex_t queuesLock;
 
+// forward declaration - it is defined in event_dispatcher.c but shall not be
+// available via header file (interface):
+int destroy_queue(int pos);
+
 int sm_checking_state_on_entry(local_call_info * callInfo) {
 	int rc;
 	int success;
@@ -859,8 +863,7 @@ void *sm_start(void *args) {
 	errorOccurred = 0;
 
 	while (!errorOccurred && !finished) {
-		while (!errorOccurred && !finished &&
-			   ((curState == TERMINATING) || !queue_is_empty(eventPool))) {
+		while ((curState == TERMINATING) || (!queue_is_empty(eventPool))) {
 
 			call_trigger *elem;
 
@@ -946,6 +949,7 @@ void *sm_start(void *args) {
 						errorOccurred = 1;
 						break;
 					}
+					finished = 1;
 					break;
 				case FINAL:
 					finished = 1;
@@ -954,6 +958,11 @@ void *sm_start(void *args) {
 
 			if (elem) {
 				free_call_trigger(elem);
+			}
+
+			if (errorOccurred || finished) {
+				// leave while loop
+				break;
 			}
 		}
 
@@ -1020,6 +1029,14 @@ void *sm_start(void *args) {
 	if (callInfo.to) {
 		free(callInfo.to);
 	}
+
+	rc = destroy_queue(queueId);
+	if (!rc) {
+		LOG_DEBUG(STATEMACHINE_PREFIX "failed to release statemachine "
+				  "data for this statemachine (pos: %d)", queueId);
+	}
+
+	LOG_DEBUG(STATEMACHINE_PREFIX "statemachine finished.");
 
 	thread_terminated();
 	return NULL;
