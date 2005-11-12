@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <xmlrpc.h>
 #include <xmlrpc_client.h>
@@ -8,10 +9,18 @@
 #include <remote/callback/gui_callback.h>
 #include <util/config/globals.h>
 #include <util/logging/logger.h>
+#include <core/gui_input/registration_receiver.h>
 
 #define GUI_CALLBACK_MSG_PREFIX "[gui callback] "
 
 int xmlrpc_error_occurred(xmlrpc_env * env, const char *methodName) {
+	char *address;
+	char *url;
+	char *portStr;
+	char *protocol;
+	int port;
+	int rc;
+
 	if (env->fault_occurred) {
 		LOG_ERROR(GUI_CALLBACK_MSG_PREFIX "XML-RPC Fault occurred while "
 				  "trying to call %s method at <%s>: %s (%d)", methodName,
@@ -22,10 +31,52 @@ int xmlrpc_error_occurred(xmlrpc_env * env, const char *methodName) {
 		xmlrpc_env_clean(env);
 		xmlrpc_env_init(env);
 
-		// current URL is no longer valid, prevent other functions from 
-		// calling it:
-		free(config.remote.callback.guiCallback.guiURL);
-		config.remote.callback.guiCallback.guiURL = NULL;
+		url = (char *) malloc(strlen(config.remote.callback.
+									 guiCallback.guiURL) *
+							  sizeof(char) + 1);
+		strcpy(url, config.remote.callback.guiCallback.guiURL);
+
+		protocol = strtok(url, ":");
+
+		if (!protocol || strcmp(protocol, "http")) {
+			free(url);
+			free(config.remote.callback.guiCallback.guiURL);
+			config.remote.callback.guiCallback.guiURL = NULL;
+			return 1;
+		}
+		// ignore "//" and get domain part (without port):
+		address = strtok(NULL, "/:");
+
+		if (!address) {
+			free(url);
+			free(config.remote.callback.guiCallback.guiURL);
+			config.remote.callback.guiCallback.guiURL = NULL;
+			return 1;
+		}
+
+		portStr = strtok(NULL, "/");
+
+		if (!portStr) {
+			free(url);
+			free(config.remote.callback.guiCallback.guiURL);
+			config.remote.callback.guiCallback.guiURL = NULL;
+			return 1;
+		}
+
+		port = atoi(portStr);
+
+		// try to shutdown everything GUI-related:
+		rc = gi_unregister_gui(address, port);
+		if (!rc) {
+			free(url);
+			if (config.remote.callback.guiCallback.guiURL) {
+				free(config.remote.callback.guiCallback.guiURL);
+				config.remote.callback.guiCallback.guiURL = NULL;
+			}
+			return 1;
+		}
+
+		free(url);
 		return 1;
 	}
 	return 0;
@@ -60,7 +111,7 @@ int change_reg_status(int accountId, int registered) {
 	}
 
 	LOG_DEBUG(GUI_CALLBACK_MSG_PREFIX "GUI.changeRegStatus returned "
-			  "with %d", success);
+			  "with % d", success);
 
 	// dispose result value
 	xmlrpc_DECREF(result);
@@ -77,8 +128,8 @@ int change_call_status(int callId, char *status) {
 	LOG_DEBUG(GUI_CALLBACK_MSG_PREFIX "entering GUI.changeCallStatus...");
 
 	if (!config.remote.callback.guiCallback.guiURL) {
-		LOG_ERROR(GUI_CALLBACK_MSG_PREFIX
-				  "GUI URL is not set, can not " "alter call status");
+		LOG_ERROR(GUI_CALLBACK_MSG_PREFIX "GUI URL is not set, can not "
+				  "alter call status");
 		return 0;
 	}
 	// make the remote procedure call
@@ -98,7 +149,7 @@ int change_call_status(int callId, char *status) {
 	}
 
 	LOG_DEBUG(GUI_CALLBACK_MSG_PREFIX "GUI.changeCallStatus returned "
-			  "with %d", success);
+			  "with % d", success);
 
 	// dispose result value
 	xmlrpc_DECREF(result);
@@ -117,8 +168,8 @@ int show_user_event(int accountId, char *category, char *title,
 	LOG_DEBUG(GUI_CALLBACK_MSG_PREFIX "entering GUI.showUserEvent...");
 
 	if (!config.remote.callback.guiCallback.guiURL) {
-		LOG_ERROR(GUI_CALLBACK_MSG_PREFIX
-				  "GUI URL is not set, can not " "show user event");
+		LOG_ERROR(GUI_CALLBACK_MSG_PREFIX "GUI URL is not set, can not "
+				  "show user event");
 		return 0;
 	}
 	// make the remote procedure call
@@ -138,8 +189,8 @@ int show_user_event(int accountId, char *category, char *title,
 		return 0;
 	}
 
-	LOG_DEBUG(GUI_CALLBACK_MSG_PREFIX "GUI.showUserEvent returned with %d",
-			  success);
+	LOG_DEBUG(GUI_CALLBACK_MSG_PREFIX
+			  "GUI.showUserEvent returned with % d", success);
 
 	// dispose result value
 	xmlrpc_DECREF(result);
@@ -156,8 +207,8 @@ int register_core() {
 	LOG_DEBUG(GUI_CALLBACK_MSG_PREFIX "entering GUI.registerCore...");
 
 	if (!config.remote.callback.guiCallback.guiURL) {
-		LOG_ERROR(GUI_CALLBACK_MSG_PREFIX
-				  "GUI URL is not set, can not " "register Core");
+		LOG_ERROR(GUI_CALLBACK_MSG_PREFIX "GUI URL is not set, can not "
+				  "register Core");
 		return 0;
 	}
 	// make the remote procedure call
@@ -175,7 +226,7 @@ int register_core() {
 		return 0;
 	}
 
-	LOG_DEBUG(GUI_CALLBACK_MSG_PREFIX "GUI.registerCore returned with %d",
+	LOG_DEBUG(GUI_CALLBACK_MSG_PREFIX "GUI.registerCore returned with % d",
 			  success);
 
 	// dispose result value
@@ -195,8 +246,8 @@ int incoming_call(int accountId, int callId, char *callerSipUri,
 	LOG_DEBUG(GUI_CALLBACK_MSG_PREFIX "entering GUI.incomingCall...");
 
 	if (!config.remote.callback.guiCallback.guiURL) {
-		LOG_ERROR(GUI_CALLBACK_MSG_PREFIX
-				  "GUI URL is not set, can not " "signal incoming call");
+		LOG_ERROR(GUI_CALLBACK_MSG_PREFIX "GUI URL is not set, can not "
+				  "signal incoming call");
 		return 0;
 	}
 	// make the remote procedure call
@@ -216,7 +267,7 @@ int incoming_call(int accountId, int callId, char *callerSipUri,
 		return 0;
 	}
 
-	LOG_DEBUG(GUI_CALLBACK_MSG_PREFIX "GUI.incomingCall returned with %d",
+	LOG_DEBUG(GUI_CALLBACK_MSG_PREFIX "GUI.incomingCall returned with % d",
 			  success);
 
 	// dispose result value
@@ -253,8 +304,8 @@ int set_speaker_volume_cb(double level) {
 		return 0;
 	}
 
-	LOG_DEBUG(GUI_CALLBACK_MSG_PREFIX "GUI.setSpeakerVolume returned "
-			  "with %d", success);
+	LOG_DEBUG(GUI_CALLBACK_MSG_PREFIX "GUI.setSpeakerVolume returned"
+			  "with % d", success);
 
 	// dispose result value
 	xmlrpc_DECREF(result);
@@ -291,7 +342,7 @@ int set_micro_volume_cb(double level) {
 	}
 
 	LOG_DEBUG(GUI_CALLBACK_MSG_PREFIX "GUI.setMicroVolume returned "
-			  "with %d", success);
+			  "with % d", success);
 
 	// dispose result value
 	xmlrpc_DECREF(result);
