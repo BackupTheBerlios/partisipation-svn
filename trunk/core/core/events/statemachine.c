@@ -964,6 +964,12 @@ void *sm_start(void *args) {
 				// leave while loop
 				break;
 			}
+
+			if (queues[queueId]->doShutdown) {
+				// shutdown because of an external reason
+				finished = 1;
+				break;
+			}
 		}
 
 		if (!errorOccurred && !finished) {
@@ -999,6 +1005,12 @@ void *sm_start(void *args) {
 
 			LOG_DEBUG(STATEMACHINE_PREFIX "statemachine awaking again "
 					  "(callId: %d)", callInfo.callId);
+
+			if (queues[queueId]->doShutdown) {
+				// shutdown because of an external reason
+				finished = 1;
+				break;
+			}
 		}
 	}
 

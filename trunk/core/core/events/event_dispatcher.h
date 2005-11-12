@@ -11,6 +11,7 @@ typedef struct {
 	pthread_mutex_t wakeUpLock;
 	int callId;
 	int sipCallId;
+	int doShutdown;
 } sm_data;
 
 typedef struct {
@@ -23,5 +24,7 @@ int ed_init();
 int ed_destroy();
 
 int event_dispatch(event evt, void **params, int *callId);
+
+int ed_shutdown_all();
 
 #endif

@@ -82,6 +82,7 @@ int create_queue(int *pos, int callId, int sipCallId) {
 
 	queues[i]->callId = callId;
 	queues[i]->sipCallId = sipCallId;
+	queues[i]->doShutdown = 0;
 
 	// initialize event queue for specific statemachine:
 	queues[i]->eventPool =
@@ -511,6 +512,45 @@ int event_dispatch(event evt, void **params, int *callId) {
 	rc = start_thread(dispatch, (void *) threadParam);
 	if (!rc) {
 		LOG_ERROR(EVENT_DISP_MSG_PREFIX "failed to start dispatch thread");
+		return 0;
+	}
+
+	return 1;
+}
+
+int ed_shutdown_all() {
+
+	int i;
+	int rc;
+
+	LOG_DEBUG(EVENT_DISP_MSG_PREFIX "now trying to shut down all "
+			  "statemachines");
+
+	// we have to lock to prevent dispatching atm:
+	rc = pthread_mutex_lock(&queuesLock);
+	if (rc != 0) {
+		LOG_DEBUG(EVENT_DISP_MSG_PREFIX "shut down all statemachines: "
+				  "failed to gain mutex lock");
+		return 0;
+	}
+
+	for (i = 0; i < config.core.events.dispatcher.maxCalls; i++) {
+		if (queues[i]) {
+			queues[i]->doShutdown = 1;
+			rc = wake_machine(i);
+			if (!rc) {
+				LOG_DEBUG(EVENT_DISP_MSG_PREFIX "shut down all "
+						  "statemachines: failed to wake state machine "
+						  "(pos %d)", i);
+			}
+		}
+	}
+
+	// now, statemachines don't care if they receive new events:
+	rc = pthread_mutex_unlock(&queuesLock);
+	if (rc != 0) {
+		LOG_DEBUG(EVENT_DISP_MSG_PREFIX "shut down all statemachines: "
+				  "failed to release mutex lock");
 		return 0;
 	}
 
