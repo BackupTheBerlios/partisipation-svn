@@ -7,6 +7,7 @@
 #include <util/logging/logger.h>
 #include <util/config/globals.h>
 #include <core/sip_output/registrar_manager.h>
+#include <core/events/event_dispatcher.h>
 
 #define REG_RCVR_MSG_PREFIX "[registration receiver] "
 
@@ -70,11 +71,17 @@ int gi_unregister_gui(char *const address, int const port) {
 	// explicitly setting to NULL so callback functions can savely check this 
 	config.remote.callback.guiCallback.guiURL = NULL;
 
-	// unregister all accounts with the SIP registrars
+	// shutdown all statemachines immediately:
+	rc = ed_shutdown_all();
+	if (!rc) {
+		LOG_ERROR(REG_RCVR_MSG_PREFIX "stopping of all calls failed");
+		return 0;
+	}
+	// unregister all accounts with the SIP registrars:
 	rc = rm_unregister_all();
 	if (!rc) {
-		LOG_ERROR(REG_RCVR_MSG_PREFIX
-				  "unregistering of all accounts failed");
+		LOG_ERROR(REG_RCVR_MSG_PREFIX "unregistering of all accounts "
+				  "failed");
 		return 0;
 	}
 
