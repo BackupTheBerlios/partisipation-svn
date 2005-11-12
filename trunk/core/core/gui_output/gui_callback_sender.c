@@ -92,8 +92,8 @@ void *go_change_call_status_thr(void *args) {
 
 	rc = change_call_status(callId, status);
 	if (!rc) {
-		LOG_MESSAGE(GUI_CB_SNDR_MSG_PREFIX "go_change_reg_status thread "
-					"failed to change_reg_status");
+		LOG_MESSAGE(GUI_CB_SNDR_MSG_PREFIX "go_change_call_status thread "
+					"failed to change_call_status");
 		free(status);
 		free(params);
 		thread_terminated();
