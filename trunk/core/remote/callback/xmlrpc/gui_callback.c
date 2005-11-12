@@ -31,6 +31,10 @@ int xmlrpc_error_occurred(xmlrpc_env * env, const char *methodName) {
 		xmlrpc_env_clean(env);
 		xmlrpc_env_init(env);
 
+		if (!config.remote.callback.guiCallback.guiURL) {
+			return 1;
+		}
+
 		url = (char *) malloc(strlen(config.remote.callback.
 									 guiCallback.guiURL) *
 							  sizeof(char) + 1);
