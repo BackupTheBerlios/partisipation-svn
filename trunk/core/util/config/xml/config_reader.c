@@ -622,8 +622,6 @@ int cr_init(const char *fileName) {
 	withinSipOutput = 0;
 	withinRegistrarManager = 0;
 
-//  printf(CONFIG_MSG_PREFIX "entering cr_init\n");
-
 	int xmlfile = open(fileName, O_RDONLY);
 	XML_Parser parser = XML_ParserCreate(NULL);
 
@@ -666,10 +664,9 @@ int cr_init(const char *fileName) {
 	XML_ParserFree(parser);
 	close(xmlfile);
 
-	if (result) {
-		printf(CONFIG_MSG_PREFIX "parsed config successfully\n");
-	}
-//  printf(CONFIG_MSG_PREFIX "leaving cr_init\n");
+	// explicitly initializing URL, because it is not read from config
+	config.remote.callback.guiCallback.guiURL = NULL;
+
 	return result;
 }
 
@@ -688,6 +685,10 @@ int cr_destroy() {
 	}
 	if (config.remote.server.xmlrpcServer.logFileName) {
 		free(config.remote.server.xmlrpcServer.logFileName);
+	}
+	// if unregisterGui was not called:
+	if (config.remote.callback.guiCallback.guiURL) {
+		free(config.remote.callback.guiCallback.guiURL);
 	}
 	del_all_nodes();
 	return 1;
