@@ -995,7 +995,7 @@ void *sm_start(void *args) {
 				break;
 			}
 
-			pthread_mutex_unlock(&queues[queueId]->wakeUpLock);
+			rc = pthread_mutex_unlock(&queues[queueId]->wakeUpLock);
 			if (rc != 0) {
 				LOG_DEBUG(STATEMACHINE_PREFIX "main: failed to release "
 						  "mutex lock");
