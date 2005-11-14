@@ -14,9 +14,13 @@
 #include <remote/callback/xmlrpc/xmlrpc_callback_client.h>
 #include <remote/server/xmlrpc/xmlrpc_server.h>
 
+#define CONFIG_FILE_PART "/.partiSIPation/core_config.xml"
+
+char *configFile;
+
 int init_config_reader() {
 	int rc;
-	rc = cr_init("./config/xml/core_config.xml");
+	rc = cr_init(configFile);
 	if (rc == 0) {
 		// ERROR
 		return 0;
@@ -26,11 +30,7 @@ int init_config_reader() {
 
 int init_config_writer() {
 	int rc;
-	/* 
-	 * ATTENTION: this path must be the same as for config_reader. At the moment, it is different
-	 * for the sake of safety.
-	 */
-	rc = cw_init("./config/xml/core_config_by_writer.xml", 0);
+	rc = cw_init(configFile, 0);
 	if (rc == 0) {
 		// ERROR
 		return 0;
@@ -338,6 +338,14 @@ int destroy_remote() {
 
 int main(int const argc, const char **const argv) {
 	int rc;
+	char *home;
+
+	home = getenv("HOME");
+	configFile =
+		(char *) malloc((strlen(home) + strlen(CONFIG_FILE_PART)) *
+						sizeof(char) + 1);
+	sprintf(configFile, "%s%s", home, CONFIG_FILE_PART);
+
 	rc = init_utils();
 	if (rc == 0) {
 		// ERROR
@@ -400,5 +408,7 @@ int main(int const argc, const char **const argv) {
 		// ERROR
 		return -1;
 	}
+
+	free(configFile);
 	return 0;
 }
