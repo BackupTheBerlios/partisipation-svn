@@ -419,15 +419,6 @@ int sm_inviting_state(sm_state * curState, event trigger, void **params,
 				
 				// send ACK is done by sipstack
 				
-				/*
-				rc = sipstack_send_acknowledgment(callInfo->dialogId);
-				if (!rc) {
-					LOG_DEBUG(STATEMACHINE_PREFIX "inviting state, "
-						"SipListener.Receive: failed to send ACK via "
-						"sipstack adapter (call ID: %d)", callInfo->callId);
-					return 0;
-				}*/
-				
 				rc = go_change_call_status(callInfo->callId, call_status_to_str(CS_DECLINED));
 				if (!rc) {
 					LOG_DEBUG(STATEMACHINE_PREFIX "inviting state, "
@@ -446,7 +437,7 @@ int sm_inviting_state(sm_state * curState, event trigger, void **params,
 				"received %d - ignoring event", sipEvt->type);
 			break; 
 		case GUI_END_CALL:
-			rc = sipstack_terminate(callInfo->sipCallId, callInfo->dialogId);
+			rc = sipstack_cancel(callInfo->sipCallId, callInfo->dialogId);
 			if (!rc) {
 					LOG_DEBUG(STATEMACHINE_PREFIX "inviting state, "
 						"SipListener.Receive: failed to send terminate call "
@@ -487,8 +478,7 @@ int sm_ringing_state(sm_state * curState, event trigger,
 			*curState = CONNECTING;
 			break;
 		case GUI_END_CALL:
-			rc = sipstack_terminate(callInfo->sipCallId,
-									callInfo->dialogId);
+			rc = sipstack_decline(callInfo->sipCallId, callInfo->dialogId);
 			if (!rc) {
 				LOG_DEBUG(STATEMACHINE_PREFIX "ringing state, "
 						  "GUI.endCall: failed to send terminate call "
@@ -497,6 +487,7 @@ int sm_ringing_state(sm_state * curState, event trigger,
 				return 0;
 			}
 			*curState = TERMINATING;
+			break;
 		case SIPLISTENER_RECEIVE:
 			sipEvt = (sipstack_event *) params[0];
 			// unfortunately eXosip does not use its own events properly
@@ -512,49 +503,6 @@ int sm_ringing_state(sm_state * curState, event trigger,
 			}
 			// send 487 (INVITE), send OK (CANCEL) is done by sipstack
 
-/*
-			update_transaction_and_dialog(callInfo, sipEvt->transactionId,
-										  CANCEL_TRANSACTION,
-										  sipEvt->dialogId);
-
-			// INVITE
-			transId =
-				find_transaction_by_type(callInfo, INVITE_TRANSACTION);
-			if (transId == -1) {
-				LOG_DEBUG(STATEMACHINE_PREFIX "ringing state, "
-						  "SipListener.receive: failed to find matching INVITE "
-						  "transaction (call ID: %d)", callInfo->callId);
-				return 0;
-			}
-
-			rc = sipstack_send_status_code(transId, 487);
-			if (!rc) {
-				LOG_DEBUG(STATEMACHINE_PREFIX "ringing state: "
-						  "SipListener.receive: failed to send status code 487 "
-						  "via sipstack adapter (call ID: %d)",
-						  callInfo->callId);
-				return 0;
-			}
-			
-			// CANCEL
-			transId =
-				find_transaction_by_type(callInfo, CANCEL_TRANSACTION);
-			if (transId == -1) {
-				LOG_DEBUG(STATEMACHINE_PREFIX "ringing state, "
-						  "SipListener.receive: failed to find matching CANCEL "
-						  "transaction (call ID: %d)", callInfo->callId);
-				return 0;
-			}
-
-			rc = sipstack_send_ok(callInfo->dialogId, transId);
-			if (!rc) {
-				LOG_DEBUG(STATEMACHINE_PREFIX "ringing state, "
-						  "SipListener.receive: failed to send status code 200 "
-						  "via sipstack adapter (call ID: %d)",
-						  callInfo->callId);
-				return 0;
-			}
-*/
 			rc = go_change_call_status(callInfo->callId,
 									   call_status_to_str(CS_CANCELLED));
 			if (!rc) {
@@ -603,8 +551,7 @@ int sm_connecting_state(sm_state * curState, event trigger,
 			*curState = CONNECTING;
 			break;
 		case GUI_END_CALL:
-			rc = sipstack_terminate(callInfo->sipCallId,
-									callInfo->dialogId);
+			rc = sipstack_decline(callInfo->sipCallId, callInfo->dialogId);
 			if (!rc) {
 				LOG_DEBUG(STATEMACHINE_PREFIX "connecting state, "
 						  "GUI.endCall: failed to send terminate call via sipstack "
@@ -635,46 +582,7 @@ int sm_connecting_state(sm_state * curState, event trigger,
 					   && sipEvt->statusCode == 487) {
 
 				// send 487 (INVITE), send OK (CANCEL) is done by sipstack
-/*
-				// INVITE
-				transId =
-					find_transaction_by_type(callInfo, INVITE_TRANSACTION);
-				if (transId == -1) {
-					LOG_DEBUG(STATEMACHINE_PREFIX "connecting state, "
-							  "SipListener.receive: failed to find matching "
-							  "INVITE transaction (call ID: %d)",
-							  callInfo->callId);
-					return 0;
-				}
 
-				rc = sipstack_send_status_code(transId, 487);
-				if (!rc) {
-					LOG_DEBUG(STATEMACHINE_PREFIX "connecting state, "
-							  "SipListener.receive: failed to send status "
-							  "code 487 via sipstack adapter (call ID: %d)",
-							  callInfo->callId);
-					return 0;
-				}
-				// CANCEL
-				transId =
-					find_transaction_by_type(callInfo, CANCEL_TRANSACTION);
-				if (transId == -1) {
-					LOG_DEBUG(STATEMACHINE_PREFIX "connecting state, "
-							  "SipListener.receive: failed to find matching "
-							  "CANCEL transaction (call ID: %d)",
-							  callInfo->callId);
-					return 0;
-				}
-
-				rc = sipstack_send_ok(callInfo->dialogId, transId);
-				if (!rc) {
-					LOG_DEBUG(STATEMACHINE_PREFIX "connecting state, "
-							  "SipListener.receive: failed to send status "
-							  "code 200 via sipstack adapter (call ID: %d)",
-							  callInfo->callId);
-					return 0;
-				}
-*/
 				rc = go_change_call_status(callInfo->callId,
 										   call_status_to_str
 										   (CS_CANCELLED));
@@ -711,8 +619,7 @@ int sm_connected_state(sm_state * curState, event trigger,
 	sipstack_event *sipEvt;
 	switch (trigger) {
 		case GUI_END_CALL:
-			rc = sipstack_terminate(callInfo->sipCallId,
-									callInfo->dialogId);
+			rc = sipstack_bye(callInfo->sipCallId, callInfo->dialogId);
 			if (!rc) {
 				LOG_DEBUG(STATEMACHINE_PREFIX
 						  "connected state, GUI.endCall: "
@@ -747,16 +654,6 @@ int sm_connected_state(sm_state * curState, event trigger,
 			}
 			// OK is done by sipstack
 
-			/*
-			   rc = sipstack_send_ok(callInfo->dialogId, transId);
-			   if (!rc) {
-			   LOG_DEBUG(STATEMACHINE_PREFIX "connected state, "
-			   "SipListener.receive: failed to send status "
-			   "code 200 via sipstack adapter (call ID: %d, "
-			   "dialogId: %d, transaction: %d)",
-			   callInfo->callId, callInfo->dialogId, transId);
-			   return 0;
-			   } */
 			*curState = TERMINATING;
 			break;
 		default:
