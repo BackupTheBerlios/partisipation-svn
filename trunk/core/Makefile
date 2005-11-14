@@ -1,4 +1,5 @@
 DOXYGEN = /usr/bin/doxygen
+export DOXYGEN
 PERL = /usr/bin/perl
 export PERL
 
@@ -8,6 +9,7 @@ export TOOLSDIR
 export CAINCLUDES
 
 DOCDIR = $(CURDIR)/doc/
+export DOCDIR
 DOXYGENDOCDIR = $(DOCDIR)/api/
 STYLEDOCDIR = $(DOCDIR)/style/
 export STYLEDOCDIR
@@ -43,8 +45,7 @@ style:
 docu: doxygen
 
 doxygen:
-	mkdir -p $(DOCDIR)
-	$(DOXYGEN)
+	$(MAKE) -C doc doxygen
 
 #check:
 #	find ./ | grep check_ | grep -v docs/ | xargs bash -c
