@@ -67,8 +67,7 @@ int sipstack_init() {
 	if (rc != 0) {
 		/* initialization of eXosip failed */
 		/* print error message */
-		log_message(LOG_ERROR,
-					SIPSTACK_MSG_PREFIX "Could not initialize eXosip.");
+		LOG_ERROR(SIPSTACK_MSG_PREFIX "Could not initialize eXosip.");
 		/* return error */
 		return FALSE;
 	}
@@ -81,26 +80,22 @@ int sipstack_init() {
 		/* shutdown sip stack */
 		eXosip_quit();
 		/* print error message */
-		log_message(LOG_ERROR,
-					SIPSTACK_MSG_PREFIX
-					"Could not initialize transport layer.");
+		LOG_ERROR(SIPSTACK_MSG_PREFIX
+				  "Could not initialize transport layer.");
 		/* return error */
 		return FALSE;
 	} else {
-		log_message(LOG_DEBUG,
-					SIPSTACK_MSG_PREFIX "Transport layer initialized.");
+		LOG_DEBUG(SIPSTACK_MSG_PREFIX "Transport layer initialized.");
 	}
 
 	/* start the sip listener thread */
 	listenerIsActive = 1;
 	rc = start_thread(sip_listener, NULL);
 	if (rc == 0) {
-		log_message(LOG_ERROR,
-					SIPSTACK_MSG_PREFIX
-					"Sip listener thread could not be started");
+		LOG_ERROR(SIPSTACK_MSG_PREFIX
+				  "Sip listener thread could not be started");
 	} else {
-		log_message(LOG_DEBUG,
-					SIPSTACK_MSG_PREFIX "Sip listener thread started");
+		LOG_DEBUG(SIPSTACK_MSG_PREFIX "Sip listener thread started");
 	}
 
 	/* return success */
@@ -115,12 +110,11 @@ void sipstack_quit() {
 	/* wait for sip listener thread to terminate */
 	sleep(1);
 
-	log_message(LOG_DEBUG,
-				SIPSTACK_MSG_PREFIX "Sip listener is shut down.");
+	LOG_DEBUG(SIPSTACK_MSG_PREFIX "Sip listener is shut down.");
 
 	/* shut down eXosip */
 	eXosip_quit();
-	log_message(LOG_DEBUG, SIPSTACK_MSG_PREFIX "eXosip is shut down.");
+	LOG_DEBUG(SIPSTACK_MSG_PREFIX "eXosip is shut down.");
 }
 
 sipstack_event *sipstack_map_event(eXosip_event_t * event) {
@@ -230,7 +224,7 @@ sipstack_event *sipstack_map_event(eXosip_event_t * event) {
 	/* free memory of eXosip event */
 	eXosip_event_free(event);
 
-	// print event info:
+	/* print event info */
 	LOG_DEBUG(SIPSTACK_MSG_PREFIX "event:");
 	LOG_DEBUG(SIPSTACK_MSG_PREFIX "\ttype: %d", sse->type);
 	LOG_DEBUG(SIPSTACK_MSG_PREFIX "\tstatusCode: %d", sse->statusCode);
@@ -296,6 +290,10 @@ sipstack_event *sipstack_receive_event(int timeout) {
 int sipstack_send_register(char *const identity, char *const registrar,
 						   int expire) {
 
+	LOG_ERROR(SIPSTACK_MSG_PREFIX
+			  "Sending REGISTER (Id: %s   Registrar: %s   Expire: %i)",
+			  identity, registrar, expire);
+
 	/* message which is build in this methode */
 	osip_message_t *reg = NULL;
 
@@ -316,6 +314,9 @@ int sipstack_send_register(char *const identity, char *const registrar,
 		/* building of REGISTER failed */
 		/* unlock sip stack for further use */
 		eXosip_unlock();
+		LOG_ERROR(SIPSTACK_MSG_PREFIX
+				  "Building of REGISTER failed (Id: %s   Registrar: %s   Expire: %i)",
+				  identity, registrar, expire);
 		/* return error code */
 		return -1;
 	}
@@ -331,6 +332,9 @@ int sipstack_send_register(char *const identity, char *const registrar,
 
 	if (i < 0) {
 		/* sending of REGISTER message failed */
+		LOG_ERROR(SIPSTACK_MSG_PREFIX
+				  "Sending of REGISTER failed (Id: %s   Registrar: %s   Expire: %i)",
+				  identity, registrar, expire);
 		/* return error code */
 		return -1;
 	}
@@ -340,6 +344,9 @@ int sipstack_send_register(char *const identity, char *const registrar,
 }
 
 int sipstack_send_unregister(int regId) {
+
+	LOG_DEBUG(SIPSTACK_MSG_PREFIX "Sending (un)REGISTER (regId: %i)",
+			  regId);
 
 	/* message which is build in this methode */
 	osip_message_t *reg = NULL;
@@ -355,6 +362,8 @@ int sipstack_send_unregister(int regId) {
 		/* building of REGISTER failed */
 		/* unlock sip stack for further use */
 		eXosip_unlock();
+		LOG_ERROR(SIPSTACK_MSG_PREFIX
+				  "Building of (un)REGISTER failed (regId: %i)", regId);
 		/* return error */
 		return FALSE;
 	}
@@ -366,6 +375,8 @@ int sipstack_send_unregister(int regId) {
 
 	if (i < 0) {
 		/* sending of REGISTER message failed */
+		LOG_ERROR(SIPSTACK_MSG_PREFIX
+				  "Sending of (un)REGISTER failed (regId: %i)", regId);
 		/* return error */
 		return FALSE;
 	}
@@ -375,6 +386,10 @@ int sipstack_send_unregister(int regId) {
 }
 
 int sipstack_send_update_register(int regId, int expire) {
+
+	LOG_DEBUG(SIPSTACK_MSG_PREFIX
+			  "Sending (update)REGISTER (regId: %i   Expire: %i)", regId,
+			  expire);
 
 	/* message which is build in this methode */
 	osip_message_t *reg = NULL;
@@ -389,10 +404,11 @@ int sipstack_send_update_register(int regId, int expire) {
 
 	if (i < 0) {
 		/* building of REGISTER failed */
-
 		/* unlock sip stack for further use */
 		eXosip_unlock();
-
+		LOG_ERROR(SIPSTACK_MSG_PREFIX
+				  "Building of (update)REGISTER failed (regId: %i   Expire: %i)",
+				  regId, expire);
 		/* return error */
 		return FALSE;
 	}
@@ -403,6 +419,9 @@ int sipstack_send_update_register(int regId, int expire) {
 	eXosip_unlock();
 	if (i < 0) {
 		/* sending REGISTER message failed */
+		LOG_ERROR(SIPSTACK_MSG_PREFIX
+				  "Sending of (update)REGISTER failed (regId: %i   Expire: %i)",
+				  regId, expire);
 		/* return error */
 		return FALSE;
 	}
@@ -414,6 +433,10 @@ int sipstack_send_update_register(int regId, int expire) {
 int sipstack_send_invite(char *to, char *from, char *fromDisplayName,
 						 char *subject) {
 
+	LOG_DEBUG(SIPSTACK_MSG_PREFIX
+			  "Sending INVITE (To: %s   From: %s <%s>   Subject: %s)", to,
+			  fromDisplayName, from, subject);
+
 	/* message which is build in this methode */
 	osip_message_t *invite;
 
@@ -423,13 +446,9 @@ int sipstack_send_invite(char *to, char *from, char *fromDisplayName,
 	i = eXosip_call_build_initial_invite(&invite, to, from, NULL, subject);
 	if (i != 0) {
 		/* building of INVITE message failed */
-		LOG_DEBUG(SIPSTACK_MSG_PREFIX "send invite: building of INVITE "
-				  "message failed, parameters following");
-		LOG_DEBUG(SIPSTACK_MSG_PREFIX "\tto: %s", to);
-		LOG_DEBUG(SIPSTACK_MSG_PREFIX "\tfrom: %s", from);
-		LOG_DEBUG(SIPSTACK_MSG_PREFIX "\tfromDisplayName: %s",
-				  fromDisplayName);
-		LOG_DEBUG(SIPSTACK_MSG_PREFIX "\tsubject: %s", subject);
+		LOG_ERROR(SIPSTACK_MSG_PREFIX
+				  "Building of INVITE failed (To: %s   From: %s <%s>   Subject: %s)",
+				  to, fromDisplayName, from, subject);
 		/* return error */
 		return -1;
 	}
@@ -481,6 +500,12 @@ int sipstack_send_invite(char *to, char *from, char *fromDisplayName,
 	if (callId > 0) {
 		void *reference;
 		eXosip_call_set_reference(callId, reference);
+	} else {
+		/* sending of INVITE failed */
+		LOG_ERROR(SIPSTACK_MSG_PREFIX
+				  "Sending of INVITE failed (To: %s   From: %s <%s>   Subject: %s)",
+				  to, fromDisplayName, from, subject);
+
 	}
 	/* unlock sip stack for further use */
 	eXosip_unlock();
@@ -491,6 +516,9 @@ int sipstack_send_invite(char *to, char *from, char *fromDisplayName,
 
 int sipstack_send_reinvite(int dialogId) {
 
+	LOG_DEBUG(SIPSTACK_MSG_PREFIX "Sending (re)INVITE (dialogId: %i)",
+			  dialogId);
+
 	/* message which is build in this methode */
 	osip_message_t *invite;
 
@@ -499,6 +527,9 @@ int sipstack_send_reinvite(int dialogId) {
 
 	if (i != 0) {
 		/* building of message failed */
+		LOG_ERROR(SIPSTACK_MSG_PREFIX
+				  "Building of (re)INVITE failed (dialogId: %i)",
+				  dialogId);
 		/* return error */
 		return FALSE;
 	}
@@ -514,6 +545,8 @@ int sipstack_send_reinvite(int dialogId) {
 
 	if (i != 0) {
 		/* sending of message failed */
+		LOG_ERROR(SIPSTACK_MSG_PREFIX
+				  "Sending of (re)INVITE failed (dialogId: %i)", dialogId);
 		/* return error */
 		return FALSE;
 	}
@@ -556,27 +589,60 @@ int sipstack_terminate(int callId, int dialogId) {
 }
 
 int sipstack_bye(int callId, int dialogId) {
-	/* call sipstack_terminate_call() because it handles call termination */
 
+	LOG_DEBUG(SIPSTACK_MSG_PREFIX
+			  "Sending BYE (callId: %i   dialogId: %i)", callId, dialogId);
+
+	/* call sipstack_terminate_call() because it handles call termination */
+	int result = sipstack_terminate(callId, dialogId);
+	if (result == FALSE) {
+		LOG_ERROR(SIPSTACK_MSG_PREFIX
+				  "Sending of BYE failed (callId: %i   dialogId: %i)",
+				  callId, dialogId);
+	}
 	/* return return code of termination */
-	return sipstack_terminate(callId, dialogId);
+	return result;
 }
 
 int sipstack_cancel(int callId, int dialogId) {
-	/* call sipstack_terminate_call() because it handles call termination */
 
+	LOG_DEBUG(SIPSTACK_MSG_PREFIX
+			  "Sending CANCEL (callId: %i   dialogId: %i)", callId,
+			  dialogId);
+
+	/* call sipstack_terminate_call() because it handles call termination */
+	int result = sipstack_terminate(callId, dialogId);
+	if (result == FALSE) {
+		LOG_ERROR(SIPSTACK_MSG_PREFIX
+				  "Sending of CANCEL failed (callId: %i   dialogId: %i)",
+				  callId, dialogId);
+	}
 	/* return return code of termination */
-	return sipstack_terminate(callId, dialogId);
+	return result;
 }
 
 int sipstack_decline(int callId, int dialogId) {
-	/* call sipstack_terminate_call() because it handles call termination */
 
-	/* return return code sipstack_terminate_call(of termination */
-	return sipstack_terminate(callId, dialogId);
+	LOG_DEBUG(SIPSTACK_MSG_PREFIX
+			  "Sending DECLINE (callId: %i   dialogId: %i)", callId,
+			  dialogId);
+
+	/* call sipstack_terminate_call() because it handles call termination */
+	int result = sipstack_terminate(callId, dialogId);
+	if (result == FALSE) {
+		LOG_ERROR(SIPSTACK_MSG_PREFIX
+				  "Sending of DECLINE failed (callId: %i   dialogId: %i)",
+				  callId, dialogId);
+	}
+	/* return return code of termination */
+	return result;
 }
 
 int sipstack_send_ok(int dialogId, int transactionId) {
+
+	LOG_DEBUG(SIPSTACK_MSG_PREFIX
+			  "Sending 200 OK (dialogId: %i   transactionId: %i)",
+			  dialogId, transactionId);
 
 	/* message which is build in this methode */
 	osip_message_t *ok = NULL;
@@ -589,15 +655,24 @@ int sipstack_send_ok(int dialogId, int transactionId) {
 
 	if (i != 0) {
 		/* send 400 message */
+		LOG_DEBUG(SIPSTACK_MSG_PREFIX
+				  "Sending 400 instead of 200 (dialogId: %i   transactionId: %i)",
+				  dialogId, transactionId);
 		eXosip_call_send_answer(transactionId, 400, NULL);
 	} else {
 		//i = sdp_complete_200ok (dialogId, ok);
 		if (i != 0) {
 			osip_message_free(ok);
 			/* send 415 message */
+			LOG_DEBUG(SIPSTACK_MSG_PREFIX
+					  "Sending 415 instead of 200 (dialogId: %i   transactionId: %i)",
+					  dialogId, transactionId);
 			i = eXosip_call_send_answer(transactionId, 415, NULL);
 		} else {
 			/* send 200 OK message */
+			LOG_DEBUG(SIPSTACK_MSG_PREFIX
+					  "Sending 200 OK (dialogId: %i   transactionId: %i)",
+					  dialogId, transactionId);
 			i = eXosip_call_send_answer(transactionId, 200, ok);
 		}
 	}
@@ -607,6 +682,9 @@ int sipstack_send_ok(int dialogId, int transactionId) {
 
 	if (i != 0) {
 		/* sending of message failed */
+		LOG_ERROR(SIPSTACK_MSG_PREFIX
+				  "Sending of 200 OK or equivalent failed (dialogId: %i   transactionId: %i)",
+				  dialogId, transactionId);
 		/* return error */
 		return FALSE;
 	}
@@ -617,6 +695,8 @@ int sipstack_send_ok(int dialogId, int transactionId) {
 
 int sipstack_send_acknowledgment(int dialogId) {
 
+	LOG_DEBUG(SIPSTACK_MSG_PREFIX "Sending ACK (dialogId: %i)", dialogId);
+
 	/* message which is build in this methode */
 	osip_message_t *ack = NULL;
 
@@ -625,6 +705,8 @@ int sipstack_send_acknowledgment(int dialogId) {
 
 	if (i != 0) {
 		/* building of message failed */
+		LOG_DEBUG(SIPSTACK_MSG_PREFIX
+				  "Building of ACK failed (dialogId: %i)", dialogId);
 		/* return error code */
 		return FALSE;
 	}
@@ -639,6 +721,8 @@ int sipstack_send_acknowledgment(int dialogId) {
 
 	if (i != 0) {
 		/* sending of message failed */
+		LOG_DEBUG(SIPSTACK_MSG_PREFIX
+				  "Sending of ACK failed (dialogId: %i)", dialogId);
 		/* return error */
 		return FALSE;
 	}
@@ -647,25 +731,40 @@ int sipstack_send_acknowledgment(int dialogId) {
 	return TRUE;
 }
 
-int sipstack_send_status_code(int transactionId, int status_code) {
+int sipstack_send_status_code(int transactionId, int statusCode) {
+
+	LOG_DEBUG(SIPSTACK_MSG_PREFIX "Sending %i (transactionId: %i)",
+			  statusCode, transactionId);
 
 	/* message which is build in this methode */
 	osip_message_t *answer = NULL;
 
 	/* build message with status code */
-	int i = eXosip_call_build_answer(transactionId, status_code, &answer);
+	int i = eXosip_call_build_answer(transactionId, statusCode, &answer);
+
+	if (i != 0) {
+		/* building of message failed */
+		LOG_ERROR(SIPSTACK_MSG_PREFIX
+				  "Building of %i failed (transactionId: %i)", statusCode,
+				  transactionId);
+		/* return error */
+		return FALSE;
+	}
 
 	/* lock sip stack to avoid conflicts */
 	eXosip_lock();
 
 	/* send message with status code */
-	i = eXosip_call_send_answer(transactionId, status_code, answer);
+	i = eXosip_call_send_answer(transactionId, statusCode, answer);
 
 	/* unlock sip stack for further use */
 	eXosip_unlock();
 
 	if (i != 0) {
 		/* sending of message failed */
+		LOG_ERROR(SIPSTACK_MSG_PREFIX
+				  "Sending of %i failed (transactionId: %i)", statusCode,
+				  transactionId);
 		/* return error */
 		return FALSE;
 	}
