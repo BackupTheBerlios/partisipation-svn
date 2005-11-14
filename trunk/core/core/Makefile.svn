@@ -1,0 +1,33 @@
+STYLEDOCDIR_LOCAL = $(STYLEDOCDIR)/core
+
+compile:
+	$(MAKE) -C callIDs $(MAKE_PARAMS)
+	$(MAKE) -C events $(MAKE_PARAMS)
+	$(MAKE) -C gui_input $(MAKE_PARAMS)
+	$(MAKE) -C gui_output $(MAKE_PARAMS)
+	$(MAKE) -C sip_input $(MAKE_PARAMS)
+	$(MAKE) -C sip_output $(MAKE_PARAMS)
+
+clean:
+	$(MAKE) -C callIDs $(MAKE_PARAMS) clean
+	$(MAKE) -C events $(MAKE_PARAMS) clean
+	$(MAKE) -C gui_input $(MAKE_PARAMS) clean
+	$(MAKE) -C gui_output $(MAKE_PARAMS) clean
+	$(MAKE) -C sip_input $(MAKE_PARAMS) clean
+	$(MAKE) -C sip_output $(MAKE_PARAMS) clean
+
+style:
+	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C callIDs $(MAKE_PARAMS) style
+	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C events $(MAKE_PARAMS) style
+	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C gui_input $(MAKE_PARAMS) style
+	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C gui_output $(MAKE_PARAMS) style
+	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C sip_input $(MAKE_PARAMS) style
+	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C sip_output $(MAKE_PARAMS) style
+
+indent:
+	$(MAKE) -C callIDs $(MAKE_PARAMS) indent
+	$(MAKE) -C events $(MAKE_PARAMS) indent
+	$(MAKE) -C gui_input $(MAKE_PARAMS) indent
+	$(MAKE) -C gui_output $(MAKE_PARAMS) indent
+	$(MAKE) -C sip_input $(MAKE_PARAMS) indent
+	$(MAKE) -C sip_output $(MAKE_PARAMS) indent

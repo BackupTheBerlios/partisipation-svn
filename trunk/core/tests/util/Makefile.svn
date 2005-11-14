@@ -1,0 +1,14 @@
+STYLEDOCDIR_LOCAL = $(STYLEDOCDIR)/util
+
+compile:
+	$(MAKE) -C threads $(MAKE_PARAMS)
+
+clean:
+	$(MAKE) -C threads $(MAKE_PARAMS) clean
+
+style:
+	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C threads $(MAKE_PARAMS) style
+
+
+indent:
+	$(MAKE) -C threads $(MAKE_PARAMS) indent

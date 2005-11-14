@@ -1,0 +1,14 @@
+STYLEDOCDIR_LOCAL = $(STYLEDOCDIR)/sipstack
+
+compile:
+	$(MAKE) -C eXosip $(MAKE_PARAMS)
+
+clean:
+	$(MAKE) -C eXosip $(MAKE_PARAMS) clean
+
+style:
+	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C eXosip $(MAKE_PARAMS) style
+
+
+indent:
+	$(MAKE) -C eXosip $(MAKE_PARAMS) indent

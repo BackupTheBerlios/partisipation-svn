@@ -1,0 +1,30 @@
+STYLEDOCDIR_LOCAL = $(STYLEDOCDIR)/util
+
+compile:
+	$(MAKE) -C config $(MAKE_PARAMS)
+	$(MAKE) -C list $(MAKE_PARAMS)
+	$(MAKE) -C logging $(MAKE_PARAMS)
+	$(MAKE) -C queue $(MAKE_PARAMS)
+	$(MAKE) -C threads $(MAKE_PARAMS)
+
+clean:
+	$(MAKE) -C config $(MAKE_PARAMS) clean
+	$(MAKE) -C list $(MAKE_PARAMS) clean
+	$(MAKE) -C logging $(MAKE_PARAMS) clean
+	$(MAKE) -C queue $(MAKE_PARAMS) clean
+	$(MAKE) -C threads $(MAKE_PARAMS) clean
+
+style:
+	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C config $(MAKE_PARAMS) style
+	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C list $(MAKE_PARAMS) style
+	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C logging $(MAKE_PARAMS) style
+	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C queue $(MAKE_PARAMS) style
+	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C threads $(MAKE_PARAMS) style
+
+
+indent:
+	$(MAKE) -C config $(MAKE_PARAMS) indent
+	$(MAKE) -C list $(MAKE_PARAMS) indent
+	$(MAKE) -C logging $(MAKE_PARAMS) indent
+	$(MAKE) -C queue $(MAKE_PARAMS) indent
+	$(MAKE) -C threads $(MAKE_PARAMS) indent

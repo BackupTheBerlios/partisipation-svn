@@ -1,0 +1,18 @@
+STYLEDOCDIR_LOCAL = $(STYLEDOCDIR)/core
+
+compile:
+	$(MAKE) -C callIDs $(MAKE_PARAMS)
+	$(MAKE) -C events $(MAKE_PARAMS)
+
+clean:
+	$(MAKE) -C callIDs $(MAKE_PARAMS) clean
+	$(MAKE) -C events $(MAKE_PARAMS) clean
+
+style:
+	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C callIDs $(MAKE_PARAMS) style
+	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C events $(MAKE_PARAMS) style
+
+
+indent:
+	$(MAKE) -C callIDs $(MAKE_PARAMS) indent
+	$(MAKE) -C events $(MAKE_PARAMS) indent

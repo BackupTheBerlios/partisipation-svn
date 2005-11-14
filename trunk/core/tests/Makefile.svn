@@ -1,0 +1,26 @@
+STYLEDOCDIR_LOCAL = $(STYLEDOCDIR)/tests
+
+compile:
+	$(MAKE) -C accounts $(MAKE_PARAMS)
+	$(MAKE) -C core $(MAKE_PARAMS)
+	$(MAKE) -C sipstack $(MAKE_PARAMS)
+	$(MAKE) -C util $(MAKE_PARAMS)
+
+clean:
+	$(MAKE) -C accounts $(MAKE_PARAMS) clean
+	$(MAKE) -C core $(MAKE_PARAMS) clean
+	$(MAKE) -C sipstack $(MAKE_PARAMS) clean
+	$(MAKE) -C util $(MAKE_PARAMS) clean
+
+style:
+	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C accounts $(MAKE_PARAMS) style
+	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C core $(MAKE_PARAMS) style
+	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C sipstack $(MAKE_PARAMS) style
+	$(MAKE) STYLEDOCDIR=$(STYLEDOCDIR_LOCAL) -C util $(MAKE_PARAMS) style
+
+
+indent:
+	$(MAKE) -C accounts $(MAKE_PARAMS) indent
+	$(MAKE) -C core $(MAKE_PARAMS) indent
+	$(MAKE) -C sipstack $(MAKE_PARAMS) indent
+	$(MAKE) -C util $(MAKE_PARAMS) indent
