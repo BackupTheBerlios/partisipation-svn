@@ -290,7 +290,7 @@ sipstack_event *sipstack_receive_event(int timeout) {
 int sipstack_send_register(char *const identity, char *const registrar,
 						   int expire) {
 
-	LOG_ERROR(SIPSTACK_MSG_PREFIX
+	LOG_DEBUG(SIPSTACK_MSG_PREFIX
 			  "Sending REGISTER (Id: %s   Registrar: %s   Expire: %i)",
 			  identity, registrar, expire);
 
