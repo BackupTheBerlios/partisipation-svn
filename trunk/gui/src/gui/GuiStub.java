@@ -1,8 +1,11 @@
 package gui;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
 import java.util.Enumeration;
 import java.util.Vector;
 import javax.swing.ImageIcon;
+import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 
 /**
@@ -21,12 +24,22 @@ public class GuiStub {
     private Vector pendingCalls = new Vector();
 
     private Vector params = new Vector();
+    
+    private JDialog dialog;
 
     public GuiStub(Gui g) {
         gui = g;
         cl = gui.cl;
+        dialog = new JDialog(gui, "Incoming call", true);
     }
 
+    /**
+     * This method changes registration status of an account.
+     * 
+     * @param accountId
+     * @param registered
+     * @return true = success, false = error
+     */
     public boolean changeRegStatus(int accountId, boolean registered) {
 
         try {
@@ -69,97 +82,44 @@ public class GuiStub {
         }
     }
 
+    /**
+     * This method changes the status of a call.
+     * 
+     * @param callId
+     * @param callStatus
+     * @return true = success, false = error
+     */
     public boolean changeCallStatus(int callId, String callStatus) {
         try {
-            if (callStatus.equalsIgnoreCase("ACCEPTED")) {
+            
+            if (callStatus.equalsIgnoreCase("TERMINATED")) {
 
-                Call c = getCall(callId, gui.calls);
-                if (c == null) {
-                    // accepted by user: add call to the list
-                    c = getCall(callId, pendingCalls);
-                    //int index = getIndex(c.id, pendingCalls);
-                    removeCall(callId, pendingCalls);
-                    gui.calls.addElement(c);
-                    ImageIcon img = new ImageIcon(cl
-                            .getResource("gui/resources/green.gif"));
-                    if (c.name.trim().equalsIgnoreCase("")) {
-                        img.setDescription(c.sipurl);
-                    } else {
-                        img.setDescription(c.sipurl + " (" + c.name + ")");
-                    }
-                    gui.list2.addElement(img);
-                } else {
-                    // accepted by other side: update call status
-                    int index = getIndex(c.id, gui.calls);
-                    gui.list2.removeElementAt(index);
-                    ImageIcon img = new ImageIcon(cl
-                            .getResource("gui/resources/green.gif"));
-                    if (c.name.trim().equalsIgnoreCase("")) {
-                        img.setDescription(c.sipurl);
-                    } else {
-                        img.setDescription(c.sipurl + " (" + c.name + ")");
-                    }
-                    gui.list2.insertElementAt(img, index);
-                }
-                print("Call # " + callId + " accepted.");
-
-            } else if (callStatus.equalsIgnoreCase("TERMINATED")) {
-
-                if (getCall(callId, pendingCalls) == null) {
-                    // hang-up-termination by the other side
-                    Call c = getCall(callId, gui.calls);
-                    int index = getIndex(c.id, gui.calls);
-                    gui.list2.remove(index);
-                } else { // decline-termination by user
-                    removeCall(callId, pendingCalls);
-                }
+                dialog.setVisible(false);
+                
+                removeCall(callId);
                 print("Call # " + callId + " terminated.");
+
             } else {
 
                 Call c = getCall(callId, gui.calls);
-                if (c == null) {
-                    c = getCall(callId, pendingCalls);
-                }
-                int index = getIndex(c.id, gui.calls);
-                if (index == -1) {
-                    index = getIndex(c.id, pendingCalls);
-                }
 
-                if (callStatus.equalsIgnoreCase("TRYING")) {
-                    gui.list2.removeElementAt(index);
-
-                    ImageIcon img = new ImageIcon(cl
-                            .getResource("gui/resources/gray.gif"));
-                    if (c.name.trim().equalsIgnoreCase("")) {
-                        img.setDescription(c.sipurl);
-                    } else {
-                        img.setDescription(c.sipurl + " (" + c.name + ")");
-                    }
-                    gui.list2.insertElementAt(img, index);
-
+                if (callStatus.equalsIgnoreCase("ACCEPTED")) {
+                    updateCall(c, "green");
+                    print("Call # " + callId + " accepted.");
+                } else if (callStatus.equalsIgnoreCase("TRYING")) {
+                    updateCall(c, "gray");
                 } else if (callStatus.equalsIgnoreCase("RINGING")) {
-                    gui.list2.removeElementAt(index);
-
-                    ImageIcon img = new ImageIcon(cl
-                            .getResource("gui/resources/yellow.gif"));
-                    if (c.name.trim().equalsIgnoreCase("")) {
-                        img.setDescription(c.sipurl);
-                    } else {
-                        img.setDescription(c.sipurl + " (" + c.name + ")");
-                    }
-                    gui.list2.insertElementAt(img, index);
+                    updateCall(c, "yellow");
                 } else if (callStatus.equalsIgnoreCase("DECLINED")) {
-                    removeCall(callId, gui.calls);
+                    updateCall(c, "red");
                     print("Call # " + callId + " declined.");
                 } else if (callStatus.equalsIgnoreCase("CANCELLED")) {
-                    removeCall(callId, gui.calls);
-                    gui.list2.remove(index);
+                    updateCall(c, "red");
                     print("Call # " + callId + " cancelled.");
                 } else if (callStatus.equalsIgnoreCase("UNREACHABLE")) {
-                    removeCall(callId, gui.calls);
+                    updateCall(c, "gray");
                     print("Call # " + callId + " unreachable.");
                 }
-
             }
             return true;
         } catch (Exception e) {
@@ -170,25 +130,24 @@ public class GuiStub {
         }
     }
 
+    /**
+     * This method shows a message box if a user event occures.
+     * 
+     * @param accountId
+     * @param category
+     * @param title
+     * @param message
+     * @param details
+     * @return true = success, false = error
+     */
     public boolean showUserEvent(int accountId, String category, String title,
             String message, String details) {
         try {
-            if (category.equalsIgnoreCase("DEBUG")) {
-                JOptionPane.showMessageDialog(gui, message + "\n\n" + details,
-                        title, JOptionPane.QUESTION_MESSAGE);
-            } else if (category.equalsIgnoreCase("INFO")) {
-                JOptionPane.showMessageDialog(gui, message + "\n\n" + details,
-                        title, JOptionPane.INFORMATION_MESSAGE);
-            } else if (category.equalsIgnoreCase("MESSAGE")) {
-                JOptionPane.showMessageDialog(gui, message + "\n\n" + details,
-                        title, JOptionPane.PLAIN_MESSAGE);
-            } else if (category.equalsIgnoreCase("WARNING")) {
-                JOptionPane.showMessageDialog(gui, message + "\n\n" + details,
-                        title, JOptionPane.WARNING_MESSAGE);
-            } else {
-                JOptionPane.showMessageDialog(gui, message + "\n\n" + details,
-                        title, JOptionPane.ERROR_MESSAGE);
-            }
+
+            MessageDialogThread t = new MessageDialogThread(gui, accountId, category, title,
+                    message, details);
+            t.start();
+
             return true;
         } catch (Exception e) {
             {
@@ -198,6 +157,11 @@ public class GuiStub {
         }
     }
 
+    /**
+     * This method is called for core registration.
+     * 
+     * @return true = success, false = error
+     */
     public boolean registerCore() {
         try {
             print("Core registered.");
@@ -210,28 +174,25 @@ public class GuiStub {
         }
     }
 
+    /**
+     * This method shows a dialog box to allow the user to accept or to decline an incoming call.
+     * 
+     * @param accountId
+     * @param callId
+     * @param sipUri
+     * @param displayName
+     * @return true = success, false = error
+     */
     public boolean incomingCall(int accountId, int callId, String sipUri,
             String displayName) {
         try {
-            Object[] options = { "Accept", "Decline" };
-            int n = JOptionPane.showOptionDialog(gui, "Incoming call from "
-                    + sipUri + " (" + displayName + ").\n", "INCOMING CALL",
-                    JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
-                    null, options, options[0]);
-
-            Call c = new Call(callId, accountId, sipUri, displayName);
-            pendingCalls.add(c);
+            
             print("Incoming call # " + callId + " from " + sipUri + " ("
-                    + displayName + ")");
-
-            params.clear();
-            params.add(new Integer(callId));
-
-            if (n == 0) {
-                gui.execute("core.acceptCall", params);
-            } else {
-                gui.execute("core.endCall", params);
-            }
+                    + displayName + ").");
+            
+            DialogThread dt = new DialogThread(gui, dialog, pendingCalls, accountId, callId, sipUri, displayName);
+            dt.start();
+                      
             return true;
         } catch (Exception e) {
             {
@@ -240,7 +201,13 @@ public class GuiStub {
             }
         }
     }
-
+    
+    /**
+     * This method changes level of speaker volume.
+     * 
+     * @param level
+     * @return true = success, false = error
+     */
     public boolean setSpeakerVolume(double level) {
         try {
             gui.jSlider1.setValue((int) (level * 100));
@@ -253,6 +220,12 @@ public class GuiStub {
         }
     }
 
+    /**
+     * This method changes level of microphone volume.
+     * 
+     * @param level
+     * @return true = success, false = error
+     */
     public boolean setMicroVolume(double level) {
         try {
             gui.jSlider2.setValue((int) (level * 100));
@@ -276,22 +249,32 @@ public class GuiStub {
         return null;
     }
 
-    /**
-     * 
-     * @param id
-     * @param vec
-     */
-    private void removeCall(int id, Vector vec) {
-        Enumeration e = vec.elements();
-        int i = 0;
+    private void removeCall(int id) {
+
+        int ind;
+
+        if (isInside(id, gui.calls)) {
+            ind = getIndex(id, gui.calls);
+            gui.calls.remove(ind);
+            gui.list2.remove(ind);
+        } else if (isInside(id, pendingCalls)) {
+            ind = getIndex(id, pendingCalls);
+            pendingCalls.remove(ind);
+        }
+    }
+
+    private boolean isInside(int id, Vector v) {
+
+        Enumeration e = v.elements();
+
         while (e.hasMoreElements()) {
             Call c = (Call) e.nextElement();
             if (c.id == id) {
-                vec.remove(i);
+                return true;
             }
-            i++;
         }
-        return;
+
+        return false;
     }
 
     private int getIndex(int callId, Vector vec) {
@@ -307,7 +290,154 @@ public class GuiStub {
         return -1;
     }
 
-    private void print(String s) {
+    /**
+     * This method updates list line with call information.
+     * 
+     * @param Call c call to be updated
+     * @param String color color of status indicator; possible values are gray, red, green & yellow
+     */
+    private void updateCall(Call c, String color) {
+        try {
+            if (c != null) {
+            String path = "gui/resources/" + color.toLowerCase() + ".gif";
+
+            ImageIcon img = new ImageIcon(cl.getResource(path));
+
+            if (c.name.trim().equalsIgnoreCase("")) {
+                img.setDescription(c.sipurl);
+            } else {
+                img.setDescription(c.sipurl + " (" + c.name + ")");
+            }
+
+            int index = getIndex(c.id, gui.calls);
+
+            gui.list2.set(index, img);
+            
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void print(String s) {
         gui.jTextArea1.append(Utils.getTimestamp() + ": " + s + "\n");
+    }
+}
+
+class MessageDialogThread extends Thread {
+
+    Gui gui;
+
+    int accountId;
+
+    String category;
+
+    String title;
+
+    String message;
+
+    String details;
+
+    public MessageDialogThread(Gui g, int id, String c, String t, String m, String d) {
+        gui = g;
+        accountId = id;
+        category = c;
+        title = t;
+        message = m;
+        details = d;
+    }
+
+    public void run() {
+        if (category.equalsIgnoreCase("DEBUG")) {
+            JOptionPane.showMessageDialog(gui, message + "\n\n" + details,
+                    title, JOptionPane.QUESTION_MESSAGE);
+        } else if (category.equalsIgnoreCase("INFO")) {
+            JOptionPane.showMessageDialog(gui, message + "\n\n" + details,
+                    title, JOptionPane.INFORMATION_MESSAGE);
+        } else if (category.equalsIgnoreCase("MESSAGE")) {
+            JOptionPane.showMessageDialog(gui, message + "\n\n" + details,
+                    title, JOptionPane.PLAIN_MESSAGE);
+        } else if (category.equalsIgnoreCase("WARNING")) {
+            JOptionPane.showMessageDialog(gui, message + "\n\n" + details,
+                    title, JOptionPane.WARNING_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(gui, message + "\n\n" + details,
+                    title, JOptionPane.ERROR_MESSAGE);
+        }
+    }
+}
+
+class DialogThread extends Thread {
+    
+    Gui gui;
+    JDialog dialog;
+    Vector pendingCalls;
+    int accountId;
+    int callId;
+    String sipUri;
+    String displayName;
+        
+    public DialogThread(Gui g, JDialog d, Vector p, int aid, int cid, String uri, String dn) {
+        gui = g;
+        dialog = d;
+        pendingCalls = p;
+        accountId = aid;
+        callId = cid;
+        sipUri = uri;
+        displayName = dn;
+    }
+
+    public void run() {
+        Object[] options = { "Accept", "Decline" };
+        
+       final JOptionPane optionPane = new JOptionPane(
+                "Incoming call from "
+                + sipUri + " (" + displayName + ").\n",
+                JOptionPane.WARNING_MESSAGE,
+                JOptionPane.YES_NO_OPTION,
+                null, options, options[0]);
+        
+       dialog.setContentPane(optionPane);
+       
+       optionPane.addPropertyChangeListener(
+               new PropertyChangeListener() {
+                   public void propertyChange(PropertyChangeEvent e) {
+                       String prop = e.getPropertyName();
+
+                       if (dialog.isVisible() 
+                        && (e.getSource() == optionPane)
+                        && (prop.equals(JOptionPane.VALUE_PROPERTY))) {
+                           dialog.setVisible(false);
+                       }
+                   }
+               });
+       
+       dialog.pack();
+       dialog.setVisible(true);
+       
+       String res = optionPane.getValue().toString();
+       
+       Call c = new Call(callId, accountId, sipUri, displayName);
+              
+       Vector params = new Vector();
+
+       params.clear();
+       params.add(new Integer(callId));
+
+       if (res.equalsIgnoreCase("ACCEPT")) {
+           ImageIcon img = new ImageIcon(gui.cl
+                   .getResource("gui/resources/gray.gif"));
+           if (c.name.trim().equalsIgnoreCase("")) {
+               img.setDescription(sipUri);
+           } else {
+               img.setDescription(sipUri + " (" + c.name + ")");
+           }
+           gui.calls.add(c);
+           gui.list2.addElement(img);
+           gui.execute("core.acceptCall", params);
+       } else if (res.equalsIgnoreCase("DECLINE")) {
+           pendingCalls.add(c);
+           gui.execute("core.endCall", params);
+       } 
     }
 }
