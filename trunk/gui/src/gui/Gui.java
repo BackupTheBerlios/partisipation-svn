@@ -72,6 +72,8 @@ public class Gui extends JFrame {
     private String oldValue = "";
 
     private int oldIndex = -1;
+    
+    private boolean tryAgain = true;
 
     // client part - sends calls to core
     private XmlRpcClientLite client;
@@ -146,6 +148,7 @@ public class Gui extends JFrame {
             Object o = execute("core.registerGui", params, 3000);
             if (o == null) {
                 print("ERROR: GUI not registered. Check your configuration file.");
+                tryAgain = false;
             } else if (((String) o).equalsIgnoreCase("OK")) {
                 print("GUI registered.");
                 
@@ -178,6 +181,7 @@ public class Gui extends JFrame {
                 }
             } else {
                 print("ERROR: GUI not registered.");
+                tryAgain = false;
             }
            
             Enumeration e = phonebook.elements();
@@ -913,10 +917,13 @@ public class Gui extends JFrame {
     }
     
     public void windowClose() {
-        params.clear();
-        params.addElement(GUI_HOST);
-        params.addElement(new Integer(GUI_PORT));
-        execute("core.unregisterGui", params);
+        if (tryAgain) {
+            tryAgain = false;
+            params.clear();
+            params.addElement(GUI_HOST);
+            params.addElement(new Integer(GUI_PORT));
+            execute("core.unregisterGui", params);
+        }
     }
 
     public void aboutActionPerformed(ActionEvent e) {
