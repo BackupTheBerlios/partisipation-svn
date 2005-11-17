@@ -5,6 +5,7 @@
 #include <core/gui_input/polling_gui.h>
 #include <core/gui_input/registration_receiver.h>
 #include <core/gui_output/gui_callback_sender.h>
+#include <util/threads/thread_management.h>
 
 void *polling_gui(void *args) {
 
