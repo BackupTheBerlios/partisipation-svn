@@ -1,11 +1,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <pthread.h>
 
+#include <util/threads/thread_management.h>
 #include <core/gui_input/registration_receiver.h>
 #include <core/gui_output/gui_callback_sender.h>
 #include <util/logging/logger.h>
 #include <util/config/globals.h>
+#include <core/gui_input/polling_gui.h>
 #include <core/sip_output/registrar_manager.h>
 #include <core/events/event_dispatcher.h>
 
@@ -39,6 +42,22 @@ char *gi_register_gui(char *const address, int const port) {
 		// explicitly setting to NULL so callback functions can savely check 
 		// this 
 		config.remote.callback.guiCallback.guiURL = NULL;
+		return "ERROR";
+	}
+	// starts polling_thread for GUI Polling
+	void **threadParam;
+
+	threadParam = (void *) malloc(2 * sizeof(void *));
+	threadParam[0] = (void *) malloc(strlen(address) * sizeof(char) + 1);
+	strcpy(threadParam[0], address);
+	threadParam[1] = (void *) port;
+
+	rc = start_thread(polling_gui, (void *) threadParam);
+
+	// TODO: what happens in error case?
+	if (!rc) {
+		LOG_DEBUG(REG_RCVR_MSG_PREFIX
+				  "starting polling_gui thread result=ERROR");
 		return "ERROR";
 	}
 
