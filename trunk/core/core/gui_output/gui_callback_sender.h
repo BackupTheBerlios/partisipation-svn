@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+int go_init();
+
 int go_change_reg_status(int accountId, int registered);
 
 int go_change_call_status(int callId, char *status);
@@ -19,5 +21,7 @@ int go_incoming_call(int accountId, int callId, char *callerSipUri,
 int go_set_speaker_volume_cb(double level);
 
 int go_set_micro_volume_cb(double level);
+
+int go_destroy();
 
 #endif

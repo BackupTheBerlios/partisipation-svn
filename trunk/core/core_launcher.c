@@ -10,6 +10,7 @@
 #include <core/callIDs/call_id_generator.h>
 #include <core/events/event_dispatcher.h>
 #include <core/sip_output/registrar_manager.h>
+#include <core/gui_output/gui_callback_sender.h>
 #include <sipstack/sip_stack_interface.h>
 #include <remote/callback/xmlrpc/xmlrpc_callback_client.h>
 #include <remote/server/xmlrpc/xmlrpc_server.h>
@@ -106,6 +107,12 @@ int init_sipstack() {
 int init_gui_callback() {
 	int rc;
 	rc = cb_init();
+	if (rc == 0) {
+		// ERROR
+		return 0;
+	}
+	// init callback sender
+	rc = go_init();
 	if (rc == 0) {
 		// ERROR
 		return 0;
@@ -265,6 +272,11 @@ int destroy_sipstack() {
 int destroy_gui_callback() {
 	int rc;
 	rc = cb_destroy();
+	if (rc == 0) {
+		// ERROR
+		return 0;
+	}
+	rc = go_destroy();
 	if (rc == 0) {
 		// ERROR
 		return 0;
