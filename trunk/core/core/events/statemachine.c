@@ -559,6 +559,7 @@ int sm_connecting_state(sm_state * curState, event trigger,
 				return 0;
 			}
 			*curState = TERMINATING;
+			break;
 		case SIPLISTENER_RECEIVE:
 			sipEvt = (sipstack_event *) params[0];
 			if (sipEvt->type == EXOSIP_CALL_ACK) {
