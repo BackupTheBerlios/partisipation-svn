@@ -42,6 +42,11 @@ int ensure_newline(char *msg) {
 	int l;
 	int nlPresent;
 
+	if (!msg) {
+		// msg is NULL
+		return 0;
+	}
+
 	l = strlen(msg);
 	nlPresent = 0;
 
