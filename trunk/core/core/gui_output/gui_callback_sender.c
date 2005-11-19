@@ -282,6 +282,12 @@ int go_change_call_status(int callId, char *status) {
 	LOG_DEBUG(GUI_CB_SNDR_MSG_PREFIX "\tcallId: %d", callId);
 	LOG_DEBUG(GUI_CB_SNDR_MSG_PREFIX "\tstatus: %s", status);
 
+	if (!status) {
+		LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX "go_change_call_status "
+				  "failed: no status given");
+		return 0;
+	}
+
 	rc = pthread_mutex_lock(&cb_queues[GUI_CB_CH_CALL_ST_ID].lock);
 	if (rc != 0) {
 		LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX "go_change_call_status: "
@@ -483,6 +489,27 @@ int go_show_user_event(int accountId, char *category,
 	LOG_DEBUG(GUI_CB_SNDR_MSG_PREFIX "\tmessage: %s", message);
 	LOG_DEBUG(GUI_CB_SNDR_MSG_PREFIX "\tdetailMessage: %s", detailMessage);
 
+	if (!category) {
+		LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX "go_show_user_event "
+				  "failed: no category given");
+		return 0;
+	}
+	if (!title) {
+		LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX "go_show_user_event "
+				  "failed: no status given");
+		return 0;
+	}
+	if (!message) {
+		LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX "go_show_user_event "
+				  "failed: no message given");
+		return 0;
+	}
+	if (!detailMessage) {
+		LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX "go_show_user_event "
+				  "failed: no detail message given");
+		return 0;
+	}
+
 	rc = pthread_mutex_lock(&cb_queues[GUI_CB_SH_USR_EVT_ID].lock);
 	if (rc != 0) {
 		LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX "go_show_user_event: "
@@ -661,6 +688,18 @@ int go_incoming_call(int accountId, int callId,
 	LOG_DEBUG(GUI_CB_SNDR_MSG_PREFIX "\tcallerSipUri: %s", callerSipUri);
 	LOG_DEBUG(GUI_CB_SNDR_MSG_PREFIX "\tcallerDisplayName: %s",
 			  callerDisplayName);
+
+	if (!callerSipUri) {
+		LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX "go_incoming_call "
+				  "failed: no caller SIP URI given");
+		return 0;
+	}
+
+	if (!callerDisplayName) {
+		LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX "go_incoming_call "
+				  "failed: no caller display name given");
+		return 0;
+	}
 
 	rc = pthread_mutex_lock(&cb_queues[GUI_CB_IN_CALL_ID].lock);
 	if (rc != 0) {
