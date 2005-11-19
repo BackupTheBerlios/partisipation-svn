@@ -76,6 +76,7 @@ int am_account_set(int const accountId, char *const attribute,
 
 	struct node *n;
 	struct account *acc;
+	char *new_val;
 
 	n = get_node(accountId);
 	if (!n) {
@@ -84,9 +85,13 @@ int am_account_set(int const accountId, char *const attribute,
 	}
 	acc = n->acc;
 
-	char *new_val = (char *) malloc(strlen(value) + 1);
-
-	strcpy(new_val, value);
+	if (value) {
+		new_val = (char *) malloc(strlen(value) + 1);
+		strcpy(new_val, value);
+	} else {
+		new_val = (char *) malloc(1);
+		strcpy(new_val, "");
+	}
 
 	if (strcmp(attribute, "id") == 0) {
 		acc->id = atoi(value);
@@ -324,6 +329,11 @@ int am_get_account_by_callee_uri(char *calleeSipUri) {
 	char *domain;
 	char *protocol;
 
+	if (!calleeSipUri) {
+		// callee SIP URI is missing
+		return -1;
+	}
+
 	uri = (char *) malloc(strlen(calleeSipUri) * sizeof(char) + 1);
 	strcpy(uri, calleeSipUri);
 
@@ -401,6 +411,8 @@ int am_build_from_and_to(int accountId, char *callee, char **from,
 	if (!callee || strlen(callee) == 0) {
 		return 0;
 	}
+	// acc->domain and acc->domain can not be NULL, because 
+	// am_is_account_valid was called previously
 
 	*from = (char *)
 		malloc((strlen(acc->username) + strlen(acc->domain) +
