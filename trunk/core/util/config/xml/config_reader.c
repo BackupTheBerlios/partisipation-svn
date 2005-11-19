@@ -55,6 +55,11 @@ int parse_int(const char *input) {
 
 void parse_string(const char *input, char **target) {
 	int len;
+	if (!input) {
+		*target = (char *) malloc(1);
+		strcpy(*target, "");
+		return;
+	}
 	len = strlen(input);
 	*target = (char *) malloc(len * sizeof(char) + 1);
 	strcpy(*target, input);
