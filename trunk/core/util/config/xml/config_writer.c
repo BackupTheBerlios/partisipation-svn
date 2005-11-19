@@ -347,9 +347,13 @@ int cw_destroy() {
 	
 	@param char *fileName path of XML file to be written
 	@param saveCfgOnExit flag value: indicates if data should be auto-saved on shutdown
-	@return always 1
+	@return whether initializing config_writer succeeded (boolean)
 */
 int cw_init(const char *fileName, int saveCfgOnExit) {
+	if (!fileName) {
+		// file name is NULL
+		return 0;
+	}
 	xml_file_name = (char *) malloc(strlen(fileName) * sizeof(char) + 1);
 	strcpy(xml_file_name, fileName);
 	save_on_exit = saveCfgOnExit;
