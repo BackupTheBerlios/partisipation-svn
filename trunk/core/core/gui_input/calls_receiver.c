@@ -13,6 +13,11 @@ int gi_make_call(int const accountId, char *const callee) {
 	void **params;
 	char *s;
 
+	if (!callee) {
+		// no callee given
+		return -1;
+	}
+
 	len = strlen(callee);
 	s = (char *) malloc(len * sizeof(char) + 1);
 	strcpy(s, callee);
