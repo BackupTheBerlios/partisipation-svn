@@ -197,6 +197,12 @@ int sm_initial_state(sm_state * curState, event trigger, void **params,
 		case GUI_MAKE_CALL:
 			callInfo->accountId = (int) params[0];
 			callInfo->callId = (int) params[2];
+			if (!params[1]) {
+				LOG_DEBUG(STATEMACHINE_PREFIX "inital state, "
+						  "GUI.makeCall: no callee given (callID %d)",
+						  callInfo->callId);
+				return 0;
+			}
 			callInfo->callee =
 				(char *) malloc(strlen((char *) params[1]) * sizeof(char) +
 								1);
@@ -239,6 +245,16 @@ int sm_initial_state(sm_state * curState, event trigger, void **params,
 
 				// no response is sent because we want to block broadcast 
 				// messages and prevent spamming (firewall concept)
+				return 0;
+			}
+			if (!sipEvt->toUrl) {
+				LOG_DEBUG(STATEMACHINE_PREFIX "inital state, "
+						  "SipListener.receive: To URL missing");
+				return 0;
+			}
+			if (!sipEvt->fromUrl) {
+				LOG_DEBUG(STATEMACHINE_PREFIX "inital state, "
+						  "SipListener.receive: From URL missing");
 				return 0;
 			}
 
