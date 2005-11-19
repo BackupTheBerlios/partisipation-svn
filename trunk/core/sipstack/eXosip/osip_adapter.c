@@ -207,9 +207,13 @@ sipstack_event *sipstack_map_event(eXosip_event_t * event) {
 		sse->statusCode = 0;
 	}
 	/* get response message */
-	sse->message =
-		(char *) malloc(strlen(event->textinfo) * sizeof(char) + 1);
-	strcpy(sse->message, event->textinfo);
+	if (event->textinfo) {
+		sse->message =
+			(char *) malloc(strlen(event->textinfo) * sizeof(char) + 1);
+		strcpy(sse->message, event->textinfo);
+	} else {
+		sse->message = NULL;
+	}
 	/* get call id */
 	sse->callId = (int) event->cid;
 	/* get dialog id */
