@@ -491,6 +491,12 @@ int event_dispatch(event evt, void **params, int *callId) {
 		int accountId;
 		char *callee;
 
+		if (!params[1]) {
+			LOG_ERROR(EVENT_DISP_MSG_PREFIX "GUI.makeCall: callee is "
+					  "missing");
+			return 0;
+		}
+
 		*callId = cig_generate_call_id();
 		accountId = (int) params[0];
 		callee = (char *) params[1];
