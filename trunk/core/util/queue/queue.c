@@ -1,5 +1,9 @@
-#include "util/queue/queue.h"
 #include <stdlib.h>
+
+#include <util/queue/queue.h>
+#include <util/logging/logger.h>
+
+#define QUEUE_MSG_PREFIX "[queue] "
 
 struct queue_record {
 	int capacity;
@@ -22,12 +26,14 @@ queue queue_create_queue(int maxElements) {
 
 	queue = malloc(sizeof(struct queue_record));
 	if (queue == NULL) {
-		FatalError("CreateQueue Error: Unable to allocate more memory.");
+		LOG_FAILURE(QUEUE_MSG_PREFIX "Unable to allocate more memory");
+		return NULL;
 	}
 
 	queue->array = malloc(sizeof(void *) * maxElements);
 	if (queue->array == NULL) {
-		FatalError("CreateQueue Error: Unable to allocate more memory.");
+		LOG_FAILURE(QUEUE_MSG_PREFIX "Unable to allocate more memory");
+		return NULL;
 	}
 
 	queue->capacity = maxElements;
@@ -58,41 +64,39 @@ static int queue_succ(int value, queue queue) {
 	return value;
 }
 
-void queue_enqueue(void *element, queue queue) {
+int queue_enqueue(void *element, queue queue) {
 
 	if (queue_is_full(queue)) {
-		Error("Enqueue Error: The queue is full.");
-	} else {
-		queue->size++;
-		queue->rear = queue_succ(queue->rear, queue);
-		queue->array[queue->rear] = element;
+		LOG_ERROR(QUEUE_MSG_PREFIX "the queue is full");
+		return 0;
 	}
 
+	queue->size++;
+	queue->rear = queue_succ(queue->rear, queue);
+	queue->array[queue->rear] = element;
+	return 1;
 }
 
 void *queue_front(queue queue) {
 
-	if (!queue_is_empty(queue)) {
-		return queue->array[queue->front];
+	if (queue_is_empty(queue)) {
+		LOG_ERROR(QUEUE_MSG_PREFIX "the queue is empty");
+		return NULL;
 	}
-	Error("Front Error: The queue is empty.");
 
-	/*
-	 * Return value to avoid warnings from the compiler
-	 */
-	return NULL;
-
+	return queue->array[queue->front];
 }
 
-void queue_dequeue(queue queue) {
+int queue_dequeue(queue queue) {
 
 	if (queue_is_empty(queue)) {
-		Error("Dequeue Error: The queue is empty.");
-	} else {
-		queue->size--;
-		queue->front = queue_succ(queue->front, queue);
+		LOG_ERROR(QUEUE_MSG_PREFIX "the queue is empty");
+		return 0;
 	}
 
+	queue->size--;
+	queue->front = queue_succ(queue->front, queue);
+	return 1;
 }
 
 void *queue_front_and_dequeue(queue queue) {
@@ -100,14 +104,14 @@ void *queue_front_and_dequeue(queue queue) {
 	void *element = NULL;
 
 	if (queue_is_empty(queue)) {
-		Error("Front and Dequeue Error: The queue is empty.");
-	} else {
-		queue->size--;
-		element = queue->array[queue->front];
-		queue->front = queue_succ(queue->front, queue);
+		LOG_ERROR(QUEUE_MSG_PREFIX "the queue is empty");
+		return NULL;
 	}
-	return element;
 
+	queue->size--;
+	element = queue->array[queue->front];
+	queue->front = queue_succ(queue->front, queue);
+	return element;
 }
 
 int queue_is_element(void *element, queue queue) {

@@ -6,6 +6,7 @@
  *
  * @author Jeffrey Hunter (http://www.iDevelopment.info)
  * @author Enrico Hartung <enrico@iptel.org>
+ * @author Matthias Liebig
  */
 
 /**
@@ -20,14 +21,11 @@
  * @{
  */
 
+#ifndef HQUEUE_USED
+#define HQUEUE_USED
+
 #include <stdio.h>
 #include <stdlib.h>
-
-#define Error(Str)        FatalError(Str)
-#define FatalError(Str)   fprintf(stderr, "%s\n", Str), exit(1)
-
-#ifndef QUEUE_H
-#define QUEUE_H
 
 struct queue_record;
 
@@ -74,8 +72,9 @@ void queue_make_empty(queue queue);
  *
  * @param element the element to insert
  * @param queue a queue
+ * @return if the queue is full 0 is returned, otherwise 1 (boolean)
  */
-void queue_enqueue(void *element, queue queue);
+int queue_enqueue(void *element, queue queue);
 
 /**
  * Returns the first element of the queue.
@@ -89,8 +88,9 @@ void *queue_front(queue queue);
  * Remove the first element of the queue.
  *
  * @param queue a queue
+ * @return if the queue is empty 0 is returned, otherwise 1 (boolean)
  */
-void queue_dequeue(queue queue);
+int queue_dequeue(queue queue);
 
 /**
  * Return the first element of the queue and remove it.
@@ -117,7 +117,7 @@ int queue_is_element(void *element, queue queue);
  */
 int queue_get_size(queue queue);
 
-#endif							/* QUEUE_H */
+#endif							/* HQUEUE_USED */
 
 /**
  * @}
