@@ -14,6 +14,8 @@
 
 #define REG_RCVR_MSG_PREFIX "[registration receiver] "
 
+extern int shutdownPolling;
+
 char *gi_register_gui(char *const address, int const port) {
 	int rc;
 
@@ -45,19 +47,11 @@ char *gi_register_gui(char *const address, int const port) {
 		return "ERROR";
 	}
 	// starts polling_thread for GUI Polling
-	void **threadParam;
+	rc = start_thread(polling_gui, NULL);
 
-	threadParam = (void *) malloc(2 * sizeof(void *));
-	threadParam[0] = (void *) malloc(strlen(address) * sizeof(char) + 1);
-	strcpy(threadParam[0], address);
-	threadParam[1] = (void *) port;
-
-	rc = start_thread(polling_gui, (void *) threadParam);
-
-	// TODO: what happens in error case?
 	if (!rc) {
-		LOG_DEBUG(REG_RCVR_MSG_PREFIX
-				  "starting polling_gui thread result=ERROR");
+		LOG_ERROR(REG_RCVR_MSG_PREFIX "register_gui: failed to start "
+				  "polling_gui thread");
 		return "ERROR";
 	}
 
@@ -71,6 +65,9 @@ int gi_unregister_gui(char *const address, int const port) {
 
 	LOG_DEBUG(REG_RCVR_MSG_PREFIX "unregister_gui(address: %s port: %d)",
 			  address, port);
+
+	// shutdown thread for GUI Polling
+	shutdownPolling = 1;
 
 	url = (char *) malloc(1024 * sizeof(char));
 	sprintf(url, "http://%s:%d/RPC2", address, port);
