@@ -70,7 +70,14 @@ int sm_checking_state_on_entry(local_call_info * callInfo) {
 	}
 	elem->params = NULL;
 
-	queue_enqueue((void *) elem, queues[callInfo->queueId]->eventPool);
+	rc = queue_enqueue((void *) elem,
+					   queues[callInfo->queueId]->eventPool);
+	if (!rc) {
+		LOG_DEBUG(STATEMACHINE_PREFIX "checking.OnEntry: failed enqueue "
+				  "event");
+		pthread_mutex_unlock(&queuesLock);
+		return 0;
+	}
 
 	pthread_mutex_unlock(&queuesLock);
 	return 1;
@@ -784,6 +791,12 @@ void *sm_start(void *args) {
 			elem = NULL;
 			if (curState != TERMINATING) {
 				elem = (call_trigger *) queue_front_and_dequeue(eventPool);
+				if (!elem) {
+					LOG_DEBUG(STATEMACHINE_PREFIX "failed to dequeue "
+							  "event (queue empty?)");
+					errorOccurred = 1;
+					break;
+				}
 			}
 
 			switch (curState) {
