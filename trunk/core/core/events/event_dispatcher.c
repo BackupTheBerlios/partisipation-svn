@@ -12,6 +12,8 @@
 #include <util/config/globals.h>
 #include <sipstack/sip_stack_interface.h>
 #include <core/sip_output/registrar_manager.h>
+#include <core/gui_output/gui_callback_sender.h>
+#include <core/events/call_status.h>
 
 #define EVENT_DISP_MSG_PREFIX "[event dispatcher] "
 
@@ -48,7 +50,7 @@ int ed_destroy() {
 	return 1;
 }
 
-int create_queue(int *pos, int callId, int sipCallId) {
+int create_queue(int *pos, int accountId, int callId, int sipCallId) {
 	int i;						// counter
 	int rc;						// return code
 
@@ -64,6 +66,35 @@ int create_queue(int *pos, int callId, int sipCallId) {
 			LOG_ERROR(EVENT_DISP_MSG_PREFIX "too many simultanous calls, "
 					  "maximum is %d",
 					  config.core.events.dispatcher.maxCalls);
+			if (callId > 0) {
+				rc = go_show_user_event(accountId, "ERROR",
+										"Error making call",
+										"Too many simultanous calls.",
+										"You exceeded the limit of calls "
+										"the Core is able to process "
+										"according to its configuration.");
+			} else {
+				rc = go_show_user_event(accountId, "ERROR",
+										"Error accepting incoming call",
+										"Too many simultanous calls.",
+										"You exceeded the limit of calls "
+										"the Core is able to process "
+										"according to its configuration.");
+			}
+			if (!rc) {
+				LOG_ERROR(EVENT_DISP_MSG_PREFIX "failed to inform the "
+						  "GUI");
+			}
+
+			if (callId > 0) {
+				rc = go_change_call_status(callId,
+										   call_status_to_str
+										   (CS_TERMINATED));
+				if (!rc) {
+					LOG_ERROR(EVENT_DISP_MSG_PREFIX "failed to inform "
+							  "the GUI");
+				}
+			}
 			// unlock
 			pthread_mutex_unlock(&queuesLock);
 			return 0;
@@ -264,6 +295,24 @@ int enqueue_event(int pos, call_trigger * param) {
 	if (!rc) {
 		LOG_ERROR(EVENT_DISP_MSG_PREFIX "enqueue event: failed to "
 				  "enqueue event (queue full?)");
+
+		// only inform GUI if current event is coming from the GUI
+		if (param->trigger == GUI_MAKE_CALL
+			|| param->trigger == GUI_ACCEPT_CALL
+			|| param->trigger == GUI_END_CALL) {
+
+			rc = go_show_user_event(0, "ERROR",
+									"Error performing call control",
+									"Failed to perform command.",
+									"There were no free ressources to "
+									"store your request within the "
+									"Core.");
+			if (!rc) {
+				LOG_ERROR(EVENT_DISP_MSG_PREFIX "failed to inform the "
+						  "GUI");
+			}
+		}
+
 		pthread_mutex_unlock(&queues[pos]->poolLock);
 		return 0;
 	}
@@ -327,19 +376,33 @@ int enqueue_and_wake(int callId, int sipCallId, call_trigger * param) {
 			LOG_ERROR(EVENT_DISP_MSG_PREFIX "enqueue and wake: failed to "
 					  "find statemachine position to given call ID %d",
 					  callId);
+
+			res = go_show_user_event(0, "ERROR",
+									 "Error performing call control",
+									 "Failed to perform either termination "
+									 "or acception of a call.",
+									 "The given call ID is no longer valid "
+									 "which prevents processing your "
+									 "command.");
+			if (!res) {
+				LOG_ERROR(EVENT_DISP_MSG_PREFIX "failed to inform the "
+						  "GUI");
+			}
 			return 0;
 		}
 	} else if (sipCallId > 0) {
 		res = find_pos_by_sip_call_id(sipCallId);
 		if (res == -1) {
-			LOG_ERROR(EVENT_DISP_MSG_PREFIX "enqueue and wake: failed to "
+			LOG_DEBUG(EVENT_DISP_MSG_PREFIX "enqueue and wake: failed to "
 					  "find statemachine position to given SIP call ID %d",
 					  sipCallId);
+			// don't inform GUI because that is probably an unimportant event
 			return 0;
 		}
 	} else {
 		LOG_ERROR(EVENT_DISP_MSG_PREFIX "neither call ID nor SIP call ID "
 				  "given - unable to find statemachine position");
+		// don't inform GUI because this means bad usage of this function
 		return 0;
 	}
 
@@ -351,6 +414,7 @@ int enqueue_and_wake(int callId, int sipCallId, call_trigger * param) {
 				  "enqueue and wake: failed to enqueue "
 				  "current event (event type %d, call ID %d)",
 				  param->trigger, callId);
+		// don't inform GUI because this is already done by enqueue_event
 		return 0;
 	}
 
@@ -380,6 +444,7 @@ void *dispatch(void *args) {
 	int pos;
 	int callId;
 	int sipCallId;
+	int accountId;
 	call_trigger *param;
 	sipstack_event *sipEvt;
 
@@ -387,6 +452,7 @@ void *dispatch(void *args) {
 	if (!param) {
 		LOG_ERROR(EVENT_DISP_MSG_PREFIX "dispatch thread received no "
 				  "parameters");
+		// don't inform GUI because this means bad usage of this thread
 		leave_dispatch_thr_err(param);
 		return NULL;
 	}
@@ -396,11 +462,14 @@ void *dispatch(void *args) {
 
 	switch (param->trigger) {
 		case GUI_MAKE_CALL:
+			accountId = (int) param->params[0];
 			callId = (int) param->params[2];
-			res = create_queue(&pos, callId, 0);
+			res = create_queue(&pos, accountId, callId, 0);
 			if (!res) {
 				LOG_ERROR(EVENT_DISP_MSG_PREFIX "create_queue(): no free "
 						  "position found");
+				// don't inform GUI because this is already done by 
+				// create_queue
 				leave_dispatch_thr_err(param);
 				return NULL;
 			}
@@ -408,6 +477,8 @@ void *dispatch(void *args) {
 			res = enqueue_event(pos, param);
 			if (!res) {
 				LOG_ERROR(EVENT_DISP_MSG_PREFIX "enqueue_event() failed");
+				// don't inform GUI because this is already done by 
+				// enqueue_event
 				leave_dispatch_thr_err(param);
 				return NULL;
 			}
@@ -433,10 +504,12 @@ void *dispatch(void *args) {
 				}
 			} else if (sipEvt->type == EXOSIP_CALL_INVITE) {
 				sipCallId = sipEvt->callId;
-				res = create_queue(&pos, 0, sipCallId);
+				res = create_queue(&pos, -1, 0, sipCallId);
 				if (!res) {
 					LOG_ERROR(EVENT_DISP_MSG_PREFIX
 							  "create_queue(): no free position found");
+					// don't inform GUI because this is already done by 
+					// create_queue
 					leave_dispatch_thr_err(param);
 					return NULL;
 				}
@@ -445,6 +518,8 @@ void *dispatch(void *args) {
 				if (!res) {
 					LOG_ERROR(EVENT_DISP_MSG_PREFIX
 							  "enqueue_event() failed");
+					// don't inform GUI because this is already done by 
+					// enqueue_event
 					leave_dispatch_thr_err(param);
 					return NULL;
 				}
@@ -454,9 +529,11 @@ void *dispatch(void *args) {
 				sipCallId = sipEvt->callId;
 				res = enqueue_and_wake(0, sipCallId, param);
 				if (!res) {
-					LOG_ERROR(EVENT_DISP_MSG_PREFIX "dispatch thread, "
+					LOG_DEBUG(EVENT_DISP_MSG_PREFIX "dispatch thread, "
 							  "SipListener.receive: enqueue&wake failed "
 							  "(event type: %d)", sipEvt->type);
+					// don't inform GUI because this is already done by 
+					// enqueue_and_wake
 					leave_dispatch_thr_err(param);
 					return NULL;
 				}
@@ -467,8 +544,10 @@ void *dispatch(void *args) {
 			callId = (int) param->params[0];
 			res = enqueue_and_wake(callId, 0, param);
 			if (!res) {
-				LOG_ERROR(EVENT_DISP_MSG_PREFIX "dispatch thread, "
+				LOG_DEBUG(EVENT_DISP_MSG_PREFIX "dispatch thread, "
 						  "GUI.endCall: enqueue&wake failed");
+				// don't inform GUI because this is already done by 
+				// enqueue_and_wake
 				leave_dispatch_thr_err(param);
 				return NULL;
 			}
@@ -477,8 +556,10 @@ void *dispatch(void *args) {
 			callId = (int) param->params[0];
 			res = enqueue_and_wake(callId, 0, param);
 			if (!res) {
-				LOG_ERROR(EVENT_DISP_MSG_PREFIX "dispatch thread, "
+				LOG_DEBUG(EVENT_DISP_MSG_PREFIX "dispatch thread, "
 						  "GUI.acceptCall: enqueue&wake failed");
+				// don't inform GUI because this is already done by 
+				// enqueue_and_wake
 				leave_dispatch_thr_err(param);
 				return NULL;
 			}
@@ -486,11 +567,15 @@ void *dispatch(void *args) {
 		case INVALID_EVENT:
 			LOG_ERROR(EVENT_DISP_MSG_PREFIX "dispatch thread: "
 					  "received invalid event");
+			// don't inform GUI because this is caused by bad usage of this 
+			// thread
 			leave_dispatch_thr_err(param);
 			return NULL;
 		default:
 			LOG_ERROR(EVENT_DISP_MSG_PREFIX "dispatch thread: received "
 					  "event which is not yet implemented");
+			// don't inform GUI because this is caused by bad usage of this 
+			// thread
 			leave_dispatch_thr_err(param);
 			return NULL;
 	}
@@ -516,15 +601,24 @@ int event_dispatch(event evt, void **params, int *callId) {
 		int accountId;
 		char *callee;
 
-		if (!params[1]) {
+		accountId = (int) params[0];
+		callee = (char *) params[1];
+
+		if (!callee || strlen(callee) == 0) {
 			LOG_ERROR(EVENT_DISP_MSG_PREFIX "GUI.makeCall: callee is "
 					  "missing");
+			rc = go_show_user_event(accountId, "ERROR",
+									"Error making call",
+									"Callee is missing.",
+									"Please specify whom you want to call.");
+			if (!rc) {
+				LOG_ERROR(EVENT_DISP_MSG_PREFIX "failed to inform the "
+						  "GUI");
+			}
 			return 0;
 		}
 
 		*callId = cig_generate_call_id();
-		accountId = (int) params[0];
-		callee = (char *) params[1];
 
 		threadParam->params = (void **) malloc(3 * sizeof(void *));
 		threadParam->params[0] = (void *) accountId;
