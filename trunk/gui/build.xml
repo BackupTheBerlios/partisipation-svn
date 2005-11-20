@@ -92,7 +92,7 @@
 	</target>
 
 	<target name="run" depends="build">
-		<java classname="gui.Gui" fork="true">
+		<java classname="gui.Gui" fork="true" error="error.log">
 			<classpath refid="classpath"/>
 		</java>
 	</target>
