@@ -390,6 +390,24 @@ int sm_inviting_state(sm_state * curState, event trigger, void **params,
 			update_transaction_and_dialog(callInfo, sipEvt->transactionId, 
 										  INVITE_TRANSACTION, 
 										  sipEvt->dialogId);
+
+			if (sipEvt->type == EXOSIP_CALL_RELEASED) {
+				// timeout occurred and sipstack releases call
+				int rc;
+				
+				rc = go_change_call_status(callInfo->callId, 
+										   call_status_to_str(CS_UNREACHABLE));
+				if (!rc) {
+					LOG_DEBUG(STATEMACHINE_PREFIX "inviting state, "
+							  "SipListener.Receive failed to change call "
+							  "status (call ID: %d)", callInfo->callId);
+					return 0;
+				}
+
+				*curState = TERMINATING; 
+				break;
+			}
+
 			if ((sipEvt->statusCode >= 100)
 				 && (sipEvt->statusCode <= 199)) {
 				switch (sipEvt->statusCode) {
@@ -460,14 +478,19 @@ int sm_inviting_state(sm_state * curState, event trigger, void **params,
 				"received %d - ignoring event", sipEvt->type);
 			break; 
 		case GUI_END_CALL:
-			rc = sipstack_cancel(callInfo->sipCallId, callInfo->dialogId);
-			if (!rc) {
-					LOG_DEBUG(STATEMACHINE_PREFIX "inviting state, "
-						"SipListener.Receive: failed to send terminate call "
-						"via sipstack adapter (call ID: %d)", 
-						callInfo->callId);
-				return 0;
+			if (callInfo->dialogId > 0) {
+				// trying and/or ringing received - dialog is established:
+				rc = sipstack_cancel(callInfo->sipCallId, callInfo->dialogId);
+				if (!rc) {
+						LOG_DEBUG(STATEMACHINE_PREFIX "inviting state, "
+							"SipListener.Receive: failed to send terminate "
+							"call via sipstack adapter (call ID: %d)", 
+							callInfo->callId);
+					return 0;
+				}
 			}
+			// if no dialog established: INVITE will probably timeout, so it
+			// is fine to leave here
 				
 			*curState = TERMINATING; 
 			break; 
