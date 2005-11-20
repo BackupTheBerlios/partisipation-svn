@@ -51,16 +51,16 @@ void *go_change_reg_status_thr(void *args) {
 			cbi = (cb_info *)
 				queue_front_and_dequeue(cb_queues[GUI_CB_CH_REG_ST_ID].
 										msgPool);
-			if (cbi->doShutdown) {
-				finished = 1;
-				break;
-			}
 			if (!cbi) {
 				LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX
 						  "go_change_reg_status thread "
 						  "received no parameters");
 				thread_terminated();
 				return NULL;
+			}
+			if (cbi->doShutdown) {
+				finished = 1;
+				break;
 			}
 			if (!cbi->params) {
 				LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX
@@ -197,16 +197,16 @@ void *go_change_call_status_thr(void *args) {
 			cbi = (cb_info *)
 				queue_front_and_dequeue(cb_queues[GUI_CB_CH_CALL_ST_ID].
 										msgPool);
-			if (cbi->doShutdown) {
-				finished = 1;
-				break;
-			}
 			if (!cbi) {
 				LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX
 						  "go_change_call_status thread "
 						  "received no parameters");
 				thread_terminated();
 				return NULL;
+			}
+			if (cbi->doShutdown) {
+				finished = 1;
+				break;
 			}
 			if (!cbi->params) {
 				LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX
@@ -368,16 +368,16 @@ void *go_show_user_event_thr(void *args) {
 			cbi = (cb_info *)
 				queue_front_and_dequeue(cb_queues[GUI_CB_SH_USR_EVT_ID].
 										msgPool);
-			if (cbi->doShutdown) {
-				finished = 1;
-				break;
-			}
 			if (!cbi) {
 				LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX
 						  "go_show_user_event thread "
 						  "received no parameters");
 				thread_terminated();
 				return NULL;
+			}
+			if (cbi->doShutdown) {
+				finished = 1;
+				break;
 			}
 			if (!cbi->params) {
 				LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX
@@ -607,16 +607,16 @@ void *go_incoming_call_thr(void *args) {
 			cbi = (cb_info *)
 				queue_front_and_dequeue(cb_queues[GUI_CB_IN_CALL_ID].
 										msgPool);
-			if (cbi->doShutdown) {
-				finished = 1;
-				break;
-			}
 			if (!cbi) {
 				LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX
 						  "go_incoming_call thread "
 						  "received no parameters");
 				thread_terminated();
 				return NULL;
+			}
+			if (cbi->doShutdown) {
+				finished = 1;
+				break;
 			}
 			if (!cbi->params) {
 				LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX
@@ -796,16 +796,16 @@ void *go_set_speaker_volume_cb_thr(void *args) {
 			cbi = (cb_info *)
 				queue_front_and_dequeue(cb_queues[GUI_CB_ST_SP_VOL_ID].
 										msgPool);
-			if (cbi->doShutdown) {
-				finished = 1;
-				break;
-			}
 			if (!cbi) {
 				LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX
 						  "go_set_speaker_volume_cb thread "
 						  "received no parameters");
 				thread_terminated();
 				return NULL;
+			}
+			if (cbi->doShutdown) {
+				finished = 1;
+				break;
 			}
 			if (!cbi->params) {
 				LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX
@@ -954,16 +954,16 @@ void *go_set_micro_volume_cb_thr(void *args) {
 			cbi = (cb_info *)
 				queue_front_and_dequeue(cb_queues[GUI_CB_ST_MP_VOL_ID].
 										msgPool);
-			if (cbi->doShutdown) {
-				finished = 1;
-				break;
-			}
 			if (!cbi) {
 				LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX
 						  "go_set_micro_volume_cb thread "
 						  "received no parameters");
 				thread_terminated();
 				return NULL;
+			}
+			if (cbi->doShutdown) {
+				finished = 1;
+				break;
 			}
 			if (!cbi->params) {
 				LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX
