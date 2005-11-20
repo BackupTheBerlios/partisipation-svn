@@ -96,7 +96,7 @@ int rm_init() {
 	// initialize mutex lock
 	rc = pthread_mutex_init(&accInfoLock, NULL);
 	if (rc != 0) {
-		// ERROR
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "failed to gain mutex lock");
 		return 0;
 	}
 	// reserve memory for status information about accounts
@@ -124,7 +124,7 @@ int rm_destroy() {
 	// release mutex lock
 	rc = pthread_mutex_destroy(&accInfoLock);
 	if (rc != 0) {
-		// ERROR
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "failed to release mutex lock");
 		return 0;
 	}
 
@@ -218,7 +218,7 @@ void leave_reg_thrd_with_error(int pos, int accountId, int acquireLock) {
 		rc = pthread_mutex_lock(&accInfoLock);
 		if (rc != 0) {
 			// failed to gain lock, we have to leave
-			LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "mutex lock could "
+			LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "mutex lock could "
 					  "not be acquired, error: %d", rc);
 			thread_terminated();
 		}
@@ -229,7 +229,12 @@ void leave_reg_thrd_with_error(int pos, int accountId, int acquireLock) {
 		clear_account_info(pos);
 	}
 	// release lock (in any case):
-	pthread_mutex_unlock(&accInfoLock);
+	rc = pthread_mutex_unlock(&accInfoLock);
+	if (rc != 0) {
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "mutex lock could not be "
+				  "released, error %d", rc);
+		thread_terminated();
+	}
 	// exit thread:
 	thread_terminated();
 }
@@ -261,7 +266,7 @@ void *registration_thread(void *args) {
 	rc = pthread_mutex_lock(&accInfoLock);
 	if (rc != 0) {
 		// failed to gain lock, exit (fatal error)
-		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "mutex lock could not be"
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "mutex lock could not be"
 				  "acquired, error: %d", rc);
 		thread_terminated();
 		return NULL;
@@ -273,8 +278,17 @@ void *registration_thread(void *args) {
 	rc = find_acc_by_id(accountId, NULL);
 	if (rc) {
 		// account is blocked by another thread (impatient GUI user?)
-		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "account already in use");
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "account already in use");
 
+		rc = go_show_user_event(accountId, "ERROR",
+								"Error registering account",
+								"Account is already in use.",
+								"Either this account is already "
+								"registered or it is currently tried to "
+								"unregister this account.");
+		if (!rc) {
+			LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "failed to inform the GUI");
+		}
 		// inform GUI and exit:
 		leave_reg_thrd_with_error(-1, accountId, 0);
 		return NULL;
@@ -287,8 +301,16 @@ void *registration_thread(void *args) {
 	pos = find_empty_acc_info();
 	if (pos == -1) {
 		// no position found (fatal error):
-		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "no empty position found");
-
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "no empty position found");
+		rc = go_show_user_event(accountId, "ERROR",
+								"Error registering account",
+								"Maximum number of active accounts "
+								"exceeded.",
+								"You have registered more accounts than "
+								"are allowed by the Core configuration.");
+		if (!rc) {
+			LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "failed to inform the GUI");
+		}
 		// inform GUI and exit:
 		leave_reg_thrd_with_error(-1, accountId, 0);
 		return NULL;
@@ -303,11 +325,17 @@ void *registration_thread(void *args) {
 	// get account data from account management:
 	acc = am_get_account(accountId);
 	if (!acc) {
-		// ERROR: no such account available:
-		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
-				  "account management did not return"
-				  " matching account data.");
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "account management did not "
+				  "return matching account data.");
 
+		rc = go_show_user_event(accountId, "ERROR",
+								"Error registering account",
+								"No such account available.",
+								"Account management did not return "
+								"matching account data.");
+		if (!rc) {
+			LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "failed to inform the GUI");
+		}
 		// inform GUI and exit:
 		leave_reg_thrd_with_error(pos, accountId, 0);
 		return NULL;
@@ -318,9 +346,18 @@ void *registration_thread(void *args) {
 
 	// check fields required for registration:
 	if (!acc->domain || !acc->username || !acc->registrar) {
-		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX
 				  "domain, username or registrar is missing");
 
+		rc = go_show_user_event(accountId, "ERROR",
+								"Error registering account",
+								"Account information is invalid.",
+								"Your account is missing either domain, "
+								"user name or registrar. Please check "
+								"your account information.");
+		if (!rc) {
+			LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "failed to inform the GUI");
+		}
 		// inform GUI and exit:
 		leave_reg_thrd_with_error(pos, accountId, 0);
 		return NULL;
@@ -328,9 +365,18 @@ void *registration_thread(void *args) {
 
 	if (strcmp(acc->domain, "") == 0 || strcmp(acc->username, "") == 0
 		|| strcmp(acc->registrar, "") == 0) {
-		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX
 				  "domain, username or registrar is empty");
 
+		rc = go_show_user_event(accountId, "ERROR",
+								"Error registering account",
+								"Account information is invalid.",
+								"Your account is missing either domain, "
+								"user name or registrar. Please check "
+								"your account information.");
+		if (!rc) {
+			LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "failed to inform the GUI");
+		}
 		// inform GUI and exit:
 		leave_reg_thrd_with_error(pos, accountId, 0);
 		return NULL;
@@ -350,8 +396,20 @@ void *registration_thread(void *args) {
 									   registrarManager.expire);
 	if (regId == -1) {
 		// no valid registration ID returned because of an error
-		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "send register failed");
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "send register failed");
 
+		rc = go_show_user_event(accountId, "ERROR",
+								"Error registering account",
+								"Sending registration message failed.",
+								"Failed to send your registration "
+								"request to the given registrar."
+								"Please check whether your account "
+								"data is correct and whether your "
+								"internet connection is working "
+								"correctly.");
+		if (!rc) {
+			LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "failed to inform the GUI");
+		}
 		// free strings:
 		free(from);
 		free(registrar);
@@ -361,8 +419,8 @@ void *registration_thread(void *args) {
 		return NULL;
 	}
 
-	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
-			  "send register succeeded, regId: %d", regId);
+	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "send register succeeded, "
+			  "regId: %d", regId);
 
 	accInfos[pos].regId = regId;
 	accInfos[pos].waitingOnRegOK = 1;	// tell dispatcher which OK is expected
@@ -370,8 +428,19 @@ void *registration_thread(void *args) {
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "now waiting on OK");
 
 	// marked account as "used"
-	pthread_mutex_unlock(&accInfoLock);
+	rc = pthread_mutex_unlock(&accInfoLock);
+	if (rc != 0) {
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "releasing mutex lock "
+				  "failed, error: %d", rc);
 
+		// free strings:
+		free(from);
+		free(registrar);
+
+		// inform GUI and exit:
+		leave_reg_thrd_with_error(pos, accountId, 0);
+		return NULL;
+	}
 	// now wait on response:
 	timeoutCtr = 0;
 	while (!accInfos[pos].eventArrived) {
@@ -398,9 +467,20 @@ void *registration_thread(void *args) {
 	}
 	// test if we did receive an OK (isRegistered is set by dispatcher):
 	if (!accInfos[pos].isRegistered) {
-		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "registering failed");
-		// ERROR: retry?
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "registering failed");
 
+		rc = go_show_user_event(accountId, "ERROR",
+								"Error registering account",
+								"Sending registration message failed.",
+								"Failed to send your registration "
+								"request to the given registrar."
+								"Please check whether your account "
+								"data is correct and whether your "
+								"internet connection is working "
+								"correctly.");
+		if (!rc) {
+			LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "failed to inform the GUI");
+		}
 		// inform GUI and exit:
 		leave_reg_thrd_with_error(pos, accountId, 1);
 		return NULL;
@@ -409,13 +489,16 @@ void *registration_thread(void *args) {
 	rc = go_change_reg_status(accountId, 1);
 	if (!rc) {
 		// could not contact GUI (error):
-		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "GUI registration status update"
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "GUI registration status update"
 				  " failed");
 
 		// inform GUI and exit (it is unlikely to succeed but try anyway):
 		leave_reg_thrd_with_error(pos, accountId, 1);
 		return NULL;
 	}
+
+	LOG_INFO(REGISTRAR_MGR_MSG_PREFIX "registration was successful for "
+			 "account: %d", accountId);
 	// **********************************************************************
 
 	// now we are responsible for updating registration
@@ -440,9 +523,23 @@ void *registration_thread(void *args) {
 											   registrarManager.expire);
 			if (rc == 0) {
 				// send REGISTER failed
-				LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "send update register"
+				LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "send update register"
 						  " failed");
-
+				rc = go_show_user_event(accountId, "ERROR",
+										"Error refreshing account "
+										"registration",
+										"Sending automated registration "
+										"message failed.",
+										"Failed to send registration "
+										"refresh to the given registrar. "
+										"Please check whether your account "
+										"data is correct and whether your "
+										"internet connection is working "
+										"correctly.");
+				if (!rc) {
+					LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX
+							  "failed to inform the GUI");
+				}
 				// inform GUI and exit:
 				leave_reg_thrd_with_error(pos, accountId, 1);
 				return NULL;
@@ -465,10 +562,23 @@ void *registration_thread(void *args) {
 
 			// test if OK arrived:
 			if (!accInfos[pos].isRefreshed) {
-				LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
+				LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX
 						  "updating registration failed");
-				// ERROR: retry?
-
+				rc = go_show_user_event(accountId, "ERROR",
+										"Error refreshing account "
+										"registration",
+										"Sending automated registration "
+										"message failed.",
+										"Failed to send registration "
+										"refresh to the given registrar. "
+										"Please check whether your account "
+										"data is correct and whether your "
+										"internet connection is working "
+										"correctly.");
+				if (!rc) {
+					LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX
+							  "failed to inform the GUI");
+				}
 				// inform GUI and exit:
 				leave_reg_thrd_with_error(pos, accountId, 1);
 				return NULL;
@@ -478,8 +588,8 @@ void *registration_thread(void *args) {
 			accInfos[pos].eventArrived = 0;
 			accInfos[pos].waitingOnRefreshOK = 0;
 
-			LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "registration updated for "
-					  "account: %d", accountId);
+			LOG_INFO(REGISTRAR_MGR_MSG_PREFIX "registration updated for "
+					 "account: %d", accountId);
 		}
 	}
 
@@ -514,7 +624,7 @@ void *unregistration_thread(void *args) {
 	rc = pthread_mutex_lock(&accInfoLock);
 	if (rc != 0) {
 		// failed to gain lock, exit (fatal error)
-		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "mutex lock could not be"
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "mutex lock could not be"
 				  "acquired, error: %d", rc);
 		thread_terminated();
 		return NULL;
@@ -527,8 +637,15 @@ void *unregistration_thread(void *args) {
 	rc = find_acc_by_id(accountId, &pos);
 	if (!rc) {
 		// no registration/update thread active
-		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "account not in use");
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "account not in use");
 
+		rc = go_show_user_event(accountId, "ERROR",
+								"Error unregistering account",
+								"Account is not in use.",
+								"This account is already unregistered.");
+		if (!rc) {
+			LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "failed to inform the GUI");
+		}
 		// unlock and exit:
 		pthread_mutex_unlock(&accInfoLock);
 		thread_terminated();
@@ -539,9 +656,16 @@ void *unregistration_thread(void *args) {
 	if (accInfos[pos].doShutdown || accInfos[pos].isShutdown) {
 		// a second unregister thread was started just when we are trying to
 		// shutdown the active registration thread
-		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "another thread is already "
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "another thread is already "
 				  "unregistering");
-
+		rc = go_show_user_event(accountId, "ERROR",
+								"Error unregistering account",
+								"Already unregistering.",
+								"It is currently tried to unregister this "
+								"account.");
+		if (!rc) {
+			LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "failed to inform the GUI");
+		}
 		// unlock and exit:
 		pthread_mutex_unlock(&accInfoLock);
 		thread_terminated();
@@ -556,7 +680,13 @@ void *unregistration_thread(void *args) {
 	// release lock to enable abnormal termination (otherwise a dead lock
 	// might occur if registration thread is trying to shutdown in case of
 	// an error while updating):
-	pthread_mutex_unlock(&accInfoLock);
+	rc = pthread_mutex_unlock(&accInfoLock);
+	if (rc != 0) {
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "mutex lock could not be "
+				  "released, error %d", rc);
+		thread_terminated();
+		return NULL;
+	}
 
 	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "wait for registration thread "
 			  "to finish");
@@ -573,9 +703,15 @@ void *unregistration_thread(void *args) {
 
 	// we should not send an unregister if account is not registered
 	if (!accInfos[pos].isRegistered || accInfos[pos].accountId == -1) {
-		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "unregister failed: account "
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "unregister failed: account "
 				  "is not registered");
-
+		rc = go_show_user_event(accountId, "ERROR",
+								"Error unregistering account",
+								"Account is not in use.",
+								"This account is already unregistered.");
+		if (!rc) {
+			LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "failed to inform the GUI");
+		}
 		// exit:
 		thread_terminated();
 		return NULL;
@@ -588,8 +724,19 @@ void *unregistration_thread(void *args) {
 	rc = sipstack_send_unregister(accInfos[pos].regId);
 	if (!rc) {
 		// sending REGISTER failed
-		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "send unregister failed");
-
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "send unregister failed");
+		rc = go_show_user_event(accountId, "ERROR",
+								"Error unregistering account",
+								"Sending unregistration message failed.",
+								"Failed to send your unregistration "
+								"request to the given registrar."
+								"Please check whether your account "
+								"data is correct and whether your "
+								"internet connection is working "
+								"correctly.");
+		if (!rc) {
+			LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "failed to inform the GUI");
+		}
 		// exit:
 		thread_terminated();
 		return NULL;
@@ -614,12 +761,25 @@ void *unregistration_thread(void *args) {
 	// test if account is really unregistered:
 	if (accInfos[pos].isRegistered) {
 		// account is still in use:
-		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "unregister failed: account "
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "unregister failed: account "
 				  "is still registered");
-
-		// exit:
-		thread_terminated();
-		return NULL;
+		if (accInfos[pos].informGui) {
+			rc = go_show_user_event(accountId, "ERROR",
+									"Error unregistering account",
+									"Sending unregistration message failed.",
+									"Failed to send your unregistration "
+									"request to the given registrar."
+									"Please check whether your account "
+									"data is correct and whether your "
+									"internet connection is working "
+									"correctly.");
+			if (!rc) {
+				LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX
+						  "failed to inform the GUI");
+			}
+		}
+		// don't terminate because there is no point in believing the account 
+		// was still registered with the registrar
 	}
 
 	if (accInfos[pos].informGui) {
@@ -627,8 +787,8 @@ void *unregistration_thread(void *args) {
 		rc = go_change_reg_status(accountId, 0);
 		if (!rc) {
 			// failed to contact GUI
-			LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
-					  "GUI registration status update" " failed");
+			LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "GUI registration status "
+					  "update failed");
 
 			// exit:
 			thread_terminated();
@@ -638,8 +798,8 @@ void *unregistration_thread(void *args) {
 	// mark account as no longer used:
 	clear_account_info(pos);
 
-	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
-			  "unregister of account %d succeeded", accountId);
+	LOG_INFO(REGISTRAR_MGR_MSG_PREFIX
+			 "unregister of account %d succeeded", accountId);
 
 	// we are done:
 	thread_terminated();
@@ -669,10 +829,9 @@ void *autoregistration_thread(void *args) {
 			rc = rm_register_account(accounts[i]->id);
 			if (!rc) {
 				// thread starting failed
-				LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "starting registering "
+				LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "starting registering "
 						  "thread for account %d failed", accounts[i]->id);
-
-				// inform GUI?
+				// don't inform GUI because rm_register_account already does it
 			}
 			// no guarantee that thread execution is error-free at this point
 		}
@@ -697,7 +856,7 @@ void *unregisterall_thread(void *args) {
 	rc = pthread_mutex_lock(&accInfoLock);
 	if (rc != 0) {
 		// failed to gain lock, fatal error
-		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "mutex lock could not be"
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "mutex lock could not be"
 				  "acquired, error: %d", rc);
 		return 0;
 	}
@@ -710,15 +869,20 @@ void *unregisterall_thread(void *args) {
 		if (accInfos[i].accountId != -1 && accInfos[i].isRegistered) {
 			rc = rm_unregister_account(accInfos[i].accountId);
 			if (!rc) {
-				LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
+				LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX
 						  "failed to automatically"
 						  " unregister account: %d",
 						  accInfos[i].accountId);
 			}
 		}
 	}
-	pthread_mutex_unlock(&accInfoLock);
-
+	rc = pthread_mutex_unlock(&accInfoLock);
+	if (rc != 0) {
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "mutex lock could not be "
+				  "released, error %d", rc);
+		thread_terminated();
+		return NULL;
+	}
 	// we are done:
 	thread_terminated();
 	return NULL;
@@ -731,9 +895,17 @@ int rm_register_account(int accountId) {
 
 	rc = start_thread(registration_thread, (void *) accountId);
 	if (!rc) {
-		// ERROR
-		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
-				  "leaving rm_register_account(): ERROR");
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "leaving rm_register_account():"
+				  " failed to start thread");
+		rc = go_show_user_event(accountId, "FAILURE",
+								"Error registering account",
+								"Failed to start registration thread.",
+								"The Core failed to perform your "
+								"registration request because of an internal "
+								"error.");
+		if (!rc) {
+			LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "failed to inform the GUI");
+		}
 		return 0;
 	}
 
@@ -748,9 +920,17 @@ int rm_unregister_account(int accountId) {
 
 	rc = start_thread(unregistration_thread, (void *) accountId);
 	if (!rc) {
-		// ERROR
-		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
-				  "leaving rm_unregister_account(): ERROR");
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "leaving "
+				  "rm_unregister_account(): failed to start thread");
+		rc = go_show_user_event(accountId, "FAILURE",
+								"Error unregistering account",
+								"Failed to start unregistration thread.",
+								"The Core failed to perform your "
+								"unregistration request because of an "
+								"internal error.");
+		if (!rc) {
+			LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "failed to inform the GUI");
+		}
 		return 0;
 	}
 
@@ -765,9 +945,17 @@ int rm_register_auto() {
 
 	rc = start_thread(autoregistration_thread, NULL);
 	if (!rc) {
-		// ERROR
-		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
-				  "leaving rm_register_auto(): ERROR");
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "leaving rm_register_auto(): "
+				  "failed to start thread");
+		rc = go_show_user_event(-1, "FAILURE",
+								"Error automatically registering account",
+								"Failed to start autoregistration thread.",
+								"The Core failed to perform your "
+								"automated registration request because of an "
+								"internal error.");
+		if (!rc) {
+			LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "failed to inform the GUI");
+		}
 		return 0;
 	}
 
@@ -782,9 +970,9 @@ int rm_unregister_all() {
 
 	rc = start_thread(unregisterall_thread, NULL);
 	if (!rc) {
-		// ERROR
-		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
-				  "leaving rm_unregister_all(): ERROR");
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "leaving rm_unregister_all(): "
+				  "failed to start thread");
+		// don't inform GUI because it may be already gone
 		return 0;
 	}
 
@@ -798,29 +986,16 @@ int rm_receive_register_event(sipstack_event * event) {
 
 	// sanity check:
 	if (!event) {
-		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX
 				  "register_event: NULL received");
-		// ERROR
 		return 0;
 	}
-	// print event info:
-	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "event:");
-	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "\ttype: %d", event->type);
-	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "\tstatusCode: %d",
-			  event->statusCode);
-	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "\tmessage: %s", event->message);
-	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "\tcallId: %d", event->callId);
-	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "\tdialogId: %d", event->dialogId);
-	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "\ttransactionId: %d",
-			  event->transactionId);
-	LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "\tregId: %d", event->regId);
-
 	// acquire lock to prevent multiple events for same account are handled at
 	// the same time
 	rc = pthread_mutex_lock(&accInfoLock);
 	if (rc != 0) {
 		// failed to gain lock, fatal error
-		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "mutex lock could not be"
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "mutex lock could not be"
 				  "acquired, error: %d", rc);
 		return 0;
 	}
@@ -829,7 +1004,7 @@ int rm_receive_register_event(sipstack_event * event) {
 	pos = find_acc_by_regid(event->regId);	// rely on eXosip registration ID
 	if (pos == -1) {
 		// no active thread found:
-		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "no active (un-)registration "
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "no active (un-)registration "
 				  "thread with this regId: %d", event->regId);
 
 		// unlock and exit:
@@ -850,12 +1025,22 @@ int rm_receive_register_event(sipstack_event * event) {
 			} else if (accInfos[pos].waitingOnUnregOK) {
 				accInfos[pos].isRegistered = 0;
 			} else {
-				// ERROR
+				LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "expected OK type "
+						  "not set");
 			}
 			break;
 		case EXOSIP_REGISTRATION_FAILURE:
-			accInfos[pos].isRegistered = 0;
-			accInfos[pos].isRefreshed = 0;
+			if (accInfos[pos].waitingOnRegOK) {
+				accInfos[pos].isRegistered = 0;
+			} else if (accInfos[pos].waitingOnRefreshOK) {
+				accInfos[pos].isRegistered = 0;
+				accInfos[pos].isRefreshed = 0;
+			} else if (accInfos[pos].waitingOnUnregOK) {
+				accInfos[pos].isRegistered = 1;
+			} else {
+				LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "expected OK type "
+						  "not set");
+			}
 			break;
 		case EXOSIP_REGISTRATION_REFRESHED:
 			// never used by eXosip atm
@@ -868,7 +1053,7 @@ int rm_receive_register_event(sipstack_event * event) {
 			accInfos[pos].isRefreshed = 0;
 			break;
 		default:
-			LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX "wrong event type, only "
+			LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "wrong event type, only "
 					  "REGISTRATION events allowed");
 			break;
 	}
@@ -877,12 +1062,16 @@ int rm_receive_register_event(sipstack_event * event) {
 	accInfos[pos].eventArrived = 1;
 
 	// unlock because we are done using account status info
-	pthread_mutex_unlock(&accInfoLock);
-
+	rc = pthread_mutex_unlock(&accInfoLock);
+	if (rc != 0) {
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX "mutex lock could not be "
+				  "released, error %d", rc);
+		return 0;
+	}
 	// finally free sipstack event:
 	rc = sipstack_event_free(event);
 	if (!rc) {
-		LOG_DEBUG(REGISTRAR_MGR_MSG_PREFIX
+		LOG_ERROR(REGISTRAR_MGR_MSG_PREFIX
 				  "failed to release sipstack event");
 		return 0;
 	}
