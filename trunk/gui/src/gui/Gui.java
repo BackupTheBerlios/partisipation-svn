@@ -2,6 +2,7 @@ package gui;
 
 import java.awt.Color;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -167,7 +168,7 @@ public class Gui extends JFrame {
                         params.clear();
                         params.add(n);
                         params.add("name");
-                        img.setDescription((String) execute("core.accountGet", params));
+                        img.setDescription((String) execute("core.accountGet", params) + " (# "+ n.toString()+")");
                         list1.addElement(img);
                         Account acc = new Account(n.intValue(), false);
                         accounts.add(acc);
@@ -821,6 +822,12 @@ public class Gui extends JFrame {
             }
         });
 
+        jTextField1.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                jTextField1KeyPressed(evt);
+            }
+        });
+        
         jTextField2.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
                 jTextField2KeyPressed(evt);
@@ -973,7 +980,7 @@ public class Gui extends JFrame {
             params.clear();
             params.add(accId);
             params.add("name");
-            img.setDescription((String) execute("core.accountGet", params));
+            img.setDescription((String) execute("core.accountGet", params) + " (# "+ accId.toString()+")");
             list1.set(i, img);
             
             params.clear();
@@ -1390,11 +1397,29 @@ public class Gui extends JFrame {
     public void jButton3MouseClicked(java.awt.event.MouseEvent evt) {
         int i = jList1.getSelectedIndex();
         if (i > -1) {
-            Integer accId = new Integer(((Account) accounts.elementAt(i)).id);
+            
+            Account acc = (Account) accounts.elementAt(i);
+            
+            Integer accId = new Integer(acc.id);
             setValues(accId);
             modified = false;
             restoreColor();
             jButton3.setEnabled(false);
+            
+            String src;
+            
+            if (acc.registered) src = "gui/resources/green.gif";
+            else src = "gui/resources/red.gif";
+            
+            ImageIcon img = new ImageIcon(cl
+                    .getResource(src));
+            params.clear();
+            params.add(accId);
+            params.add("name");
+            img.setDescription((String) execute(
+                    "core.accountGet", params) + " (# "+ acc.id +")");
+            list1.set(i, img);
+            
         }
     }
 
@@ -1510,15 +1535,21 @@ public class Gui extends JFrame {
         params.clear();
         Integer accId = (Integer) execute("core.accountCreate", params);
         if (accId != null) {
+            
             Account acc = new Account(accId.intValue(), false);
             accounts.add(acc);
-            ImageIcon img = new ImageIcon(cl
-                    .getResource("gui/resources/red.gif"));
-            img.setDescription(accId.toString());
-            list1.addElement(img);
             setValues(accId);
             modified = false;
             restoreColor();
+            
+            ImageIcon img = new ImageIcon(cl
+                    .getResource("gui/resources/red.gif"));
+            params.clear();
+            params.add(accId);
+            params.add("name");
+            img.setDescription((String) execute("core.accountGet", params) + " (# "+ accId.toString()+")");
+            list1.addElement(img);
+            
         }
     }
 
@@ -1648,6 +1679,19 @@ public class Gui extends JFrame {
                                     .elementAt(oldIndex);
                             Integer oldAccId = new Integer(oldAcc.id);                           
                             setValues(oldAccId);
+                            String src;
+                            
+                            if (oldAcc.registered) src = "gui/resources/green.gif";
+                            else src = "gui/resources/red.gif";
+                            
+                            ImageIcon img = new ImageIcon(cl
+                                    .getResource(src));
+                            params.clear();
+                            params.add(oldAccId);
+                            params.add("name");
+                            img.setDescription((String) execute(
+                                    "core.accountGet", params) + " (# "+ oldAcc.id +")");
+                            list1.set(oldIndex, img);
                         }
                         modified = false;
                         jButton3.setEnabled(false);
@@ -1715,6 +1759,14 @@ public class Gui extends JFrame {
         }
     }
 
+    private void jTextField1KeyPressed(java.awt.event.KeyEvent evt) {
+            int keyCode = evt.getKeyCode();
+            /* if ENTER button has been pressed -- make call */
+            if (keyCode == 10) {
+                jLabel13MouseReleased(null);
+            } 
+    }
+    
     private void jTextField8KeyPressed(java.awt.event.KeyEvent evt) {
         oldValue = jTextField8.getText();
     }

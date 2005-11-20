@@ -57,7 +57,7 @@ public class GuiStub {
                         params.add(new Integer(n));
                         params.add("name");
                         img.setDescription((String) gui.execute(
-                                "core.accountGet", params));
+                                "core.accountGet", params) + " (# "+ accountId+")");
                         gui.list1.set(i, img);
 
                     } else {
@@ -68,7 +68,7 @@ public class GuiStub {
                         params.add(new Integer(n));
                         params.add("name");
                         img.setDescription((String) gui.execute(
-                                "core.accountGet", params));
+                                "core.accountGet", params) + " (# "+ accountId+")");
                         gui.list1.set(i, img);
                     }
                     break;
@@ -187,10 +187,29 @@ public class GuiStub {
             String displayName) {
         try {
             
-            print("Incoming call # " + callId + " from " + sipUri + " ("
-                    + displayName + ").");
+            params.clear();
+            params.add(new Integer(accountId));
+            params.add("name");
+            String accName = (String) gui.execute("core.accountGet", params);
             
-            DialogThread dt = new DialogThread(gui, dialog, pendingCalls, accountId, callId, sipUri, displayName);
+            String nm;
+            String an;
+            
+            if (displayName.trim().equalsIgnoreCase("")) {
+                nm = "";
+            } else {
+                nm = " (" + displayName + ")";
+            }
+            
+            if (accName.trim().equalsIgnoreCase("")) {
+                an = "";
+            } else {
+                an = " (\"" + accName + "\")";
+            }
+            
+            print("Incoming call # " + callId + " from " + sipUri + nm +" to account #"+accountId+ an +".");
+            
+            DialogThread dt = new DialogThread(gui, dialog, pendingCalls, accountId, callId, sipUri, displayName, accName);
             dt.start();
                       
             return true;
@@ -376,8 +395,9 @@ class DialogThread extends Thread {
     int callId;
     String sipUri;
     String displayName;
+    String accName;
         
-    public DialogThread(Gui g, JDialog d, Vector p, int aid, int cid, String uri, String dn) {
+    public DialogThread(Gui g, JDialog d, Vector p, int aid, int cid, String uri, String dn, String an) {
         gui = g;
         dialog = d;
         pendingCalls = p;
@@ -385,14 +405,30 @@ class DialogThread extends Thread {
         callId = cid;
         sipUri = uri;
         displayName = dn;
+        accName = an;
     }
 
     public void run() {
         Object[] options = { "Accept", "Decline" };
         
+        String nm;
+        String an;
+        
+        if (displayName.trim().equalsIgnoreCase("")) {
+            nm = "";
+        } else {
+            nm = " (" + displayName + ")";
+        }
+        
+        if (accName.trim().equalsIgnoreCase("")) {
+            an = "";
+        } else {
+            an = " (\"" + accName + "\")";
+        }
+        
        final JOptionPane optionPane = new JOptionPane(
                 "Incoming call from "
-                + sipUri + " (" + displayName + ").\n",
+                + sipUri + nm +" to account #"+ accountId + an+".\n",
                 JOptionPane.WARNING_MESSAGE,
                 JOptionPane.YES_NO_OPTION,
                 null, options, options[0]);
