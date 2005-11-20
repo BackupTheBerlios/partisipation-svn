@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <util/threads/thread_management.h>
 #include <util/logging/logger.h>
@@ -197,6 +198,8 @@ void *go_change_call_status_thr(void *args) {
 			cbi = (cb_info *)
 				queue_front_and_dequeue(cb_queues[GUI_CB_CH_CALL_ST_ID].
 										msgPool);
+			// prevent GUI exceptions / strange behaviour:
+			usleep(250000);
 			if (!cbi) {
 				LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX
 						  "go_change_call_status thread "
