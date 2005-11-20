@@ -87,7 +87,11 @@ int create_queue(int *pos, int callId, int sipCallId) {
 	// initialize event queue for specific statemachine:
 	queues[i]->eventPool =
 		queue_create_queue(config.core.events.dispatcher.maxEvents);
-
+	if (!queues[i]->eventPool) {
+		LOG_DEBUG(EVENT_DISP_MSG_PREFIX "create queue: failed to "
+				  "create event pool (not enough memory?)");
+		return 0;
+	}
 	// initialize wakeup-condition-variable for specific statemachine:
 	rc = pthread_cond_init(&queues[i]->wakeUp, NULL);
 	if (rc != 0) {
@@ -251,7 +255,13 @@ int enqueue_event(int pos, call_trigger * param) {
 
 	LOG_DEBUG(EVENT_DISP_MSG_PREFIX "trying to enqueue current event");
 
-	queue_enqueue((void *) param, queues[pos]->eventPool);
+	rc = queue_enqueue((void *) param, queues[pos]->eventPool);
+	if (!rc) {
+		LOG_DEBUG(EVENT_DISP_MSG_PREFIX "enqueue event: failed to "
+				  "enqueue event (queue full?)");
+		pthread_mutex_unlock(&queues[pos]->poolLock);
+		return 0;
+	}
 
 	LOG_DEBUG(EVENT_DISP_MSG_PREFIX "finished queue_enqueue()");
 
@@ -390,7 +400,12 @@ void *dispatch(void *args) {
 				return NULL;
 			}
 
-			queue_enqueue((void *) param, queues[pos]->eventPool);
+			res = enqueue_event(pos, param);
+			if (!res) {
+				LOG_DEBUG(EVENT_DISP_MSG_PREFIX "enqueue_event() failed");
+				leave_dispatch_thr_err(param);
+				return NULL;
+			}
 
 			start_thread(sm_start, (void *) pos);
 
@@ -422,7 +437,13 @@ void *dispatch(void *args) {
 					return NULL;
 				}
 
-				queue_enqueue((void *) param, queues[pos]->eventPool);
+				res = enqueue_event(pos, param);
+				if (!res) {
+					LOG_DEBUG(EVENT_DISP_MSG_PREFIX
+							  "enqueue_event() failed");
+					leave_dispatch_thr_err(param);
+					return NULL;
+				}
 
 				start_thread(sm_start, (void *) pos);
 			} else {
