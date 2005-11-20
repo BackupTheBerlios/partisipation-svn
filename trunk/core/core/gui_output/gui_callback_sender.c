@@ -141,7 +141,14 @@ int go_change_reg_status(int accountId, int registered) {
 	cb->params[0] = (void *) accountId;
 	cb->params[1] = (void *) registered;
 
-	queue_enqueue((void *) cb, cb_queues[GUI_CB_CH_REG_ST_ID].msgPool);
+	rc = queue_enqueue((void *) cb,
+					   cb_queues[GUI_CB_CH_REG_ST_ID].msgPool);
+	if (!rc) {
+		LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX "go_change_reg_status "
+				  "failed to enqueue message: queue is full");
+		pthread_mutex_unlock(&cb_queues[GUI_CB_CH_REG_ST_ID].lock);
+		return 0;
+	}
 
 	rc = pthread_mutex_lock(&cb_queues[GUI_CB_CH_REG_ST_ID].wakeUpLock);
 	if (rc != 0) {
@@ -302,7 +309,14 @@ int go_change_call_status(int callId, char *status) {
 	cb->params[1] = (void *) malloc(strlen(status) * sizeof(char) + 1);
 	strcpy((char *) cb->params[1], status);
 
-	queue_enqueue((void *) cb, cb_queues[GUI_CB_CH_CALL_ST_ID].msgPool);
+	rc = queue_enqueue((void *) cb,
+					   cb_queues[GUI_CB_CH_CALL_ST_ID].msgPool);
+	if (!rc) {
+		LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX "go_change_call_status "
+				  "failed to enqueue message: queue is full");
+		pthread_mutex_unlock(&cb_queues[GUI_CB_CH_CALL_ST_ID].lock);
+		return 0;
+	}
 
 	rc = pthread_mutex_lock(&cb_queues[GUI_CB_CH_CALL_ST_ID].wakeUpLock);
 	if (rc != 0) {
@@ -531,7 +545,14 @@ int go_show_user_event(int accountId, char *category,
 		(void *) malloc(strlen(detailMessage) * sizeof(char) + 1);
 	strcpy((char *) cb->params[4], detailMessage);
 
-	queue_enqueue((void *) cb, cb_queues[GUI_CB_SH_USR_EVT_ID].msgPool);
+	rc = queue_enqueue((void *) cb,
+					   cb_queues[GUI_CB_SH_USR_EVT_ID].msgPool);
+	if (!rc) {
+		LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX "go_show_user_event "
+				  "failed to enqueue message: queue is full");
+		pthread_mutex_unlock(&cb_queues[GUI_CB_SH_USR_EVT_ID].lock);
+		return 0;
+	}
 
 	rc = pthread_mutex_lock(&cb_queues[GUI_CB_SH_USR_EVT_ID].wakeUpLock);
 	if (rc != 0) {
@@ -720,7 +741,13 @@ int go_incoming_call(int accountId, int callId,
 		(void *) malloc(strlen(callerDisplayName) * sizeof(char) + 1);
 	strcpy((char *) cb->params[3], callerDisplayName);
 
-	queue_enqueue((void *) cb, cb_queues[GUI_CB_IN_CALL_ID].msgPool);
+	rc = queue_enqueue((void *) cb, cb_queues[GUI_CB_IN_CALL_ID].msgPool);
+	if (!rc) {
+		LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX "go_incoming_call "
+				  "failed to enqueue message: queue is full");
+		pthread_mutex_unlock(&cb_queues[GUI_CB_IN_CALL_ID].lock);
+		return 0;
+	}
 
 	rc = pthread_mutex_lock(&cb_queues[GUI_CB_IN_CALL_ID].wakeUpLock);
 	if (rc != 0) {
@@ -870,7 +897,14 @@ int go_set_speaker_volume_cb(double level) {
 	cb->params[0] = (void *) malloc(1 * sizeof(double));
 	*((double *) cb->params[0]) = level;
 
-	queue_enqueue((void *) cb, cb_queues[GUI_CB_ST_SP_VOL_ID].msgPool);
+	rc = queue_enqueue((void *) cb,
+					   cb_queues[GUI_CB_ST_SP_VOL_ID].msgPool);
+	if (!rc) {
+		LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX "go_set_speaker_volume_cb "
+				  "failed to enqueue message: queue is full");
+		pthread_mutex_unlock(&cb_queues[GUI_CB_ST_SP_VOL_ID].lock);
+		return 0;
+	}
 
 	rc = pthread_mutex_lock(&cb_queues[GUI_CB_ST_SP_VOL_ID].wakeUpLock);
 	if (rc != 0) {
@@ -1020,7 +1054,14 @@ int go_set_micro_volume_cb(double level) {
 	cb->params[0] = (void *) malloc(1 * sizeof(double));
 	*((double *) cb->params[0]) = level;
 
-	queue_enqueue((void *) cb, cb_queues[GUI_CB_ST_MP_VOL_ID].msgPool);
+	rc = queue_enqueue((void *) cb,
+					   cb_queues[GUI_CB_ST_MP_VOL_ID].msgPool);
+	if (!rc) {
+		LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX "go_set_micro_volume_cb "
+				  "failed to enqueue message: queue is full");
+		pthread_mutex_unlock(&cb_queues[GUI_CB_ST_MP_VOL_ID].lock);
+		return 0;
+	}
 
 	rc = pthread_mutex_lock(&cb_queues[GUI_CB_ST_MP_VOL_ID].wakeUpLock);
 	if (rc != 0) {
@@ -1062,6 +1103,11 @@ int go_init() {
 
 	for (i = 0; i < GUI_CB_FUNC_AMOUNT; i++) {
 		cb_queues[i].msgPool = queue_create_queue(GUI_CB_QUEUE_SIZE);
+		if (!cb_queues[i].msgPool) {
+			LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX "failed to create "
+					  "message pool");
+			return 0;
+		}
 
 		rc = pthread_mutex_init(&cb_queues[i].lock, NULL);
 		if (rc != 0) {
