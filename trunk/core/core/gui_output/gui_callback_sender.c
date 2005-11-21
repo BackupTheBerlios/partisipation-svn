@@ -719,12 +719,6 @@ int go_incoming_call(int accountId, int callId,
 		return 0;
 	}
 
-	if (!callerDisplayName) {
-		LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX "go_incoming_call "
-				  "failed: no caller display name given");
-		return 0;
-	}
-
 	rc = pthread_mutex_lock(&cb_queues[GUI_CB_IN_CALL_ID].lock);
 	if (rc != 0) {
 		LOG_ERROR(GUI_CB_SNDR_MSG_PREFIX "go_incoming_call: "
@@ -740,9 +734,15 @@ int go_incoming_call(int accountId, int callId,
 	cb->params[2] =
 		(void *) malloc(strlen(callerSipUri) * sizeof(char) + 1);
 	strcpy((char *) cb->params[2], callerSipUri);
-	cb->params[3] =
-		(void *) malloc(strlen(callerDisplayName) * sizeof(char) + 1);
-	strcpy((char *) cb->params[3], callerDisplayName);
+
+	if (callerDisplayName) {
+		cb->params[3] =
+			(void *) malloc(strlen(callerDisplayName) * sizeof(char) + 1);
+		strcpy((char *) cb->params[3], callerDisplayName);
+	} else {
+		cb->params[3] = (void *) malloc(1);
+		strcpy((char *) cb->params[3], "");
+	}
 
 	rc = queue_enqueue((void *) cb, cb_queues[GUI_CB_IN_CALL_ID].msgPool);
 	if (!rc) {
