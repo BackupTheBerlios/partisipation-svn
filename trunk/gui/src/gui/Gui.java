@@ -513,6 +513,7 @@ public class Gui extends JFrame {
 
         addressBook.getContentPane().add(jPanel5,
                 new AbsoluteConstraints(0, 0, 300, 280));
+        addressBook.setTitle("Phone Book");
         addressBook.setResizable(false);
         addressBook.pack();
 
