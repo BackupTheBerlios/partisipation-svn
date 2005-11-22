@@ -1,0 +1,31 @@
+Dependencies:
+-------------
+
+The following libraries have to be installed before installing PartiSIPation:
+
+- xmlrpc-c
+- osip2 (GPL, http://www.antisip.com)
+- eXosip2 (GPL, http://www.antisip.com)
+- Expat
+- Genx
+- librtp (GPL, http://sourceforge.net/projects/librtp/)
+
+
+To use the Java GUI:
+
+- [apache] xmlrpc-2.0
+- xerces
+- AbsoluteLayout
+- [apache] commons-codec
+
+
+
+Installation:
+-------------
+
+The program is known to run on linux, but might work
+on any unix and windows systems.
+
+   $> ./configure
+   $> make
+   $> su -c 'make install'
