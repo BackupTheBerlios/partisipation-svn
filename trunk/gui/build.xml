@@ -22,24 +22,51 @@
 
 <project basedir="." default="build" name="GUI">
 
+	<property name="name" value="partiSIPation-GUI"/>
+	<property name="version" value="0.1.0"/>
+	
 	<property name="src" value="${basedir}/src"/>
 	<property name="bin" value="${basedir}/bin"/>
 	<property name="doc" value="${basedir}/doc"/>
 	<property name="lib" value="${basedir}/lib"/>
 	<property name="cfg" value="${basedir}/cfg"/>
+	<property name="scn" value="${basedir}/scn"/>
 	<property name="javadoc" value="${doc}/javadoc"/>
 	<property name="checkstyle" value="${doc}/checkstyle"/>
+	<property name="deploy" value="${basedir}/deploy"/>
+	<property name="jar" value="${basedir}/${name}.jar"/>
 
+	<taskdef resource="genjar.properties" classpath="${lib}/GenJar.jar"/>
+	
     <path id="classpath">
     	<fileset dir="${lib}">
     	   <include name="*.jar"/>
     	</fileset>
 	 	<pathelement path="${bin}"/>
      </path>
+	 
+	 <patternset id="srcdeployfiles">
+	 	<include name="src/**/**"/>
+	 	<include name="lib/**/**"/>
+	 	<include name="cfg/**/**"/>
+	 	<include name="scn/**/**"/>
+		<include name="build.xml"/>
+		<include name="INSTALL"/>
+		<include name="README"/>
+	 </patternset>
+	 
+	 <patternset id="bindeployfiles">
+	 	<include name="cfg/gui_config.*"/>
+		<include name="${name}.jar"/>
+		<include name="INSTALL"/>
+		<include name="README"/>
+	 </patternset>
 
 	<target name="clean">
 		<delete dir="${bin}"/>
 		<delete dir="${doc}"/>
+		<delete dir="${deploy}"/>
+		<delete file="${jar}"/>
 	</target>
 
     <target name="gendoc" depends="clean">
@@ -98,5 +125,59 @@
 	</target>
 
     <target name="all" depends="build,gendoc,checkstyle"/>
+	
+	<target name="jar" depends="build">
+		<genjar jarfile="${jar}">
+			<class name="gui.Gui"/>
+			<classpath refid="classpath"/>
+			
+			<library jar="${lib}/AbsoluteLayout.jar"/>
+			<library jar="${lib}/commons-codec-1.3.jar"/>
+			<library jar="${lib}/commons-codec-1.3.jar"/>
+			<library jar="${lib}/sax2.jar"/>
+			<library jar="${lib}/xercesImpl.jar"/>
+			<library jar="${lib}/xmlrpc-2.0.jar"/>
+			
+			<resource package="gui.resources.">
+				<fileset dir="${src}/gui/resources"/>
+			</resource>
+			
+			<manifest>
+				<attribute name="Main-Class" value="gui.Gui"/>
+			</manifest>
+		</genjar>
+	</target>
+	
+	<target name="deploy" depends="deploy_bin,deploy_src"/>
+	
+	<target name="deploy_bin" depends="build, jar">
+		<mkdir dir="${deploy}"/>
+		<tar destfile="${deploy}/${name}-${version}.tar.gz" compression="gzip"
+			 longfile="gnu">
+			<tarfileset dir="${basedir}" prefix="${name}-${version}">
+				<patternset refid="bindeployfiles"/>
+			</tarfileset>
+		</tar>
+		<zip destfile="${deploy}/${name}-${version}.zip">
+			<zipfileset dir="${basedir}" prefix="${name}-${version}">
+				<patternset refid="bindeployfiles"/>
+			</zipfileset>
+		</zip>
+	</target>
+	
+	<target name="deploy_src" depends="clean">
+		<mkdir dir="${deploy}"/>
+		<tar destfile="${deploy}/${name}-${version}-src.tar.gz" compression="gzip"
+			 longfile="gnu">
+			<tarfileset dir="${basedir}" prefix="${name}-${version}">
+				<patternset refid="srcdeployfiles"/>
+			</tarfileset>
+		</tar>
+		<zip destfile="${deploy}/${name}-${version}-src.zip">
+			<zipfileset dir="${basedir}" prefix="${name}-${version}">
+				<patternset refid="srcdeployfiles"/>
+			</zipfileset>
+		</zip>
+	</target>
 
 </project>
