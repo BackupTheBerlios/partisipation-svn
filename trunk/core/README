@@ -1,19 +1,19 @@
-Project    : PartiSIPation - a sip user agent framework
+Project    : PartiSIPation - a SIP user agent framework
 Authors    : Anton Huttenlocher <ant_htl@web.de>, 
              Enrico Hartung <enrico@iptel.org>,
              Matthias Liebig <matthias@iptel.org>, 
-             Oleksiey Reznikov <info@vtrip.de>
+             Oleksiy Reznikov <info@vtrip.de>
 License    : GPL
 Home Page  : http://partisipation.berlios.de/
 
 
-PartiSIPation is an easy integrable and adaptable sip user agent framework.
+PartiSIPation is an easy integrable and adaptable SIP user agent framework.
 
 
 Features:
 ---------
 
-- Sip statemachine
+- SIP statemachine
 - Interface infrastructure to easily replace libraries and add codecs
-- Xml-rpc interface to GUI
+- XML-RPC interface to GUI
 - Supports multiple parallel calls

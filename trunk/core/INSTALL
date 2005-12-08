@@ -1,31 +1,103 @@
+Project    : PartiSIPation - a SIP user agent framework
+Authors    : Anton Huttenlocher <ant_htl@web.de>, 
+             Enrico Hartung <enrico@iptel.org>,
+             Matthias Liebig <matthias@iptel.org>, 
+             Oleksiy Reznikov <info@vtrip.de>
+License    : GPL
+Home Page  : http://partisipation.berlios.de/
+
+
 Dependencies:
 -------------
 
 The following libraries have to be installed before installing PartiSIPation:
 
-- xmlrpc-c
-- osip2 (GPL, http://www.antisip.com)
-- eXosip2 (GPL, http://www.antisip.com)
+- xmlrpc-c 1.02
+  Homepage: http://xmlrpc-c.sourceforge.net/
+  
+  We know PartiSIPation Core works with XML-RPC for C/C++ 1.02 - which you can
+  get here: 
+  http://prdownloads.sourceforge.net/xmlrpc-c/xmlrpc-c-1.2.tgz?download
+  
+  Other version have not been tested yet. 
+  
+  Warning: You may have to edit xmlrpc-c's Makefile and exclude the directories
+  ./tools and ./examples. They may not compile.
+  
+  Warning: On some systems xmlrpc-c's "make install" fails to install the 
+  xmlrpc_xmltok library because a xmltok library is present. The workaround is
+  to create a symlink from xmlrpc_xmltok to your xmltok library:
+  
+  $> ln -s /usr/lib/libxmltok.so.0 /usr/local/lib/libxmlrpc_xmltok.so
+     -- or --
+  $> ln -s /usr/local/lib/libxmltok.so /usr/local/lib/libxmlrpc_xmltok.so
+  
+- osip2 >= 2.2.0
+  http://www.antisip.com/download/
+  
+  Homepage: http://www.gnu.org/software/osip/osip.html
+  
+- eXosip2 >= 1.9.1-pre15
+  http://www.antisip.com/download/
+  
+  Homepage: http://savannah.nongnu.org/projects/exosip/
+  
 - Expat
+  Homepage: http://expat.sourceforge.net/
+  
+  Expat comes with most linux distributions.
+  
 - Genx
-- librtp (GPL, http://sourceforge.net/projects/librtp/)
-
-
-To use the Java GUI:
-
-- [apache] xmlrpc-2.0
-- xerces
-- AbsoluteLayout
-- [apache] commons-codec
-
+  Homepage: http://www.tbray.org/ongoing/When/200x/2004/02/20/GenxStatus
+  
+  Genx is automatically installed.
 
 
 Installation:
 -------------
 
 The program is known to run on linux, but might work
-on any unix and windows systems.
+on any unix or windows system.
 
    $> ./configure
    $> make
    $> su -c 'make install'
+   
+
+Execution:
+----------
+
+After installation, the Core can directly be started with:
+
+   $> partisipation_core
+
+If you are using the SVN checkout, the Core will be started from the directory
+of your checkout:
+
+   $> ./partisipation_core
+
+
+Tools (only needed for development/testing):
+--------------------------------------------
+
+- GNU Indent >= 2.2.9
+  Homepage: http://www.gnu.org/software/indent/indent.html
+
+- Check >= 0.9.0
+  Homepage: http://check.sourceforge.net/
+
+- Doxygen >= 1.4.0
+  Homepage: http://www.doxygen.org/
+  
+- Colour-audit
+  Homepage: http://hinterhof.net/~max/audit-perl/colour-audit.1.html
+  
+  (Colour-audit is included in SVN checkout)
+
+
+Compiling from SVN checkout:
+----------------------------
+
+   $> cp Makefile.svn Makefile
+   $> make
+
