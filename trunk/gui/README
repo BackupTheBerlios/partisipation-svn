@@ -1,0 +1,22 @@
+Project    : PartiSIPation - a SIP user agent framework
+Part       : GUI
+Authors    : Anton Huttenlocher <ant_htl@web.de>, 
+             Enrico Hartung <enrico@iptel.org>,
+             Matthias Liebig <matthias@iptel.org>, 
+             Oleksiy Reznikov <info@vtrip.de>
+License    : GPL
+Home Page  : http://partisipation.berlios.de/ 
+
+
+PartiSIPation is an easy integrable and adaptable SIP user agent framework.
+
+This is one exemplary GUI (the first one actually).
+
+
+Features:
+---------
+
+- Supports multiple parallel calls
+- Account management (multiple accounts)
+- XML-RPC interface to Core
+- Phonebook

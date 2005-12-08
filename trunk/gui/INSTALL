@@ -1,0 +1,71 @@
+Project    : PartiSIPation - a SIP user agent framework
+Part       : GUI
+Authors    : Anton Huttenlocher <ant_htl@web.de>, 
+             Enrico Hartung <enrico@iptel.org>,
+             Matthias Liebig <matthias@iptel.org>, 
+             Oleksiy Reznikov <info@vtrip.de>
+License    : GPL
+Home Page  : http://partisipation.berlios.de/
+
+
+Dependencies:
+-------------
+
+At the moment the GUI comes with all necessary libraries in gui/lib. These
+are the following:
+
+- Apache XML-RPC 2.0
+  http://ws.apache.org/xmlrpc/
+  
+- Xerces-J 2.7.0
+  http://xml.apache.org/xerces2-j/
+
+- AbsoluteLayout.jar from NetBeans
+  http://www.netbeans.org/
+
+- Commons Codec 1.3
+  http://jakarta.apache.org/commons/codec/
+
+- SAX 2.0.2
+  http://www.saxproject.org/
+
+As long as these jar files are in your ./lib directory, everything is fine. 
+Otherwise you'll have to fetch them from the mentioned sites.
+
+
+Installation:
+-------------
+
+- untar or unzip
+- create the folder ".partiSIPation/" in your $HOME directory:
+
+  $> mkdir ~/.partiSIPation
+  
+- copy the configuration files in this directory
+
+  $> cp cfg/gui_config.* ~/.partiSIPation/
+  
+- edit the configuration files and replace and change the IPs in <core> and 
+  <gui>
+  
+  
+Execution:
+----------
+
+After installation, the GUI can be started with:
+
+   $> java -jar partiSIPation-GUI.jar
+
+If you are using the SVN checkout, the GUI will be started from the directory
+of your checkout using Apache Ant:
+
+   $> ant run
+   
+Or you could create the jar file with
+
+   $> ant jar
+   
+and run it as decribed above.
+
+If you don't have Apache Ant, include all jar files in ./lib in your classpath
+and run it using the main class "gui.Gui".
